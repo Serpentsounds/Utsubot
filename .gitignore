@@ -1,0 +1,12 @@
+.idea/
+res/config.ini
+res/dbconfig.ini
+res/includes/MathParser.php
+res/includes/channel.php
+utsubot.sql
+veekun.sql
+oldgit/
+res/*.bat
+res/*.jpg
+res/Thumbs.db
+res/nowplaying.txt
