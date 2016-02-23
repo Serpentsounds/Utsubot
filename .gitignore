@@ -10,3 +10,5 @@ res/*.bat
 res/*.jpg
 res/Thumbs.db
 res/nowplaying.txt
+res/*.json
+res/*.txt
