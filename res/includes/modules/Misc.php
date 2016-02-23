@@ -11,7 +11,7 @@ class Misc extends Module {
 
 	private $lastNowPlaying = 0;
 	private static $nowPlayingInterval = 60;
-	private static $nowPlayingFile = '\\\\BEBOP\stuff\nowplaying.txt';
+	private static $nowPlayingFile = '\\\\GENSOU\drop\nowplaying.txt';
 
 	protected static $versionResponse = "Utsubot by Serpentsounds: https://github.com/Serpentsounds/Utsubot";
 
