@@ -1,0 +1,4839 @@
+Array
+(
+    [bulbasaur] => Array
+        (
+            [0] => 1
+            [1] => Bulbasaur
+        )
+
+    [ivysaur] => Array
+        (
+            [0] => 2
+            [1] => Ivysaur
+        )
+
+    [venusaur] => Array
+        (
+            [0] => 3
+            [1] => Venusaur
+        )
+
+    [charmander] => Array
+        (
+            [0] => 4
+            [1] => Charmander
+        )
+
+    [charmeleon] => Array
+        (
+            [0] => 5
+            [1] => Charmeleon
+        )
+
+    [charizard] => Array
+        (
+            [0] => 6
+            [1] => Charizard
+        )
+
+    [squirtle] => Array
+        (
+            [0] => 7
+            [1] => Squirtle
+        )
+
+    [wartortle] => Array
+        (
+            [0] => 8
+            [1] => Wartortle
+        )
+
+    [blastoise] => Array
+        (
+            [0] => 9
+            [1] => Blastoise
+        )
+
+    [caterpie] => Array
+        (
+            [0] => 10
+            [1] => Caterpie
+        )
+
+    [metapod] => Array
+        (
+            [0] => 11
+            [1] => Metapod
+        )
+
+    [butterfree] => Array
+        (
+            [0] => 12
+            [1] => Butterfree
+        )
+
+    [weedle] => Array
+        (
+            [0] => 13
+            [1] => Weedle
+        )
+
+    [kakuna] => Array
+        (
+            [0] => 14
+            [1] => Kakuna
+        )
+
+    [beedrill] => Array
+        (
+            [0] => 15
+            [1] => Beedrill
+        )
+
+    [pidgey] => Array
+        (
+            [0] => 16
+            [1] => Pidgey
+        )
+
+    [pidgeotto] => Array
+        (
+            [0] => 17
+            [1] => Pidgeotto
+        )
+
+    [pidgeot] => Array
+        (
+            [0] => 18
+            [1] => Pidgeot
+        )
+
+    [rattata] => Array
+        (
+            [0] => 19
+            [1] => Rattata
+        )
+
+    [raticate] => Array
+        (
+            [0] => 20
+            [1] => Raticate
+        )
+
+    [spearow] => Array
+        (
+            [0] => 21
+            [1] => Spearow
+        )
+
+    [fearow] => Array
+        (
+            [0] => 22
+            [1] => Fearow
+        )
+
+    [ekans] => Array
+        (
+            [0] => 23
+            [1] => Ekans
+        )
+
+    [arbok] => Array
+        (
+            [0] => 24
+            [1] => Arbok
+        )
+
+    [pikachu] => Array
+        (
+            [0] => 25
+            [1] => Pikachu
+        )
+
+    [raichu] => Array
+        (
+            [0] => 26
+            [1] => Raichu
+        )
+
+    [sandshrew] => Array
+        (
+            [0] => 27
+            [1] => Sandshrew
+        )
+
+    [sandslash] => Array
+        (
+            [0] => 28
+            [1] => Sandslash
+        )
+
+    [nidoran♀] => Array
+        (
+            [0] => 29
+            [1] => Nidoran♀
+        )
+
+    [nidorina] => Array
+        (
+            [0] => 30
+            [1] => Nidorina
+        )
+
+    [nidoqueen] => Array
+        (
+            [0] => 31
+            [1] => Nidoqueen
+        )
+
+    [nidoran♂] => Array
+        (
+            [0] => 32
+            [1] => Nidoran♂
+        )
+
+    [nidorino] => Array
+        (
+            [0] => 33
+            [1] => Nidorino
+        )
+
+    [nidoking] => Array
+        (
+            [0] => 34
+            [1] => Nidoking
+        )
+
+    [clefairy] => Array
+        (
+            [0] => 35
+            [1] => Clefairy
+        )
+
+    [clefable] => Array
+        (
+            [0] => 36
+            [1] => Clefable
+        )
+
+    [vulpix] => Array
+        (
+            [0] => 37
+            [1] => Vulpix
+        )
+
+    [ninetales] => Array
+        (
+            [0] => 38
+            [1] => Ninetales
+        )
+
+    [jigglypuff] => Array
+        (
+            [0] => 39
+            [1] => Jigglypuff
+        )
+
+    [wigglytuff] => Array
+        (
+            [0] => 40
+            [1] => Wigglytuff
+        )
+
+    [zubat] => Array
+        (
+            [0] => 41
+            [1] => Zubat
+        )
+
+    [golbat] => Array
+        (
+            [0] => 42
+            [1] => Golbat
+        )
+
+    [oddish] => Array
+        (
+            [0] => 43
+            [1] => Oddish
+        )
+
+    [gloom] => Array
+        (
+            [0] => 44
+            [1] => Gloom
+        )
+
+    [vileplume] => Array
+        (
+            [0] => 45
+            [1] => Vileplume
+        )
+
+    [paras] => Array
+        (
+            [0] => 46
+            [1] => Paras
+        )
+
+    [parasect] => Array
+        (
+            [0] => 47
+            [1] => Parasect
+        )
+
+    [venonat] => Array
+        (
+            [0] => 48
+            [1] => Venonat
+        )
+
+    [venomoth] => Array
+        (
+            [0] => 49
+            [1] => Venomoth
+        )
+
+    [diglett] => Array
+        (
+            [0] => 50
+            [1] => Diglett
+        )
+
+    [dugtrio] => Array
+        (
+            [0] => 51
+            [1] => Dugtrio
+        )
+
+    [meowth] => Array
+        (
+            [0] => 52
+            [1] => Meowth
+        )
+
+    [persian] => Array
+        (
+            [0] => 53
+            [1] => Persian
+        )
+
+    [psyduck] => Array
+        (
+            [0] => 54
+            [1] => Psyduck
+        )
+
+    [golduck] => Array
+        (
+            [0] => 55
+            [1] => Golduck
+        )
+
+    [mankey] => Array
+        (
+            [0] => 56
+            [1] => Mankey
+        )
+
+    [primeape] => Array
+        (
+            [0] => 57
+            [1] => Primeape
+        )
+
+    [growlithe] => Array
+        (
+            [0] => 58
+            [1] => Growlithe
+        )
+
+    [arcanine] => Array
+        (
+            [0] => 59
+            [1] => Arcanine
+        )
+
+    [poliwag] => Array
+        (
+            [0] => 60
+            [1] => Poliwag
+        )
+
+    [poliwhirl] => Array
+        (
+            [0] => 61
+            [1] => Poliwhirl
+        )
+
+    [poliwrath] => Array
+        (
+            [0] => 62
+            [1] => Poliwrath
+        )
+
+    [abra] => Array
+        (
+            [0] => 63
+            [1] => Abra
+        )
+
+    [kadabra] => Array
+        (
+            [0] => 64
+            [1] => Kadabra
+        )
+
+    [alakazam] => Array
+        (
+            [0] => 65
+            [1] => Alakazam
+        )
+
+    [machop] => Array
+        (
+            [0] => 66
+            [1] => Machop
+        )
+
+    [machoke] => Array
+        (
+            [0] => 67
+            [1] => Machoke
+        )
+
+    [machamp] => Array
+        (
+            [0] => 68
+            [1] => Machamp
+        )
+
+    [bellsprout] => Array
+        (
+            [0] => 69
+            [1] => Bellsprout
+        )
+
+    [weepinbell] => Array
+        (
+            [0] => 70
+            [1] => Weepinbell
+        )
+
+    [victreebel] => Array
+        (
+            [0] => 71
+            [1] => Victreebel
+        )
+
+    [tentacool] => Array
+        (
+            [0] => 72
+            [1] => Tentacool
+        )
+
+    [tentacruel] => Array
+        (
+            [0] => 73
+            [1] => Tentacruel
+        )
+
+    [geodude] => Array
+        (
+            [0] => 74
+            [1] => Geodude
+        )
+
+    [graveler] => Array
+        (
+            [0] => 75
+            [1] => Graveler
+        )
+
+    [golem] => Array
+        (
+            [0] => 76
+            [1] => Golem
+        )
+
+    [ponyta] => Array
+        (
+            [0] => 77
+            [1] => Ponyta
+        )
+
+    [rapidash] => Array
+        (
+            [0] => 78
+            [1] => Rapidash
+        )
+
+    [slowpoke] => Array
+        (
+            [0] => 79
+            [1] => Slowpoke
+        )
+
+    [slowbro] => Array
+        (
+            [0] => 80
+            [1] => Slowbro
+        )
+
+    [magnemite] => Array
+        (
+            [0] => 81
+            [1] => Magnemite
+        )
+
+    [magneton] => Array
+        (
+            [0] => 82
+            [1] => Magneton
+        )
+
+    [farfetch'd] => Array
+        (
+            [0] => 83
+            [1] => Farfetch'd
+        )
+
+    [doduo] => Array
+        (
+            [0] => 84
+            [1] => Doduo
+        )
+
+    [dodrio] => Array
+        (
+            [0] => 85
+            [1] => Dodrio
+        )
+
+    [seel] => Array
+        (
+            [0] => 86
+            [1] => Seel
+        )
+
+    [dewgong] => Array
+        (
+            [0] => 87
+            [1] => Dewgong
+        )
+
+    [grimer] => Array
+        (
+            [0] => 88
+            [1] => Grimer
+        )
+
+    [muk] => Array
+        (
+            [0] => 89
+            [1] => Muk
+        )
+
+    [shellder] => Array
+        (
+            [0] => 90
+            [1] => Shellder
+        )
+
+    [cloyster] => Array
+        (
+            [0] => 91
+            [1] => Cloyster
+        )
+
+    [gastly] => Array
+        (
+            [0] => 92
+            [1] => Gastly
+        )
+
+    [haunter] => Array
+        (
+            [0] => 93
+            [1] => Haunter
+        )
+
+    [gengar] => Array
+        (
+            [0] => 94
+            [1] => Gengar
+        )
+
+    [onix] => Array
+        (
+            [0] => 95
+            [1] => Onix
+        )
+
+    [drowzee] => Array
+        (
+            [0] => 96
+            [1] => Drowzee
+        )
+
+    [hypno] => Array
+        (
+            [0] => 97
+            [1] => Hypno
+        )
+
+    [krabby] => Array
+        (
+            [0] => 98
+            [1] => Krabby
+        )
+
+    [kingler] => Array
+        (
+            [0] => 99
+            [1] => Kingler
+        )
+
+    [voltorb] => Array
+        (
+            [0] => 100
+            [1] => Voltorb
+        )
+
+    [electrode] => Array
+        (
+            [0] => 101
+            [1] => Electrode
+        )
+
+    [exeggcute] => Array
+        (
+            [0] => 102
+            [1] => Exeggcute
+        )
+
+    [exeggutor] => Array
+        (
+            [0] => 103
+            [1] => Exeggutor
+        )
+
+    [cubone] => Array
+        (
+            [0] => 104
+            [1] => Cubone
+        )
+
+    [marowak] => Array
+        (
+            [0] => 105
+            [1] => Marowak
+        )
+
+    [hitmonlee] => Array
+        (
+            [0] => 106
+            [1] => Hitmonlee
+        )
+
+    [hitmonchan] => Array
+        (
+            [0] => 107
+            [1] => Hitmonchan
+        )
+
+    [lickitung] => Array
+        (
+            [0] => 108
+            [1] => Lickitung
+        )
+
+    [koffing] => Array
+        (
+            [0] => 109
+            [1] => Koffing
+        )
+
+    [weezing] => Array
+        (
+            [0] => 110
+            [1] => Weezing
+        )
+
+    [rhyhorn] => Array
+        (
+            [0] => 111
+            [1] => Rhyhorn
+        )
+
+    [rhydon] => Array
+        (
+            [0] => 112
+            [1] => Rhydon
+        )
+
+    [chansey] => Array
+        (
+            [0] => 113
+            [1] => Chansey
+        )
+
+    [tangela] => Array
+        (
+            [0] => 114
+            [1] => Tangela
+        )
+
+    [kangaskhan] => Array
+        (
+            [0] => 115
+            [1] => Kangaskhan
+        )
+
+    [horsea] => Array
+        (
+            [0] => 116
+            [1] => Horsea
+        )
+
+    [seadra] => Array
+        (
+            [0] => 117
+            [1] => Seadra
+        )
+
+    [goldeen] => Array
+        (
+            [0] => 118
+            [1] => Goldeen
+        )
+
+    [seaking] => Array
+        (
+            [0] => 119
+            [1] => Seaking
+        )
+
+    [staryu] => Array
+        (
+            [0] => 120
+            [1] => Staryu
+        )
+
+    [starmie] => Array
+        (
+            [0] => 121
+            [1] => Starmie
+        )
+
+    [mr.mime] => Array
+        (
+            [0] => 122
+            [1] => Mr. Mime
+        )
+
+    [scyther] => Array
+        (
+            [0] => 123
+            [1] => Scyther
+        )
+
+    [jynx] => Array
+        (
+            [0] => 124
+            [1] => Jynx
+        )
+
+    [electabuzz] => Array
+        (
+            [0] => 125
+            [1] => Electabuzz
+        )
+
+    [magmar] => Array
+        (
+            [0] => 126
+            [1] => Magmar
+        )
+
+    [pinsir] => Array
+        (
+            [0] => 127
+            [1] => Pinsir
+        )
+
+    [tauros] => Array
+        (
+            [0] => 128
+            [1] => Tauros
+        )
+
+    [magikarp] => Array
+        (
+            [0] => 129
+            [1] => Magikarp
+        )
+
+    [gyarados] => Array
+        (
+            [0] => 130
+            [1] => Gyarados
+        )
+
+    [lapras] => Array
+        (
+            [0] => 131
+            [1] => Lapras
+        )
+
+    [ditto] => Array
+        (
+            [0] => 132
+            [1] => Ditto
+        )
+
+    [eevee] => Array
+        (
+            [0] => 133
+            [1] => Eevee
+        )
+
+    [vaporeon] => Array
+        (
+            [0] => 134
+            [1] => Vaporeon
+        )
+
+    [jolteon] => Array
+        (
+            [0] => 135
+            [1] => Jolteon
+        )
+
+    [flareon] => Array
+        (
+            [0] => 136
+            [1] => Flareon
+        )
+
+    [porygon] => Array
+        (
+            [0] => 137
+            [1] => Porygon
+        )
+
+    [omanyte] => Array
+        (
+            [0] => 138
+            [1] => Omanyte
+        )
+
+    [omastar] => Array
+        (
+            [0] => 139
+            [1] => Omastar
+        )
+
+    [kabuto] => Array
+        (
+            [0] => 140
+            [1] => Kabuto
+        )
+
+    [kabutops] => Array
+        (
+            [0] => 141
+            [1] => Kabutops
+        )
+
+    [aerodactyl] => Array
+        (
+            [0] => 142
+            [1] => Aerodactyl
+        )
+
+    [snorlax] => Array
+        (
+            [0] => 143
+            [1] => Snorlax
+        )
+
+    [articuno] => Array
+        (
+            [0] => 144
+            [1] => Articuno
+        )
+
+    [zapdos] => Array
+        (
+            [0] => 145
+            [1] => Zapdos
+        )
+
+    [moltres] => Array
+        (
+            [0] => 146
+            [1] => Moltres
+        )
+
+    [dratini] => Array
+        (
+            [0] => 147
+            [1] => Dratini
+        )
+
+    [dragonair] => Array
+        (
+            [0] => 148
+            [1] => Dragonair
+        )
+
+    [dragonite] => Array
+        (
+            [0] => 149
+            [1] => Dragonite
+        )
+
+    [mewtwo] => Array
+        (
+            [0] => 150
+            [1] => Mewtwo
+        )
+
+    [mew] => Array
+        (
+            [0] => 151
+            [1] => Mew
+        )
+
+    [chikorita] => Array
+        (
+            [0] => 152
+            [1] => Chikorita
+        )
+
+    [bayleef] => Array
+        (
+            [0] => 153
+            [1] => Bayleef
+        )
+
+    [meganium] => Array
+        (
+            [0] => 154
+            [1] => Meganium
+        )
+
+    [cyndaquil] => Array
+        (
+            [0] => 155
+            [1] => Cyndaquil
+        )
+
+    [quilava] => Array
+        (
+            [0] => 156
+            [1] => Quilava
+        )
+
+    [typhlosion] => Array
+        (
+            [0] => 157
+            [1] => Typhlosion
+        )
+
+    [totodile] => Array
+        (
+            [0] => 158
+            [1] => Totodile
+        )
+
+    [croconaw] => Array
+        (
+            [0] => 159
+            [1] => Croconaw
+        )
+
+    [feraligatr] => Array
+        (
+            [0] => 160
+            [1] => Feraligatr
+        )
+
+    [sentret] => Array
+        (
+            [0] => 161
+            [1] => Sentret
+        )
+
+    [furret] => Array
+        (
+            [0] => 162
+            [1] => Furret
+        )
+
+    [hoothoot] => Array
+        (
+            [0] => 163
+            [1] => Hoothoot
+        )
+
+    [noctowl] => Array
+        (
+            [0] => 164
+            [1] => Noctowl
+        )
+
+    [ledyba] => Array
+        (
+            [0] => 165
+            [1] => Ledyba
+        )
+
+    [ledian] => Array
+        (
+            [0] => 166
+            [1] => Ledian
+        )
+
+    [spinarak] => Array
+        (
+            [0] => 167
+            [1] => Spinarak
+        )
+
+    [ariados] => Array
+        (
+            [0] => 168
+            [1] => Ariados
+        )
+
+    [crobat] => Array
+        (
+            [0] => 169
+            [1] => Crobat
+        )
+
+    [chinchou] => Array
+        (
+            [0] => 170
+            [1] => Chinchou
+        )
+
+    [lanturn] => Array
+        (
+            [0] => 171
+            [1] => Lanturn
+        )
+
+    [pichu] => Array
+        (
+            [0] => 172
+            [1] => Pichu
+        )
+
+    [cleffa] => Array
+        (
+            [0] => 173
+            [1] => Cleffa
+        )
+
+    [igglybuff] => Array
+        (
+            [0] => 174
+            [1] => Igglybuff
+        )
+
+    [togepi] => Array
+        (
+            [0] => 175
+            [1] => Togepi
+        )
+
+    [togetic] => Array
+        (
+            [0] => 176
+            [1] => Togetic
+        )
+
+    [natu] => Array
+        (
+            [0] => 177
+            [1] => Natu
+        )
+
+    [xatu] => Array
+        (
+            [0] => 178
+            [1] => Xatu
+        )
+
+    [mareep] => Array
+        (
+            [0] => 179
+            [1] => Mareep
+        )
+
+    [flaaffy] => Array
+        (
+            [0] => 180
+            [1] => Flaaffy
+        )
+
+    [ampharos] => Array
+        (
+            [0] => 181
+            [1] => Ampharos
+        )
+
+    [bellossom] => Array
+        (
+            [0] => 182
+            [1] => Bellossom
+        )
+
+    [marill] => Array
+        (
+            [0] => 183
+            [1] => Marill
+        )
+
+    [azumarill] => Array
+        (
+            [0] => 184
+            [1] => Azumarill
+        )
+
+    [sudowoodo] => Array
+        (
+            [0] => 185
+            [1] => Sudowoodo
+        )
+
+    [politoed] => Array
+        (
+            [0] => 186
+            [1] => Politoed
+        )
+
+    [hoppip] => Array
+        (
+            [0] => 187
+            [1] => Hoppip
+        )
+
+    [skiploom] => Array
+        (
+            [0] => 188
+            [1] => Skiploom
+        )
+
+    [jumpluff] => Array
+        (
+            [0] => 189
+            [1] => Jumpluff
+        )
+
+    [aipom] => Array
+        (
+            [0] => 190
+            [1] => Aipom
+        )
+
+    [sunkern] => Array
+        (
+            [0] => 191
+            [1] => Sunkern
+        )
+
+    [sunflora] => Array
+        (
+            [0] => 192
+            [1] => Sunflora
+        )
+
+    [yanma] => Array
+        (
+            [0] => 193
+            [1] => Yanma
+        )
+
+    [wooper] => Array
+        (
+            [0] => 194
+            [1] => Wooper
+        )
+
+    [quagsire] => Array
+        (
+            [0] => 195
+            [1] => Quagsire
+        )
+
+    [espeon] => Array
+        (
+            [0] => 196
+            [1] => Espeon
+        )
+
+    [umbreon] => Array
+        (
+            [0] => 197
+            [1] => Umbreon
+        )
+
+    [murkrow] => Array
+        (
+            [0] => 198
+            [1] => Murkrow
+        )
+
+    [slowking] => Array
+        (
+            [0] => 199
+            [1] => Slowking
+        )
+
+    [misdreavus] => Array
+        (
+            [0] => 200
+            [1] => Misdreavus
+        )
+
+    [unown] => Array
+        (
+            [0] => 201
+            [1] => Unown
+        )
+
+    [wobbuffet] => Array
+        (
+            [0] => 202
+            [1] => Wobbuffet
+        )
+
+    [girafarig] => Array
+        (
+            [0] => 203
+            [1] => Girafarig
+        )
+
+    [pineco] => Array
+        (
+            [0] => 204
+            [1] => Pineco
+        )
+
+    [forretress] => Array
+        (
+            [0] => 205
+            [1] => Forretress
+        )
+
+    [dunsparce] => Array
+        (
+            [0] => 206
+            [1] => Dunsparce
+        )
+
+    [gligar] => Array
+        (
+            [0] => 207
+            [1] => Gligar
+        )
+
+    [steelix] => Array
+        (
+            [0] => 208
+            [1] => Steelix
+        )
+
+    [snubbull] => Array
+        (
+            [0] => 209
+            [1] => Snubbull
+        )
+
+    [granbull] => Array
+        (
+            [0] => 210
+            [1] => Granbull
+        )
+
+    [qwilfish] => Array
+        (
+            [0] => 211
+            [1] => Qwilfish
+        )
+
+    [scizor] => Array
+        (
+            [0] => 212
+            [1] => Scizor
+        )
+
+    [shuckle] => Array
+        (
+            [0] => 213
+            [1] => Shuckle
+        )
+
+    [heracross] => Array
+        (
+            [0] => 214
+            [1] => Heracross
+        )
+
+    [sneasel] => Array
+        (
+            [0] => 215
+            [1] => Sneasel
+        )
+
+    [teddiursa] => Array
+        (
+            [0] => 216
+            [1] => Teddiursa
+        )
+
+    [ursaring] => Array
+        (
+            [0] => 217
+            [1] => Ursaring
+        )
+
+    [slugma] => Array
+        (
+            [0] => 218
+            [1] => Slugma
+        )
+
+    [magcargo] => Array
+        (
+            [0] => 219
+            [1] => Magcargo
+        )
+
+    [swinub] => Array
+        (
+            [0] => 220
+            [1] => Swinub
+        )
+
+    [piloswine] => Array
+        (
+            [0] => 221
+            [1] => Piloswine
+        )
+
+    [corsola] => Array
+        (
+            [0] => 222
+            [1] => Corsola
+        )
+
+    [remoraid] => Array
+        (
+            [0] => 223
+            [1] => Remoraid
+        )
+
+    [octillery] => Array
+        (
+            [0] => 224
+            [1] => Octillery
+        )
+
+    [delibird] => Array
+        (
+            [0] => 225
+            [1] => Delibird
+        )
+
+    [mantine] => Array
+        (
+            [0] => 226
+            [1] => Mantine
+        )
+
+    [skarmory] => Array
+        (
+            [0] => 227
+            [1] => Skarmory
+        )
+
+    [houndour] => Array
+        (
+            [0] => 228
+            [1] => Houndour
+        )
+
+    [houndoom] => Array
+        (
+            [0] => 229
+            [1] => Houndoom
+        )
+
+    [kingdra] => Array
+        (
+            [0] => 230
+            [1] => Kingdra
+        )
+
+    [phanpy] => Array
+        (
+            [0] => 231
+            [1] => Phanpy
+        )
+
+    [donphan] => Array
+        (
+            [0] => 232
+            [1] => Donphan
+        )
+
+    [porygon2] => Array
+        (
+            [0] => 233
+            [1] => Porygon2
+        )
+
+    [stantler] => Array
+        (
+            [0] => 234
+            [1] => Stantler
+        )
+
+    [smeargle] => Array
+        (
+            [0] => 235
+            [1] => Smeargle
+        )
+
+    [tyrogue] => Array
+        (
+            [0] => 236
+            [1] => Tyrogue
+        )
+
+    [hitmontop] => Array
+        (
+            [0] => 237
+            [1] => Hitmontop
+        )
+
+    [smoochum] => Array
+        (
+            [0] => 238
+            [1] => Smoochum
+        )
+
+    [elekid] => Array
+        (
+            [0] => 239
+            [1] => Elekid
+        )
+
+    [magby] => Array
+        (
+            [0] => 240
+            [1] => Magby
+        )
+
+    [miltank] => Array
+        (
+            [0] => 241
+            [1] => Miltank
+        )
+
+    [blissey] => Array
+        (
+            [0] => 242
+            [1] => Blissey
+        )
+
+    [raikou] => Array
+        (
+            [0] => 243
+            [1] => Raikou
+        )
+
+    [entei] => Array
+        (
+            [0] => 244
+            [1] => Entei
+        )
+
+    [suicune] => Array
+        (
+            [0] => 245
+            [1] => Suicune
+        )
+
+    [larvitar] => Array
+        (
+            [0] => 246
+            [1] => Larvitar
+        )
+
+    [pupitar] => Array
+        (
+            [0] => 247
+            [1] => Pupitar
+        )
+
+    [tyranitar] => Array
+        (
+            [0] => 248
+            [1] => Tyranitar
+        )
+
+    [lugia] => Array
+        (
+            [0] => 249
+            [1] => Lugia
+        )
+
+    [hooh] => Array
+        (
+            [0] => 250
+            [1] => Ho-Oh
+        )
+
+    [celebi] => Array
+        (
+            [0] => 251
+            [1] => Celebi
+        )
+
+    [treecko] => Array
+        (
+            [0] => 252
+            [1] => Treecko
+        )
+
+    [grovyle] => Array
+        (
+            [0] => 253
+            [1] => Grovyle
+        )
+
+    [sceptile] => Array
+        (
+            [0] => 254
+            [1] => Sceptile
+        )
+
+    [torchic] => Array
+        (
+            [0] => 255
+            [1] => Torchic
+        )
+
+    [combusken] => Array
+        (
+            [0] => 256
+            [1] => Combusken
+        )
+
+    [blaziken] => Array
+        (
+            [0] => 257
+            [1] => Blaziken
+        )
+
+    [mudkip] => Array
+        (
+            [0] => 258
+            [1] => Mudkip
+        )
+
+    [marshtomp] => Array
+        (
+            [0] => 259
+            [1] => Marshtomp
+        )
+
+    [swampert] => Array
+        (
+            [0] => 260
+            [1] => Swampert
+        )
+
+    [poochyena] => Array
+        (
+            [0] => 261
+            [1] => Poochyena
+        )
+
+    [mightyena] => Array
+        (
+            [0] => 262
+            [1] => Mightyena
+        )
+
+    [zigzagoon] => Array
+        (
+            [0] => 263
+            [1] => Zigzagoon
+        )
+
+    [linoone] => Array
+        (
+            [0] => 264
+            [1] => Linoone
+        )
+
+    [wurmple] => Array
+        (
+            [0] => 265
+            [1] => Wurmple
+        )
+
+    [silcoon] => Array
+        (
+            [0] => 266
+            [1] => Silcoon
+        )
+
+    [beautifly] => Array
+        (
+            [0] => 267
+            [1] => Beautifly
+        )
+
+    [cascoon] => Array
+        (
+            [0] => 268
+            [1] => Cascoon
+        )
+
+    [dustox] => Array
+        (
+            [0] => 269
+            [1] => Dustox
+        )
+
+    [lotad] => Array
+        (
+            [0] => 270
+            [1] => Lotad
+        )
+
+    [lombre] => Array
+        (
+            [0] => 271
+            [1] => Lombre
+        )
+
+    [ludicolo] => Array
+        (
+            [0] => 272
+            [1] => Ludicolo
+        )
+
+    [seedot] => Array
+        (
+            [0] => 273
+            [1] => Seedot
+        )
+
+    [nuzleaf] => Array
+        (
+            [0] => 274
+            [1] => Nuzleaf
+        )
+
+    [shiftry] => Array
+        (
+            [0] => 275
+            [1] => Shiftry
+        )
+
+    [taillow] => Array
+        (
+            [0] => 276
+            [1] => Taillow
+        )
+
+    [swellow] => Array
+        (
+            [0] => 277
+            [1] => Swellow
+        )
+
+    [wingull] => Array
+        (
+            [0] => 278
+            [1] => Wingull
+        )
+
+    [pelipper] => Array
+        (
+            [0] => 279
+            [1] => Pelipper
+        )
+
+    [ralts] => Array
+        (
+            [0] => 280
+            [1] => Ralts
+        )
+
+    [kirlia] => Array
+        (
+            [0] => 281
+            [1] => Kirlia
+        )
+
+    [gardevoir] => Array
+        (
+            [0] => 282
+            [1] => Gardevoir
+        )
+
+    [surskit] => Array
+        (
+            [0] => 283
+            [1] => Surskit
+        )
+
+    [masquerain] => Array
+        (
+            [0] => 284
+            [1] => Masquerain
+        )
+
+    [shroomish] => Array
+        (
+            [0] => 285
+            [1] => Shroomish
+        )
+
+    [breloom] => Array
+        (
+            [0] => 286
+            [1] => Breloom
+        )
+
+    [slakoth] => Array
+        (
+            [0] => 287
+            [1] => Slakoth
+        )
+
+    [vigoroth] => Array
+        (
+            [0] => 288
+            [1] => Vigoroth
+        )
+
+    [slaking] => Array
+        (
+            [0] => 289
+            [1] => Slaking
+        )
+
+    [nincada] => Array
+        (
+            [0] => 290
+            [1] => Nincada
+        )
+
+    [ninjask] => Array
+        (
+            [0] => 291
+            [1] => Ninjask
+        )
+
+    [shedinja] => Array
+        (
+            [0] => 292
+            [1] => Shedinja
+        )
+
+    [whismur] => Array
+        (
+            [0] => 293
+            [1] => Whismur
+        )
+
+    [loudred] => Array
+        (
+            [0] => 294
+            [1] => Loudred
+        )
+
+    [exploud] => Array
+        (
+            [0] => 295
+            [1] => Exploud
+        )
+
+    [makuhita] => Array
+        (
+            [0] => 296
+            [1] => Makuhita
+        )
+
+    [hariyama] => Array
+        (
+            [0] => 297
+            [1] => Hariyama
+        )
+
+    [azurill] => Array
+        (
+            [0] => 298
+            [1] => Azurill
+        )
+
+    [nosepass] => Array
+        (
+            [0] => 299
+            [1] => Nosepass
+        )
+
+    [skitty] => Array
+        (
+            [0] => 300
+            [1] => Skitty
+        )
+
+    [delcatty] => Array
+        (
+            [0] => 301
+            [1] => Delcatty
+        )
+
+    [sableye] => Array
+        (
+            [0] => 302
+            [1] => Sableye
+        )
+
+    [mawile] => Array
+        (
+            [0] => 303
+            [1] => Mawile
+        )
+
+    [aron] => Array
+        (
+            [0] => 304
+            [1] => Aron
+        )
+
+    [lairon] => Array
+        (
+            [0] => 305
+            [1] => Lairon
+        )
+
+    [aggron] => Array
+        (
+            [0] => 306
+            [1] => Aggron
+        )
+
+    [meditite] => Array
+        (
+            [0] => 307
+            [1] => Meditite
+        )
+
+    [medicham] => Array
+        (
+            [0] => 308
+            [1] => Medicham
+        )
+
+    [electrike] => Array
+        (
+            [0] => 309
+            [1] => Electrike
+        )
+
+    [manectric] => Array
+        (
+            [0] => 310
+            [1] => Manectric
+        )
+
+    [plusle] => Array
+        (
+            [0] => 311
+            [1] => Plusle
+        )
+
+    [minun] => Array
+        (
+            [0] => 312
+            [1] => Minun
+        )
+
+    [volbeat] => Array
+        (
+            [0] => 313
+            [1] => Volbeat
+        )
+
+    [illumise] => Array
+        (
+            [0] => 314
+            [1] => Illumise
+        )
+
+    [roselia] => Array
+        (
+            [0] => 315
+            [1] => Roselia
+        )
+
+    [gulpin] => Array
+        (
+            [0] => 316
+            [1] => Gulpin
+        )
+
+    [swalot] => Array
+        (
+            [0] => 317
+            [1] => Swalot
+        )
+
+    [carvanha] => Array
+        (
+            [0] => 318
+            [1] => Carvanha
+        )
+
+    [sharpedo] => Array
+        (
+            [0] => 319
+            [1] => Sharpedo
+        )
+
+    [wailmer] => Array
+        (
+            [0] => 320
+            [1] => Wailmer
+        )
+
+    [wailord] => Array
+        (
+            [0] => 321
+            [1] => Wailord
+        )
+
+    [numel] => Array
+        (
+            [0] => 322
+            [1] => Numel
+        )
+
+    [camerupt] => Array
+        (
+            [0] => 323
+            [1] => Camerupt
+        )
+
+    [torkoal] => Array
+        (
+            [0] => 324
+            [1] => Torkoal
+        )
+
+    [spoink] => Array
+        (
+            [0] => 325
+            [1] => Spoink
+        )
+
+    [grumpig] => Array
+        (
+            [0] => 326
+            [1] => Grumpig
+        )
+
+    [spinda] => Array
+        (
+            [0] => 327
+            [1] => Spinda
+        )
+
+    [trapinch] => Array
+        (
+            [0] => 328
+            [1] => Trapinch
+        )
+
+    [vibrava] => Array
+        (
+            [0] => 329
+            [1] => Vibrava
+        )
+
+    [flygon] => Array
+        (
+            [0] => 330
+            [1] => Flygon
+        )
+
+    [cacnea] => Array
+        (
+            [0] => 331
+            [1] => Cacnea
+        )
+
+    [cacturne] => Array
+        (
+            [0] => 332
+            [1] => Cacturne
+        )
+
+    [swablu] => Array
+        (
+            [0] => 333
+            [1] => Swablu
+        )
+
+    [altaria] => Array
+        (
+            [0] => 334
+            [1] => Altaria
+        )
+
+    [zangoose] => Array
+        (
+            [0] => 335
+            [1] => Zangoose
+        )
+
+    [seviper] => Array
+        (
+            [0] => 336
+            [1] => Seviper
+        )
+
+    [lunatone] => Array
+        (
+            [0] => 337
+            [1] => Lunatone
+        )
+
+    [solrock] => Array
+        (
+            [0] => 338
+            [1] => Solrock
+        )
+
+    [barboach] => Array
+        (
+            [0] => 339
+            [1] => Barboach
+        )
+
+    [whiscash] => Array
+        (
+            [0] => 340
+            [1] => Whiscash
+        )
+
+    [corphish] => Array
+        (
+            [0] => 341
+            [1] => Corphish
+        )
+
+    [crawdaunt] => Array
+        (
+            [0] => 342
+            [1] => Crawdaunt
+        )
+
+    [baltoy] => Array
+        (
+            [0] => 343
+            [1] => Baltoy
+        )
+
+    [claydol] => Array
+        (
+            [0] => 344
+            [1] => Claydol
+        )
+
+    [lileep] => Array
+        (
+            [0] => 345
+            [1] => Lileep
+        )
+
+    [cradily] => Array
+        (
+            [0] => 346
+            [1] => Cradily
+        )
+
+    [anorith] => Array
+        (
+            [0] => 347
+            [1] => Anorith
+        )
+
+    [armaldo] => Array
+        (
+            [0] => 348
+            [1] => Armaldo
+        )
+
+    [feebas] => Array
+        (
+            [0] => 349
+            [1] => Feebas
+        )
+
+    [milotic] => Array
+        (
+            [0] => 350
+            [1] => Milotic
+        )
+
+    [castform] => Array
+        (
+            [0] => 351
+            [1] => Castform
+        )
+
+    [kecleon] => Array
+        (
+            [0] => 352
+            [1] => Kecleon
+        )
+
+    [shuppet] => Array
+        (
+            [0] => 353
+            [1] => Shuppet
+        )
+
+    [banette] => Array
+        (
+            [0] => 354
+            [1] => Banette
+        )
+
+    [duskull] => Array
+        (
+            [0] => 355
+            [1] => Duskull
+        )
+
+    [dusclops] => Array
+        (
+            [0] => 356
+            [1] => Dusclops
+        )
+
+    [tropius] => Array
+        (
+            [0] => 357
+            [1] => Tropius
+        )
+
+    [chimecho] => Array
+        (
+            [0] => 358
+            [1] => Chimecho
+        )
+
+    [absol] => Array
+        (
+            [0] => 359
+            [1] => Absol
+        )
+
+    [wynaut] => Array
+        (
+            [0] => 360
+            [1] => Wynaut
+        )
+
+    [snorunt] => Array
+        (
+            [0] => 361
+            [1] => Snorunt
+        )
+
+    [glalie] => Array
+        (
+            [0] => 362
+            [1] => Glalie
+        )
+
+    [spheal] => Array
+        (
+            [0] => 363
+            [1] => Spheal
+        )
+
+    [sealeo] => Array
+        (
+            [0] => 364
+            [1] => Sealeo
+        )
+
+    [walrein] => Array
+        (
+            [0] => 365
+            [1] => Walrein
+        )
+
+    [clamperl] => Array
+        (
+            [0] => 366
+            [1] => Clamperl
+        )
+
+    [huntail] => Array
+        (
+            [0] => 367
+            [1] => Huntail
+        )
+
+    [gorebyss] => Array
+        (
+            [0] => 368
+            [1] => Gorebyss
+        )
+
+    [relicanth] => Array
+        (
+            [0] => 369
+            [1] => Relicanth
+        )
+
+    [luvdisc] => Array
+        (
+            [0] => 370
+            [1] => Luvdisc
+        )
+
+    [bagon] => Array
+        (
+            [0] => 371
+            [1] => Bagon
+        )
+
+    [shelgon] => Array
+        (
+            [0] => 372
+            [1] => Shelgon
+        )
+
+    [salamence] => Array
+        (
+            [0] => 373
+            [1] => Salamence
+        )
+
+    [beldum] => Array
+        (
+            [0] => 374
+            [1] => Beldum
+        )
+
+    [metang] => Array
+        (
+            [0] => 375
+            [1] => Metang
+        )
+
+    [metagross] => Array
+        (
+            [0] => 376
+            [1] => Metagross
+        )
+
+    [regirock] => Array
+        (
+            [0] => 377
+            [1] => Regirock
+        )
+
+    [regice] => Array
+        (
+            [0] => 378
+            [1] => Regice
+        )
+
+    [registeel] => Array
+        (
+            [0] => 379
+            [1] => Registeel
+        )
+
+    [latias] => Array
+        (
+            [0] => 380
+            [1] => Latias
+        )
+
+    [latios] => Array
+        (
+            [0] => 381
+            [1] => Latios
+        )
+
+    [kyogre] => Array
+        (
+            [0] => 382
+            [1] => Kyogre
+        )
+
+    [groudon] => Array
+        (
+            [0] => 383
+            [1] => Groudon
+        )
+
+    [rayquaza] => Array
+        (
+            [0] => 384
+            [1] => Rayquaza
+        )
+
+    [jirachi] => Array
+        (
+            [0] => 385
+            [1] => Jirachi
+        )
+
+    [deoxys] => Array
+        (
+            [0] => 386
+            [1] => Deoxys
+        )
+
+    [turtwig] => Array
+        (
+            [0] => 387
+            [1] => Turtwig
+        )
+
+    [grotle] => Array
+        (
+            [0] => 388
+            [1] => Grotle
+        )
+
+    [torterra] => Array
+        (
+            [0] => 389
+            [1] => Torterra
+        )
+
+    [chimchar] => Array
+        (
+            [0] => 390
+            [1] => Chimchar
+        )
+
+    [monferno] => Array
+        (
+            [0] => 391
+            [1] => Monferno
+        )
+
+    [infernape] => Array
+        (
+            [0] => 392
+            [1] => Infernape
+        )
+
+    [piplup] => Array
+        (
+            [0] => 393
+            [1] => Piplup
+        )
+
+    [prinplup] => Array
+        (
+            [0] => 394
+            [1] => Prinplup
+        )
+
+    [empoleon] => Array
+        (
+            [0] => 395
+            [1] => Empoleon
+        )
+
+    [starly] => Array
+        (
+            [0] => 396
+            [1] => Starly
+        )
+
+    [staravia] => Array
+        (
+            [0] => 397
+            [1] => Staravia
+        )
+
+    [staraptor] => Array
+        (
+            [0] => 398
+            [1] => Staraptor
+        )
+
+    [bidoof] => Array
+        (
+            [0] => 399
+            [1] => Bidoof
+        )
+
+    [bibarel] => Array
+        (
+            [0] => 400
+            [1] => Bibarel
+        )
+
+    [kricketot] => Array
+        (
+            [0] => 401
+            [1] => Kricketot
+        )
+
+    [kricketune] => Array
+        (
+            [0] => 402
+            [1] => Kricketune
+        )
+
+    [shinx] => Array
+        (
+            [0] => 403
+            [1] => Shinx
+        )
+
+    [luxio] => Array
+        (
+            [0] => 404
+            [1] => Luxio
+        )
+
+    [luxray] => Array
+        (
+            [0] => 405
+            [1] => Luxray
+        )
+
+    [budew] => Array
+        (
+            [0] => 406
+            [1] => Budew
+        )
+
+    [roserade] => Array
+        (
+            [0] => 407
+            [1] => Roserade
+        )
+
+    [cranidos] => Array
+        (
+            [0] => 408
+            [1] => Cranidos
+        )
+
+    [rampardos] => Array
+        (
+            [0] => 409
+            [1] => Rampardos
+        )
+
+    [shieldon] => Array
+        (
+            [0] => 410
+            [1] => Shieldon
+        )
+
+    [bastiodon] => Array
+        (
+            [0] => 411
+            [1] => Bastiodon
+        )
+
+    [burmy] => Array
+        (
+            [0] => 412
+            [1] => Burmy
+        )
+
+    [wormadam] => Array
+        (
+            [0] => 413
+            [1] => Wormadam
+        )
+
+    [mothim] => Array
+        (
+            [0] => 414
+            [1] => Mothim
+        )
+
+    [combee] => Array
+        (
+            [0] => 415
+            [1] => Combee
+        )
+
+    [vespiquen] => Array
+        (
+            [0] => 416
+            [1] => Vespiquen
+        )
+
+    [pachirisu] => Array
+        (
+            [0] => 417
+            [1] => Pachirisu
+        )
+
+    [buizel] => Array
+        (
+            [0] => 418
+            [1] => Buizel
+        )
+
+    [floatzel] => Array
+        (
+            [0] => 419
+            [1] => Floatzel
+        )
+
+    [cherubi] => Array
+        (
+            [0] => 420
+            [1] => Cherubi
+        )
+
+    [cherrim] => Array
+        (
+            [0] => 421
+            [1] => Cherrim
+        )
+
+    [shellos] => Array
+        (
+            [0] => 422
+            [1] => Shellos
+        )
+
+    [gastrodon] => Array
+        (
+            [0] => 423
+            [1] => Gastrodon
+        )
+
+    [ambipom] => Array
+        (
+            [0] => 424
+            [1] => Ambipom
+        )
+
+    [drifloon] => Array
+        (
+            [0] => 425
+            [1] => Drifloon
+        )
+
+    [drifblim] => Array
+        (
+            [0] => 426
+            [1] => Drifblim
+        )
+
+    [buneary] => Array
+        (
+            [0] => 427
+            [1] => Buneary
+        )
+
+    [lopunny] => Array
+        (
+            [0] => 428
+            [1] => Lopunny
+        )
+
+    [mismagius] => Array
+        (
+            [0] => 429
+            [1] => Mismagius
+        )
+
+    [honchkrow] => Array
+        (
+            [0] => 430
+            [1] => Honchkrow
+        )
+
+    [glameow] => Array
+        (
+            [0] => 431
+            [1] => Glameow
+        )
+
+    [purugly] => Array
+        (
+            [0] => 432
+            [1] => Purugly
+        )
+
+    [chingling] => Array
+        (
+            [0] => 433
+            [1] => Chingling
+        )
+
+    [stunky] => Array
+        (
+            [0] => 434
+            [1] => Stunky
+        )
+
+    [skuntank] => Array
+        (
+            [0] => 435
+            [1] => Skuntank
+        )
+
+    [bronzor] => Array
+        (
+            [0] => 436
+            [1] => Bronzor
+        )
+
+    [bronzong] => Array
+        (
+            [0] => 437
+            [1] => Bronzong
+        )
+
+    [bonsly] => Array
+        (
+            [0] => 438
+            [1] => Bonsly
+        )
+
+    [mimejr.] => Array
+        (
+            [0] => 439
+            [1] => Mime Jr.
+        )
+
+    [happiny] => Array
+        (
+            [0] => 440
+            [1] => Happiny
+        )
+
+    [chatot] => Array
+        (
+            [0] => 441
+            [1] => Chatot
+        )
+
+    [spiritomb] => Array
+        (
+            [0] => 442
+            [1] => Spiritomb
+        )
+
+    [gible] => Array
+        (
+            [0] => 443
+            [1] => Gible
+        )
+
+    [gabite] => Array
+        (
+            [0] => 444
+            [1] => Gabite
+        )
+
+    [garchomp] => Array
+        (
+            [0] => 445
+            [1] => Garchomp
+        )
+
+    [munchlax] => Array
+        (
+            [0] => 446
+            [1] => Munchlax
+        )
+
+    [riolu] => Array
+        (
+            [0] => 447
+            [1] => Riolu
+        )
+
+    [lucario] => Array
+        (
+            [0] => 448
+            [1] => Lucario
+        )
+
+    [hippopotas] => Array
+        (
+            [0] => 449
+            [1] => Hippopotas
+        )
+
+    [hippowdon] => Array
+        (
+            [0] => 450
+            [1] => Hippowdon
+        )
+
+    [skorupi] => Array
+        (
+            [0] => 451
+            [1] => Skorupi
+        )
+
+    [drapion] => Array
+        (
+            [0] => 452
+            [1] => Drapion
+        )
+
+    [croagunk] => Array
+        (
+            [0] => 453
+            [1] => Croagunk
+        )
+
+    [toxicroak] => Array
+        (
+            [0] => 454
+            [1] => Toxicroak
+        )
+
+    [carnivine] => Array
+        (
+            [0] => 455
+            [1] => Carnivine
+        )
+
+    [finneon] => Array
+        (
+            [0] => 456
+            [1] => Finneon
+        )
+
+    [lumineon] => Array
+        (
+            [0] => 457
+            [1] => Lumineon
+        )
+
+    [mantyke] => Array
+        (
+            [0] => 458
+            [1] => Mantyke
+        )
+
+    [snover] => Array
+        (
+            [0] => 459
+            [1] => Snover
+        )
+
+    [abomasnow] => Array
+        (
+            [0] => 460
+            [1] => Abomasnow
+        )
+
+    [weavile] => Array
+        (
+            [0] => 461
+            [1] => Weavile
+        )
+
+    [magnezone] => Array
+        (
+            [0] => 462
+            [1] => Magnezone
+        )
+
+    [lickilicky] => Array
+        (
+            [0] => 463
+            [1] => Lickilicky
+        )
+
+    [rhyperior] => Array
+        (
+            [0] => 464
+            [1] => Rhyperior
+        )
+
+    [tangrowth] => Array
+        (
+            [0] => 465
+            [1] => Tangrowth
+        )
+
+    [electivire] => Array
+        (
+            [0] => 466
+            [1] => Electivire
+        )
+
+    [magmortar] => Array
+        (
+            [0] => 467
+            [1] => Magmortar
+        )
+
+    [togekiss] => Array
+        (
+            [0] => 468
+            [1] => Togekiss
+        )
+
+    [yanmega] => Array
+        (
+            [0] => 469
+            [1] => Yanmega
+        )
+
+    [leafeon] => Array
+        (
+            [0] => 470
+            [1] => Leafeon
+        )
+
+    [glaceon] => Array
+        (
+            [0] => 471
+            [1] => Glaceon
+        )
+
+    [gliscor] => Array
+        (
+            [0] => 472
+            [1] => Gliscor
+        )
+
+    [mamoswine] => Array
+        (
+            [0] => 473
+            [1] => Mamoswine
+        )
+
+    [porygonz] => Array
+        (
+            [0] => 474
+            [1] => Porygon-Z
+        )
+
+    [gallade] => Array
+        (
+            [0] => 475
+            [1] => Gallade
+        )
+
+    [probopass] => Array
+        (
+            [0] => 476
+            [1] => Probopass
+        )
+
+    [dusknoir] => Array
+        (
+            [0] => 477
+            [1] => Dusknoir
+        )
+
+    [froslass] => Array
+        (
+            [0] => 478
+            [1] => Froslass
+        )
+
+    [rotom] => Array
+        (
+            [0] => 479
+            [1] => Rotom
+        )
+
+    [uxie] => Array
+        (
+            [0] => 480
+            [1] => Uxie
+        )
+
+    [mesprit] => Array
+        (
+            [0] => 481
+            [1] => Mesprit
+        )
+
+    [azelf] => Array
+        (
+            [0] => 482
+            [1] => Azelf
+        )
+
+    [dialga] => Array
+        (
+            [0] => 483
+            [1] => Dialga
+        )
+
+    [palkia] => Array
+        (
+            [0] => 484
+            [1] => Palkia
+        )
+
+    [heatran] => Array
+        (
+            [0] => 485
+            [1] => Heatran
+        )
+
+    [regigigas] => Array
+        (
+            [0] => 486
+            [1] => Regigigas
+        )
+
+    [giratina] => Array
+        (
+            [0] => 487
+            [1] => Giratina
+        )
+
+    [cresselia] => Array
+        (
+            [0] => 488
+            [1] => Cresselia
+        )
+
+    [phione] => Array
+        (
+            [0] => 489
+            [1] => Phione
+        )
+
+    [manaphy] => Array
+        (
+            [0] => 490
+            [1] => Manaphy
+        )
+
+    [darkrai] => Array
+        (
+            [0] => 491
+            [1] => Darkrai
+        )
+
+    [shaymin] => Array
+        (
+            [0] => 492
+            [1] => Shaymin
+        )
+
+    [arceus] => Array
+        (
+            [0] => 493
+            [1] => Arceus
+        )
+
+    [victini] => Array
+        (
+            [0] => 494
+            [1] => Victini
+        )
+
+    [snivy] => Array
+        (
+            [0] => 495
+            [1] => Snivy
+        )
+
+    [servine] => Array
+        (
+            [0] => 496
+            [1] => Servine
+        )
+
+    [serperior] => Array
+        (
+            [0] => 497
+            [1] => Serperior
+        )
+
+    [tepig] => Array
+        (
+            [0] => 498
+            [1] => Tepig
+        )
+
+    [pignite] => Array
+        (
+            [0] => 499
+            [1] => Pignite
+        )
+
+    [emboar] => Array
+        (
+            [0] => 500
+            [1] => Emboar
+        )
+
+    [oshawott] => Array
+        (
+            [0] => 501
+            [1] => Oshawott
+        )
+
+    [dewott] => Array
+        (
+            [0] => 502
+            [1] => Dewott
+        )
+
+    [samurott] => Array
+        (
+            [0] => 503
+            [1] => Samurott
+        )
+
+    [patrat] => Array
+        (
+            [0] => 504
+            [1] => Patrat
+        )
+
+    [watchog] => Array
+        (
+            [0] => 505
+            [1] => Watchog
+        )
+
+    [lillipup] => Array
+        (
+            [0] => 506
+            [1] => Lillipup
+        )
+
+    [herdier] => Array
+        (
+            [0] => 507
+            [1] => Herdier
+        )
+
+    [stoutland] => Array
+        (
+            [0] => 508
+            [1] => Stoutland
+        )
+
+    [purrloin] => Array
+        (
+            [0] => 509
+            [1] => Purrloin
+        )
+
+    [liepard] => Array
+        (
+            [0] => 510
+            [1] => Liepard
+        )
+
+    [pansage] => Array
+        (
+            [0] => 511
+            [1] => Pansage
+        )
+
+    [simisage] => Array
+        (
+            [0] => 512
+            [1] => Simisage
+        )
+
+    [pansear] => Array
+        (
+            [0] => 513
+            [1] => Pansear
+        )
+
+    [simisear] => Array
+        (
+            [0] => 514
+            [1] => Simisear
+        )
+
+    [panpour] => Array
+        (
+            [0] => 515
+            [1] => Panpour
+        )
+
+    [simipour] => Array
+        (
+            [0] => 516
+            [1] => Simipour
+        )
+
+    [munna] => Array
+        (
+            [0] => 517
+            [1] => Munna
+        )
+
+    [musharna] => Array
+        (
+            [0] => 518
+            [1] => Musharna
+        )
+
+    [pidove] => Array
+        (
+            [0] => 519
+            [1] => Pidove
+        )
+
+    [tranquill] => Array
+        (
+            [0] => 520
+            [1] => Tranquill
+        )
+
+    [unfezant] => Array
+        (
+            [0] => 521
+            [1] => Unfezant
+        )
+
+    [blitzle] => Array
+        (
+            [0] => 522
+            [1] => Blitzle
+        )
+
+    [zebstrika] => Array
+        (
+            [0] => 523
+            [1] => Zebstrika
+        )
+
+    [roggenrola] => Array
+        (
+            [0] => 524
+            [1] => Roggenrola
+        )
+
+    [boldore] => Array
+        (
+            [0] => 525
+            [1] => Boldore
+        )
+
+    [gigalith] => Array
+        (
+            [0] => 526
+            [1] => Gigalith
+        )
+
+    [woobat] => Array
+        (
+            [0] => 527
+            [1] => Woobat
+        )
+
+    [swoobat] => Array
+        (
+            [0] => 528
+            [1] => Swoobat
+        )
+
+    [drilbur] => Array
+        (
+            [0] => 529
+            [1] => Drilbur
+        )
+
+    [excadrill] => Array
+        (
+            [0] => 530
+            [1] => Excadrill
+        )
+
+    [audino] => Array
+        (
+            [0] => 531
+            [1] => Audino
+        )
+
+    [timburr] => Array
+        (
+            [0] => 532
+            [1] => Timburr
+        )
+
+    [gurdurr] => Array
+        (
+            [0] => 533
+            [1] => Gurdurr
+        )
+
+    [conkeldurr] => Array
+        (
+            [0] => 534
+            [1] => Conkeldurr
+        )
+
+    [tympole] => Array
+        (
+            [0] => 535
+            [1] => Tympole
+        )
+
+    [palpitoad] => Array
+        (
+            [0] => 536
+            [1] => Palpitoad
+        )
+
+    [seismitoad] => Array
+        (
+            [0] => 537
+            [1] => Seismitoad
+        )
+
+    [throh] => Array
+        (
+            [0] => 538
+            [1] => Throh
+        )
+
+    [sawk] => Array
+        (
+            [0] => 539
+            [1] => Sawk
+        )
+
+    [sewaddle] => Array
+        (
+            [0] => 540
+            [1] => Sewaddle
+        )
+
+    [swadloon] => Array
+        (
+            [0] => 541
+            [1] => Swadloon
+        )
+
+    [leavanny] => Array
+        (
+            [0] => 542
+            [1] => Leavanny
+        )
+
+    [venipede] => Array
+        (
+            [0] => 543
+            [1] => Venipede
+        )
+
+    [whirlipede] => Array
+        (
+            [0] => 544
+            [1] => Whirlipede
+        )
+
+    [scolipede] => Array
+        (
+            [0] => 545
+            [1] => Scolipede
+        )
+
+    [cottonee] => Array
+        (
+            [0] => 546
+            [1] => Cottonee
+        )
+
+    [whimsicott] => Array
+        (
+            [0] => 547
+            [1] => Whimsicott
+        )
+
+    [petilil] => Array
+        (
+            [0] => 548
+            [1] => Petilil
+        )
+
+    [lilligant] => Array
+        (
+            [0] => 549
+            [1] => Lilligant
+        )
+
+    [basculin] => Array
+        (
+            [0] => 550
+            [1] => Basculin
+        )
+
+    [sandile] => Array
+        (
+            [0] => 551
+            [1] => Sandile
+        )
+
+    [krokorok] => Array
+        (
+            [0] => 552
+            [1] => Krokorok
+        )
+
+    [krookodile] => Array
+        (
+            [0] => 553
+            [1] => Krookodile
+        )
+
+    [darumaka] => Array
+        (
+            [0] => 554
+            [1] => Darumaka
+        )
+
+    [darmanitan] => Array
+        (
+            [0] => 555
+            [1] => Darmanitan
+        )
+
+    [maractus] => Array
+        (
+            [0] => 556
+            [1] => Maractus
+        )
+
+    [dwebble] => Array
+        (
+            [0] => 557
+            [1] => Dwebble
+        )
+
+    [crustle] => Array
+        (
+            [0] => 558
+            [1] => Crustle
+        )
+
+    [scraggy] => Array
+        (
+            [0] => 559
+            [1] => Scraggy
+        )
+
+    [scrafty] => Array
+        (
+            [0] => 560
+            [1] => Scrafty
+        )
+
+    [sigilyph] => Array
+        (
+            [0] => 561
+            [1] => Sigilyph
+        )
+
+    [yamask] => Array
+        (
+            [0] => 562
+            [1] => Yamask
+        )
+
+    [cofagrigus] => Array
+        (
+            [0] => 563
+            [1] => Cofagrigus
+        )
+
+    [tirtouga] => Array
+        (
+            [0] => 564
+            [1] => Tirtouga
+        )
+
+    [carracosta] => Array
+        (
+            [0] => 565
+            [1] => Carracosta
+        )
+
+    [archen] => Array
+        (
+            [0] => 566
+            [1] => Archen
+        )
+
+    [archeops] => Array
+        (
+            [0] => 567
+            [1] => Archeops
+        )
+
+    [trubbish] => Array
+        (
+            [0] => 568
+            [1] => Trubbish
+        )
+
+    [garbodor] => Array
+        (
+            [0] => 569
+            [1] => Garbodor
+        )
+
+    [zorua] => Array
+        (
+            [0] => 570
+            [1] => Zorua
+        )
+
+    [zoroark] => Array
+        (
+            [0] => 571
+            [1] => Zoroark
+        )
+
+    [minccino] => Array
+        (
+            [0] => 572
+            [1] => Minccino
+        )
+
+    [cinccino] => Array
+        (
+            [0] => 573
+            [1] => Cinccino
+        )
+
+    [gothita] => Array
+        (
+            [0] => 574
+            [1] => Gothita
+        )
+
+    [gothorita] => Array
+        (
+            [0] => 575
+            [1] => Gothorita
+        )
+
+    [gothitelle] => Array
+        (
+            [0] => 576
+            [1] => Gothitelle
+        )
+
+    [solosis] => Array
+        (
+            [0] => 577
+            [1] => Solosis
+        )
+
+    [duosion] => Array
+        (
+            [0] => 578
+            [1] => Duosion
+        )
+
+    [reuniclus] => Array
+        (
+            [0] => 579
+            [1] => Reuniclus
+        )
+
+    [ducklett] => Array
+        (
+            [0] => 580
+            [1] => Ducklett
+        )
+
+    [swanna] => Array
+        (
+            [0] => 581
+            [1] => Swanna
+        )
+
+    [vanillite] => Array
+        (
+            [0] => 582
+            [1] => Vanillite
+        )
+
+    [vanillish] => Array
+        (
+            [0] => 583
+            [1] => Vanillish
+        )
+
+    [vanilluxe] => Array
+        (
+            [0] => 584
+            [1] => Vanilluxe
+        )
+
+    [deerling] => Array
+        (
+            [0] => 585
+            [1] => Deerling
+        )
+
+    [sawsbuck] => Array
+        (
+            [0] => 586
+            [1] => Sawsbuck
+        )
+
+    [emolga] => Array
+        (
+            [0] => 587
+            [1] => Emolga
+        )
+
+    [karrablast] => Array
+        (
+            [0] => 588
+            [1] => Karrablast
+        )
+
+    [escavalier] => Array
+        (
+            [0] => 589
+            [1] => Escavalier
+        )
+
+    [foongus] => Array
+        (
+            [0] => 590
+            [1] => Foongus
+        )
+
+    [amoonguss] => Array
+        (
+            [0] => 591
+            [1] => Amoonguss
+        )
+
+    [frillish] => Array
+        (
+            [0] => 592
+            [1] => Frillish
+        )
+
+    [jellicent] => Array
+        (
+            [0] => 593
+            [1] => Jellicent
+        )
+
+    [alomomola] => Array
+        (
+            [0] => 594
+            [1] => Alomomola
+        )
+
+    [joltik] => Array
+        (
+            [0] => 595
+            [1] => Joltik
+        )
+
+    [galvantula] => Array
+        (
+            [0] => 596
+            [1] => Galvantula
+        )
+
+    [ferroseed] => Array
+        (
+            [0] => 597
+            [1] => Ferroseed
+        )
+
+    [ferrothorn] => Array
+        (
+            [0] => 598
+            [1] => Ferrothorn
+        )
+
+    [klink] => Array
+        (
+            [0] => 599
+            [1] => Klink
+        )
+
+    [klang] => Array
+        (
+            [0] => 600
+            [1] => Klang
+        )
+
+    [klinklang] => Array
+        (
+            [0] => 601
+            [1] => Klinklang
+        )
+
+    [tynamo] => Array
+        (
+            [0] => 602
+            [1] => Tynamo
+        )
+
+    [eelektrik] => Array
+        (
+            [0] => 603
+            [1] => Eelektrik
+        )
+
+    [eelektross] => Array
+        (
+            [0] => 604
+            [1] => Eelektross
+        )
+
+    [elgyem] => Array
+        (
+            [0] => 605
+            [1] => Elgyem
+        )
+
+    [beheeyem] => Array
+        (
+            [0] => 606
+            [1] => Beheeyem
+        )
+
+    [litwick] => Array
+        (
+            [0] => 607
+            [1] => Litwick
+        )
+
+    [lampent] => Array
+        (
+            [0] => 608
+            [1] => Lampent
+        )
+
+    [chandelure] => Array
+        (
+            [0] => 609
+            [1] => Chandelure
+        )
+
+    [axew] => Array
+        (
+            [0] => 610
+            [1] => Axew
+        )
+
+    [fraxure] => Array
+        (
+            [0] => 611
+            [1] => Fraxure
+        )
+
+    [haxorus] => Array
+        (
+            [0] => 612
+            [1] => Haxorus
+        )
+
+    [cubchoo] => Array
+        (
+            [0] => 613
+            [1] => Cubchoo
+        )
+
+    [beartic] => Array
+        (
+            [0] => 614
+            [1] => Beartic
+        )
+
+    [cryogonal] => Array
+        (
+            [0] => 615
+            [1] => Cryogonal
+        )
+
+    [shelmet] => Array
+        (
+            [0] => 616
+            [1] => Shelmet
+        )
+
+    [accelgor] => Array
+        (
+            [0] => 617
+            [1] => Accelgor
+        )
+
+    [stunfisk] => Array
+        (
+            [0] => 618
+            [1] => Stunfisk
+        )
+
+    [mienfoo] => Array
+        (
+            [0] => 619
+            [1] => Mienfoo
+        )
+
+    [mienshao] => Array
+        (
+            [0] => 620
+            [1] => Mienshao
+        )
+
+    [druddigon] => Array
+        (
+            [0] => 621
+            [1] => Druddigon
+        )
+
+    [golett] => Array
+        (
+            [0] => 622
+            [1] => Golett
+        )
+
+    [golurk] => Array
+        (
+            [0] => 623
+            [1] => Golurk
+        )
+
+    [pawniard] => Array
+        (
+            [0] => 624
+            [1] => Pawniard
+        )
+
+    [bisharp] => Array
+        (
+            [0] => 625
+            [1] => Bisharp
+        )
+
+    [bouffalant] => Array
+        (
+            [0] => 626
+            [1] => Bouffalant
+        )
+
+    [rufflet] => Array
+        (
+            [0] => 627
+            [1] => Rufflet
+        )
+
+    [braviary] => Array
+        (
+            [0] => 628
+            [1] => Braviary
+        )
+
+    [vullaby] => Array
+        (
+            [0] => 629
+            [1] => Vullaby
+        )
+
+    [mandibuzz] => Array
+        (
+            [0] => 630
+            [1] => Mandibuzz
+        )
+
+    [heatmor] => Array
+        (
+            [0] => 631
+            [1] => Heatmor
+        )
+
+    [durant] => Array
+        (
+            [0] => 632
+            [1] => Durant
+        )
+
+    [deino] => Array
+        (
+            [0] => 633
+            [1] => Deino
+        )
+
+    [zweilous] => Array
+        (
+            [0] => 634
+            [1] => Zweilous
+        )
+
+    [hydreigon] => Array
+        (
+            [0] => 635
+            [1] => Hydreigon
+        )
+
+    [larvesta] => Array
+        (
+            [0] => 636
+            [1] => Larvesta
+        )
+
+    [volcarona] => Array
+        (
+            [0] => 637
+            [1] => Volcarona
+        )
+
+    [cobalion] => Array
+        (
+            [0] => 638
+            [1] => Cobalion
+        )
+
+    [terrakion] => Array
+        (
+            [0] => 639
+            [1] => Terrakion
+        )
+
+    [virizion] => Array
+        (
+            [0] => 640
+            [1] => Virizion
+        )
+
+    [tornadus] => Array
+        (
+            [0] => 641
+            [1] => Tornadus
+        )
+
+    [thundurus] => Array
+        (
+            [0] => 642
+            [1] => Thundurus
+        )
+
+    [reshiram] => Array
+        (
+            [0] => 643
+            [1] => Reshiram
+        )
+
+    [zekrom] => Array
+        (
+            [0] => 644
+            [1] => Zekrom
+        )
+
+    [landorus] => Array
+        (
+            [0] => 645
+            [1] => Landorus
+        )
+
+    [kyurem] => Array
+        (
+            [0] => 646
+            [1] => Kyurem
+        )
+
+    [keldeo] => Array
+        (
+            [0] => 647
+            [1] => Keldeo
+        )
+
+    [meloetta] => Array
+        (
+            [0] => 648
+            [1] => Meloetta
+        )
+
+    [genesect] => Array
+        (
+            [0] => 649
+            [1] => Genesect
+        )
+
+    [chespin] => Array
+        (
+            [0] => 650
+            [1] => Chespin
+        )
+
+    [quilladin] => Array
+        (
+            [0] => 651
+            [1] => Quilladin
+        )
+
+    [chesnaught] => Array
+        (
+            [0] => 652
+            [1] => Chesnaught
+        )
+
+    [fennekin] => Array
+        (
+            [0] => 653
+            [1] => Fennekin
+        )
+
+    [braixen] => Array
+        (
+            [0] => 654
+            [1] => Braixen
+        )
+
+    [delphox] => Array
+        (
+            [0] => 655
+            [1] => Delphox
+        )
+
+    [froakie] => Array
+        (
+            [0] => 656
+            [1] => Froakie
+        )
+
+    [frogadier] => Array
+        (
+            [0] => 657
+            [1] => Frogadier
+        )
+
+    [greninja] => Array
+        (
+            [0] => 658
+            [1] => Greninja
+        )
+
+    [bunnelby] => Array
+        (
+            [0] => 659
+            [1] => Bunnelby
+        )
+
+    [diggersby] => Array
+        (
+            [0] => 660
+            [1] => Diggersby
+        )
+
+    [fletchling] => Array
+        (
+            [0] => 661
+            [1] => Fletchling
+        )
+
+    [fletchinder] => Array
+        (
+            [0] => 662
+            [1] => Fletchinder
+        )
+
+    [talonflame] => Array
+        (
+            [0] => 663
+            [1] => Talonflame
+        )
+
+    [scatterbug] => Array
+        (
+            [0] => 664
+            [1] => Scatterbug
+        )
+
+    [spewpa] => Array
+        (
+            [0] => 665
+            [1] => Spewpa
+        )
+
+    [vivillon] => Array
+        (
+            [0] => 666
+            [1] => Vivillon
+        )
+
+    [litleo] => Array
+        (
+            [0] => 667
+            [1] => Litleo
+        )
+
+    [pyroar] => Array
+        (
+            [0] => 668
+            [1] => Pyroar
+        )
+
+    [flab�b�] => Array
+        (
+            [0] => 669
+            [1] => Flabébé
+        )
+
+    [floette] => Array
+        (
+            [0] => 670
+            [1] => Floette
+        )
+
+    [florges] => Array
+        (
+            [0] => 671
+            [1] => Florges
+        )
+
+    [skiddo] => Array
+        (
+            [0] => 672
+            [1] => Skiddo
+        )
+
+    [gogoat] => Array
+        (
+            [0] => 673
+            [1] => Gogoat
+        )
+
+    [pancham] => Array
+        (
+            [0] => 674
+            [1] => Pancham
+        )
+
+    [pangoro] => Array
+        (
+            [0] => 675
+            [1] => Pangoro
+        )
+
+    [furfrou] => Array
+        (
+            [0] => 676
+            [1] => Furfrou
+        )
+
+    [espurr] => Array
+        (
+            [0] => 677
+            [1] => Espurr
+        )
+
+    [meowstic] => Array
+        (
+            [0] => 678
+            [1] => Meowstic
+        )
+
+    [honedge] => Array
+        (
+            [0] => 679
+            [1] => Honedge
+        )
+
+    [doublade] => Array
+        (
+            [0] => 680
+            [1] => Doublade
+        )
+
+    [aegislash] => Array
+        (
+            [0] => 681
+            [1] => Aegislash
+        )
+
+    [spritzee] => Array
+        (
+            [0] => 682
+            [1] => Spritzee
+        )
+
+    [aromatisse] => Array
+        (
+            [0] => 683
+            [1] => Aromatisse
+        )
+
+    [swirlix] => Array
+        (
+            [0] => 684
+            [1] => Swirlix
+        )
+
+    [slurpuff] => Array
+        (
+            [0] => 685
+            [1] => Slurpuff
+        )
+
+    [inkay] => Array
+        (
+            [0] => 686
+            [1] => Inkay
+        )
+
+    [malamar] => Array
+        (
+            [0] => 687
+            [1] => Malamar
+        )
+
+    [binacle] => Array
+        (
+            [0] => 688
+            [1] => Binacle
+        )
+
+    [barbaracle] => Array
+        (
+            [0] => 689
+            [1] => Barbaracle
+        )
+
+    [skrelp] => Array
+        (
+            [0] => 690
+            [1] => Skrelp
+        )
+
+    [dragalge] => Array
+        (
+            [0] => 691
+            [1] => Dragalge
+        )
+
+    [clauncher] => Array
+        (
+            [0] => 692
+            [1] => Clauncher
+        )
+
+    [clawitzer] => Array
+        (
+            [0] => 693
+            [1] => Clawitzer
+        )
+
+    [helioptile] => Array
+        (
+            [0] => 694
+            [1] => Helioptile
+        )
+
+    [heliolisk] => Array
+        (
+            [0] => 695
+            [1] => Heliolisk
+        )
+
+    [tyrunt] => Array
+        (
+            [0] => 696
+            [1] => Tyrunt
+        )
+
+    [tyrantrum] => Array
+        (
+            [0] => 697
+            [1] => Tyrantrum
+        )
+
+    [amaura] => Array
+        (
+            [0] => 698
+            [1] => Amaura
+        )
+
+    [aurorus] => Array
+        (
+            [0] => 699
+            [1] => Aurorus
+        )
+
+    [sylveon] => Array
+        (
+            [0] => 700
+            [1] => Sylveon
+        )
+
+    [hawlucha] => Array
+        (
+            [0] => 701
+            [1] => Hawlucha
+        )
+
+    [dedenne] => Array
+        (
+            [0] => 702
+            [1] => Dedenne
+        )
+
+    [carbink] => Array
+        (
+            [0] => 703
+            [1] => Carbink
+        )
+
+    [goomy] => Array
+        (
+            [0] => 704
+            [1] => Goomy
+        )
+
+    [sliggoo] => Array
+        (
+            [0] => 705
+            [1] => Sliggoo
+        )
+
+    [goodra] => Array
+        (
+            [0] => 706
+            [1] => Goodra
+        )
+
+    [klefki] => Array
+        (
+            [0] => 707
+            [1] => Klefki
+        )
+
+    [phantump] => Array
+        (
+            [0] => 708
+            [1] => Phantump
+        )
+
+    [trevenant] => Array
+        (
+            [0] => 709
+            [1] => Trevenant
+        )
+
+    [pumpkaboo] => Array
+        (
+            [0] => 710
+            [1] => Pumpkaboo
+        )
+
+    [gourgeist] => Array
+        (
+            [0] => 711
+            [1] => Gourgeist
+        )
+
+    [bergmite] => Array
+        (
+            [0] => 712
+            [1] => Bergmite
+        )
+
+    [avalugg] => Array
+        (
+            [0] => 713
+            [1] => Avalugg
+        )
+
+    [noibat] => Array
+        (
+            [0] => 714
+            [1] => Noibat
+        )
+
+    [noivern] => Array
+        (
+            [0] => 715
+            [1] => Noivern
+        )
+
+    [xerneas] => Array
+        (
+            [0] => 716
+            [1] => Xerneas
+        )
+
+    [yveltal] => Array
+        (
+            [0] => 717
+            [1] => Yveltal
+        )
+
+    [zygarde] => Array
+        (
+            [0] => 718
+            [1] => Zygarde
+        )
+
+    [diancie] => Array
+        (
+            [0] => 719
+            [1] => Diancie
+        )
+
+    [hoopa] => Array
+        (
+            [0] => 720
+            [1] => Hoopa
+        )
+
+    [volcanion] => Array
+        (
+            [0] => 721
+            [1] => Volcanion
+        )
+
+    [deoxysattack] => Array
+        (
+            [0] => 10001
+            [1] => Deoxys Attack Forme
+        )
+
+    [deoxysdefense] => Array
+        (
+            [0] => 10002
+            [1] => Deoxys Defense Forme
+        )
+
+    [deoxysspeed] => Array
+        (
+            [0] => 10003
+            [1] => Deoxys Speed Forme
+        )
+
+    [wormadamsandy] => Array
+        (
+            [0] => 10004
+            [1] => Wormadam Sandy Cloak
+        )
+
+    [wormadamtrash] => Array
+        (
+            [0] => 10005
+            [1] => Wormadam Trash Cloak
+        )
+
+    [shayminsky] => Array
+        (
+            [0] => 10006
+            [1] => Shaymin Sky Forme
+        )
+
+    [giratinaorigin] => Array
+        (
+            [0] => 10007
+            [1] => Giratina Origin Forme
+        )
+
+    [rotomheat] => Array
+        (
+            [0] => 10008
+            [1] => Rotom Heat Rotom
+        )
+
+    [rotomwash] => Array
+        (
+            [0] => 10009
+            [1] => Rotom Wash Rotom
+        )
+
+    [rotomfrost] => Array
+        (
+            [0] => 10010
+            [1] => Rotom Frost Rotom
+        )
+
+    [rotomfan] => Array
+        (
+            [0] => 10011
+            [1] => Rotom Fan Rotom
+        )
+
+    [rotommow] => Array
+        (
+            [0] => 10012
+            [1] => Rotom Mow Rotom
+        )
+
+    [castformsunny] => Array
+        (
+            [0] => 10013
+            [1] => Castform Sunny Form
+        )
+
+    [castformrainy] => Array
+        (
+            [0] => 10014
+            [1] => Castform Rainy Form
+        )
+
+    [castformsnowy] => Array
+        (
+            [0] => 10015
+            [1] => Castform Snowy Form
+        )
+
+    [basculinbluestriped] => Array
+        (
+            [0] => 10016
+            [1] => Basculin Blue-Striped Form
+        )
+
+    [darmanitanzen] => Array
+        (
+            [0] => 10017
+            [1] => Darmanitan Zen Mode
+        )
+
+    [meloettapirouette] => Array
+        (
+            [0] => 10018
+            [1] => Meloetta Pirouette Forme
+        )
+
+    [tornadustherian] => Array
+        (
+            [0] => 10019
+            [1] => Tornadus Therian Forme
+        )
+
+    [thundurustherian] => Array
+        (
+            [0] => 10020
+            [1] => Thundurus Therian Forme
+        )
+
+    [landorustherian] => Array
+        (
+            [0] => 10021
+            [1] => Landorus Therian Forme
+        )
+
+    [kyuremblack] => Array
+        (
+            [0] => 10022
+            [1] => Kyurem Black Kyurem
+        )
+
+    [kyuremwhite] => Array
+        (
+            [0] => 10023
+            [1] => Kyurem White Kyurem
+        )
+
+    [keldeoresolute] => Array
+        (
+            [0] => 10024
+            [1] => Keldeo Resolute Form
+        )
+
+    [meowsticfemale] => Array
+        (
+            [0] => 10025
+            [1] => Meowstic Female
+        )
+
+    [aegislashblade] => Array
+        (
+            [0] => 10026
+            [1] => Aegislash Blade Forme
+        )
+
+    [pumpkaboosmall] => Array
+        (
+            [0] => 10027
+            [1] => Pumpkaboo Small Size
+        )
+
+    [pumpkaboolarge] => Array
+        (
+            [0] => 10028
+            [1] => Pumpkaboo Large Size
+        )
+
+    [pumpkaboosuper] => Array
+        (
+            [0] => 10029
+            [1] => Pumpkaboo Super Size
+        )
+
+    [gourgeistsmall] => Array
+        (
+            [0] => 10030
+            [1] => Gourgeist Small Size
+        )
+
+    [gourgeistlarge] => Array
+        (
+            [0] => 10031
+            [1] => Gourgeist Large Size
+        )
+
+    [gourgeistsuper] => Array
+        (
+            [0] => 10032
+            [1] => Gourgeist Super Size
+        )
+
+    [megavenusaur] => Array
+        (
+            [0] => 10033
+            [1] => Mega Venusaur
+        )
+
+    [megacharizard] => Array
+        (
+            [0] => 10035
+            [1] => Mega Charizard Y
+        )
+
+    [megablastoise] => Array
+        (
+            [0] => 10036
+            [1] => Mega Blastoise
+        )
+
+    [megaalakazam] => Array
+        (
+            [0] => 10037
+            [1] => Mega Alakazam
+        )
+
+    [megagengar] => Array
+        (
+            [0] => 10038
+            [1] => Mega Gengar
+        )
+
+    [megakangaskhan] => Array
+        (
+            [0] => 10039
+            [1] => Mega Kangaskhan
+        )
+
+    [megapinsir] => Array
+        (
+            [0] => 10040
+            [1] => Mega Pinsir
+        )
+
+    [megagyarados] => Array
+        (
+            [0] => 10041
+            [1] => Mega Gyarados
+        )
+
+    [megaaerodactyl] => Array
+        (
+            [0] => 10042
+            [1] => Mega Aerodactyl
+        )
+
+    [megamewtwo] => Array
+        (
+            [0] => 10044
+            [1] => Mega Mewtwo Y
+        )
+
+    [megaampharos] => Array
+        (
+            [0] => 10045
+            [1] => Mega Ampharos
+        )
+
+    [megascizor] => Array
+        (
+            [0] => 10046
+            [1] => Mega Scizor
+        )
+
+    [megaheracross] => Array
+        (
+            [0] => 10047
+            [1] => Mega Heracross
+        )
+
+    [megahoundoom] => Array
+        (
+            [0] => 10048
+            [1] => Mega Houndoom
+        )
+
+    [megatyranitar] => Array
+        (
+            [0] => 10049
+            [1] => Mega Tyranitar
+        )
+
+    [megablaziken] => Array
+        (
+            [0] => 10050
+            [1] => Mega Blaziken
+        )
+
+    [megagardevoir] => Array
+        (
+            [0] => 10051
+            [1] => Mega Gardevoir
+        )
+
+    [megamawile] => Array
+        (
+            [0] => 10052
+            [1] => Mega Mawile
+        )
+
+    [megaaggron] => Array
+        (
+            [0] => 10053
+            [1] => Mega Aggron
+        )
+
+    [megamedicham] => Array
+        (
+            [0] => 10054
+            [1] => Mega Medicham
+        )
+
+    [megamanectric] => Array
+        (
+            [0] => 10055
+            [1] => Mega Manectric
+        )
+
+    [megabanette] => Array
+        (
+            [0] => 10056
+            [1] => Mega Banette
+        )
+
+    [megaabsol] => Array
+        (
+            [0] => 10057
+            [1] => Mega Absol
+        )
+
+    [megagarchomp] => Array
+        (
+            [0] => 10058
+            [1] => Mega Garchomp
+        )
+
+    [megalucario] => Array
+        (
+            [0] => 10059
+            [1] => Mega Lucario
+        )
+
+    [megaabomasnow] => Array
+        (
+            [0] => 10060
+            [1] => Mega Abomasnow
+        )
+
+    [floetteeternal] => Array
+        (
+            [0] => 10061
+            [1] => Floette Eternal Flower
+        )
+
+    [megalatias] => Array
+        (
+            [0] => 10062
+            [1] => Mega Latias
+        )
+
+    [megalatios] => Array
+        (
+            [0] => 10063
+            [1] => Mega Latios
+        )
+
+    [megaswampert] => Array
+        (
+            [0] => 10064
+            [1] => Mega Swampert
+        )
+
+    [megasceptile] => Array
+        (
+            [0] => 10065
+            [1] => Mega Sceptile
+        )
+
+    [megasableye] => Array
+        (
+            [0] => 10066
+            [1] => Mega Sableye
+        )
+
+    [megaaltaria] => Array
+        (
+            [0] => 10067
+            [1] => Mega Altaria
+        )
+
+    [megagallade] => Array
+        (
+            [0] => 10068
+            [1] => Mega Gallade
+        )
+
+    [megaaudino] => Array
+        (
+            [0] => 10069
+            [1] => Mega Audino
+        )
+
+    [megasharpedo] => Array
+        (
+            [0] => 10070
+            [1] => Mega Sharpedo
+        )
+
+    [megaslowbro] => Array
+        (
+            [0] => 10071
+            [1] => Mega Slowbro
+        )
+
+    [megasteelix] => Array
+        (
+            [0] => 10072
+            [1] => Mega Steelix
+        )
+
+    [megapidgeot] => Array
+        (
+            [0] => 10073
+            [1] => Mega Pidgeot
+        )
+
+    [megaglalie] => Array
+        (
+            [0] => 10074
+            [1] => Mega Glalie
+        )
+
+    [megadiancie] => Array
+        (
+            [0] => 10075
+            [1] => Mega Diancie
+        )
+
+    [megametagross] => Array
+        (
+            [0] => 10076
+            [1] => Mega Metagross
+        )
+
+    [kyogreprimal] => Array
+        (
+            [0] => 10077
+            [1] => Kyogre Primal Reversion
+        )
+
+    [groudonprimal] => Array
+        (
+            [0] => 10078
+            [1] => Groudon Primal Reversion
+        )
+
+    [megarayquaza] => Array
+        (
+            [0] => 10079
+            [1] => Mega Rayquaza
+        )
+
+    [pikachupikachu] => Array
+        (
+            [0] => 10084
+            [1] => Pikachu Pikachu Libre
+        )
+
+    [pikachupikachu,] => Array
+        (
+            [0] => 10083
+            [1] => Pikachu Pikachu, Ph.D.
+        )
+
+    [pikachucosplay] => Array
+        (
+            [0] => 10085
+            [1] => Pikachu Cosplay Pikachu
+        )
+
+    [hoopahoopa] => Array
+        (
+            [0] => 10086
+            [1] => Hoopa Hoopa Unbound
+        )
+
+    [megacamerupt] => Array
+        (
+            [0] => 10087
+            [1] => Mega Camerupt
+        )
+
+    [megalopunny] => Array
+        (
+            [0] => 10088
+            [1] => Mega Lopunny
+        )
+
+    [megasalamence] => Array
+        (
+            [0] => 10089
+            [1] => Mega Salamence
+        )
+
+    [megabeedrill] => Array
+        (
+            [0] => 10090
+            [1] => Mega Beedrill
+        )
+
+)
