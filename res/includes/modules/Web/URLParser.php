@@ -26,14 +26,6 @@ class URLParser {
         $this->registerRegex("soundcloud.com", "/^[^\/]+\/.+/", array($this, "soundcloud"), "soundcloud");
     }
 
-    private function registerRegex($domain, $regex, callable $method, $permission) {
-        $this->URLRegexes[$domain][] = array(
-            'regex'         => $regex,
-            'method'        => $method,
-            'permission'    => $permission
-        );
-    }
-
 	/**
 	 * Parse a URL and give standard or custom information about the contents, if relevant
 	 *
@@ -115,6 +107,22 @@ class URLParser {
 
 		return false;
 	}
+
+    /**
+     * Assign a regular expression to match pages from a given domain
+     *
+     * @param string $domain
+     * @param string $regex
+     * @param callable $method The method to call to parse the webpage if a match occurs
+     * @param string $permission The subcategory of the permission system for this event
+     */
+    private function registerRegex($domain, $regex, callable $method, $permission) {
+        $this->URLRegexes[$domain][] = array(
+            'regex'         => $regex,
+            'method'        => $method,
+            'permission'    => $permission
+        );
+    }
 
 	/**
 	 * Utility to format a byte count into human readable byte prefixes
