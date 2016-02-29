@@ -8,14 +8,21 @@
 class Web extends Module {
 	use AccountAccess;
 
-	private $youtubeAPIKey = "";
 	public static $separator = "";
+    private static $APIServices = array("youtube", "soundcloud");
+
+    private $APIKeys = array();
+    private $URLParser;
 
 	public function __construct(IRCBot $irc) {
 		parent::__construct($irc);
 
-		$this->youtubeAPIKey = Module::getAPIKey("youtube");
-		self::$separator = " ". IRCUtility::bold(IRCUtility::color("¦", "red")). " ";
+        //  Set formatting separator
+        self::$separator = " ". IRCUtility::bold(IRCUtility::color("¦", "red")). " ";
+
+        $this->loadAPIKeys();
+
+        $this->URLParser = new URLParser($this);
 
 		$this->triggers = array(
 			'weather'			=> "weather",
@@ -55,10 +62,10 @@ class Web extends Module {
 		parent::privmsg($msg);
 
 		//	Not a command, parse URLs if applicable
-		if (!$msg->isCommand() && class_exists("URLInfo")) {
+		if (!$msg->isCommand() && class_exists("URLParser")) {
 
 			$permission = $this->externalModule("Permission");
-			if ($permission instanceof Permission && !($permission->hasPermission($msg, "urlinfo")))
+			if ($permission instanceof Permission && !($permission->hasPermission($msg, "urlparser")))
 				return;
 
 			$return = array();
@@ -66,7 +73,7 @@ class Web extends Module {
 
 				foreach ($match[0] as $url) {
 					try {
-						$return[] = URLInfo::search($url, array('permission' => $permission, 'ircmessage' => $msg));
+						$return[] = $this->URLParser->search($url, array('permission' => $permission, 'ircmessage' => $msg));
 					}
 					catch (Exception $e) {
 						$this->status($e->getMessage());
@@ -81,6 +88,35 @@ class Web extends Module {
 		}
 
 	}
+
+
+    /**
+     * Reload web service API keys from file
+     */
+    private function loadAPIKeys() {
+        foreach (self::$APIServices as $service) {
+            try {
+                $this->APIKeys[$service] = Module::loadAPIKey($service);
+            }
+            catch (ModuleException $e) {
+                continue;
+            }
+        }
+    }
+
+    /**
+     * Return an API key from the cache
+     *
+     * @param string $service
+     * @return string
+     * @throws ModuleException Key not loaded
+     */
+    public function getAPIKey($service) {
+        if (isset($this->APIKeys[$service]))
+            return $this->APIKeys[$service];
+
+        throw new ModuleException("No API key cached for '$service'.");
+    }
 
 	/**
 	 * Output weather conditions information
@@ -211,6 +247,7 @@ class Web extends Module {
 		}
 
 		$options = array('number' => $number);
+		/** @var $dictionary WebSearch */
 		$result = $dictionary::search(implode(" ", $parameters), $options);
 
 		$this->IRCBot->message($msg->getResponseTarget(), $result);
@@ -307,7 +344,7 @@ class Web extends Module {
 			$parameterString = implode(" ", $parameters);
 		}
 
-		$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=". $this->youtubeAPIKey. "&q=". urlencode($parameterString));
+		$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=". $this->getAPIKey("youtube"). "&q=". urlencode($parameterString));
 		$items = json_decode($json, true)['items'];
 
 		$count = count($items);

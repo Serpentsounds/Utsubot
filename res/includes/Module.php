@@ -98,7 +98,7 @@ abstract class Module {
 		}
 	}
 
-	public static function getAPIKey($type) {
+	public static function loadAPIKey($type) {
 		if (!file_exists("settings.ini"))
 			throw new ModuleException("Unable to retrieve $type API Key because settings.ini does not exist.");
 

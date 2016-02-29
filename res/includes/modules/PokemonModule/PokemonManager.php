@@ -105,6 +105,11 @@ class PokemonManager extends \ManagerWithDatabase {
 				return new \ManagerSearchObject($this, "getBaseStat", array($field), self::$numericOperators);
 			break;
 
+			case "total":
+			case "bst":
+				return new \ManagerSearchObject($this, "getBaseStatTotal", array(), self::$numericOperators);
+			break;
+
 			case	"name":		case	"english":
 			case	"romaji":	case	"katakana":
 			case	"french":	case	"german":

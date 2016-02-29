@@ -339,6 +339,11 @@ class Pokemon {
 		return "";
 	}
 
+	public function getBaseStatTotal() {
+		return array_sum($this->baseStats);
+	}
+
+
 	/**
 	 * Wrapper for ev yield calls to getBaseStat
 	 *

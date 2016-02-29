@@ -1,22 +1,38 @@
 <?php
 /**
- * PHPBot - URLInfo.php
+ * PHPBot - URLParser.php
  * User: Benjamin
  * Date: 08/06/14
  */
 
 require_once("WebSearch.php");
 
-class URLInfoException extends Exception {}
+class URLParserException extends Exception {}
 
-class URLInfo implements WebSearch {
+class URLParser {
 	const WIKIPEDIA_PREVIEW_LENGTH = 250;
+    const URL_CACHE_DELAY = 1800;
 
-	private static $youtubeAPIKey = "";
-	private static $soundcloudClientID = "";
+    private $web;
+    private $URLRegexes = array();
+	private $URLCache = array();
 
-	private static $urlCache = array();
-	private static $cacheDelay = 1800;
+    public function __construct(Web $web) {
+        $this->web = $web;
+
+        $this->registerRegex("youtube.com", "/^watch\?.*?v=([^#&?\/]+)/i", array($this, "youtube"), "youtube");
+        $this->registerRegex("youtu.be", "/^([^#&?\/]+)/", array($this, "youtube"), "youtube");
+        $this->registerRegex("wikipedia.org", "/^wiki\/([^#&?]+)/", array($this, "wikipedia"), "wikipedia");
+        $this->registerRegex("soundcloud.com", "/^[^\/]+\/.+/", array($this, "soundcloud"), "soundcloud");
+    }
+
+    private function registerRegex($domain, $regex, callable $method, $permission) {
+        $this->URLRegexes[$domain][] = array(
+            'regex'         => $regex,
+            'method'        => $method,
+            'permission'    => $permission
+        );
+    }
 
 	/**
 	 * Parse a URL and give standard or custom information about the contents, if relevant
@@ -24,37 +40,39 @@ class URLInfo implements WebSearch {
 	 * @param string $search The URL
 	 * @param array $options Options array from interface. No effect.
 	 * @return bool|string Relevant output, or false on failure
-	 * @throws URLInfoException If content type is unable to be determined, or if the URL string can't be parsed properly
+	 * @throws URLParserException If content type is unable to be determined, or if the URL string can't be parsed properly
 	 */
-	public static function search($search, $options = array()) {
-		if (!strlen(self::$youtubeAPIKey))
-			self::$youtubeAPIKey = Module::getAPIKey("youtube");
-		if (!strlen(self::$soundcloudClientID))
-			self::$soundcloudClientID = Module::getAPIKey("soundcloud");
-
-		$checkPermission = false;
+	public function search($search, $options = array()) {
+		//  Enable permission checking if object was passed
+        $checkPermission = false;
 		$permission = null;
-		if (isset($options['permission']) && ($permission = $options['permission']) && $permission instanceof Permission && isset($options['ircmessage']) && $options['ircmessage'] instanceof IRCMessage)
-			$checkPermission = true;
+        $channel = ".default";
+        if (isset($options['ircmessage']) && ($msg = $options['ircmessage']) && $msg instanceof IRCMessage) {
+            $channel = $msg->getResponseTarget();
 
-		//	Ignore recently parsed URLs
-		$time = time();
-		if (isset(self::$urlCache[$search]) && $time - self::$urlCache[$search] <= self::$cacheDelay)
+            if (isset($options['permission']) && ($permission = $options['permission']) && $permission instanceof Permission)
+                $checkPermission = true;
+        }
+
+
+        //  Don't look up recent links
+        if ($this->isCached($search, "url", $channel))
 			return false;
-		self::$urlCache[$search] = $time;
 
-		//	HTTP header only
+		//	HTTP header only, if necessary individual parsers can download content later
 		$headers = WebAccess::resourceHeader($search);
 
 		//	Check content type
 		if (!preg_match("/\sContent-Type: ?([^\s;]+)/i", $headers, $match))
-			throw new URLInfoException("Content-Type header missing in '$search'.");
+			throw new URLParserException("Content-Type header missing in '$search'.");
 		$contentType = $match[1];
+
 
 		//	text/html is a webpage, check for domain specific parsing or fall to default
 		if ($contentType == "text/html") {
+			//	Abort if unable to regex domain
 			if (!preg_match("/https?:\/\/([^\/]+)(?:\/(.*))?/i", $search, $match))
-				throw new URLInfoException("Malformed url '$search'.");
+				throw new URLParserException("Malformed url '$search'.");
 
 			//	Grab http://domain/page
 			@list(, $domain, $page) = $match;
@@ -63,60 +81,34 @@ class URLInfo implements WebSearch {
 				//	Remove all subdomains
 				$mainDomain = substr($mainDomain, 1 + strrpos($mainDomain, ".", strrpos($mainDomain, ".") - strlen($mainDomain) - 1));
 
-			//	Check for domain-specific parsing (e.g., youtube video info)
-			switch ($mainDomain) {
-				case "youtube.com":
-					if (preg_match("/^watch\?.*?v=([^#&?\/]+)/i", $page, $video) &&
-						(!$checkPermission || $permission->hasPermission($options['ircmessage'], "youtube")))
-						return self::youtube($video[1]);
-				break;
-				case "youtu.be":
-					if (preg_match("/^([^#&?\/]+)/", $page, $video) &&
-						(!$checkPermission || $permission->hasPermission($options['ircmessage'], "youtube")))
-						return self::youtube($video[1]);
-				break;
+			//	Check for domain-specific parsing
+            if (isset($this->URLRegexes[$mainDomain])) {
+                foreach ($this->URLRegexes[$mainDomain] as $entry) {
 
-				case "wikipedia.org":
-					if (preg_match("/^wiki\/(.+)/", $page, $article) &&
-						(!$checkPermission || $permission->hasPermission($options['ircmessage'], "wikipedia")))
-						return self::wikipedia($article[1]);
-					return "";
-				break;
-				case "soundcloud.com":
-					if (preg_match("/^[^\/]+\/.+/", $page) &&
-						(!$checkPermission || $permission->hasPermission($options['ircmessage'], "soundcloud")))
-						return self::soundcloud($search);
-				break;
+                    //  Page file name regex match and permission ok
+                    if (preg_match($entry['regex'], $page, $match) &&
+                    (!$checkPermission || $permission->hasPermission($options['ircmessage'], $entry['permission'])))
+                        return call_user_func_array($entry['method'], array($search, $match, $channel));
+                }
+            }
 
-				//	Default to return html <title>
-				default:
-					if (!$checkPermission || $permission->hasPermission($options['ircmessage'], "urltitle"))
-						return self::URLTitle($search);
-				break;
-			}
+            //  Default, return URL title
+            elseif (!$checkPermission || $permission->hasPermission($options['ircmessage'], "urltitle"))
+                return $this->URLTitle($search, $channel);
 		}
 
-
-
-		/*elseif 	($contentType == "image/jpeg" &&
-				(!$checkPermission || $options['permission']->hasPermission($options['ircmessage'], "exif")) &&
-			   	($image = WebAccess::resourceBody($search)) &&
-			   	(file_put_contents("temp.jpg", $image)) &&
-			   	($exif = exif_read_data("temp.jpg", "EXIF", true))) {
-
-					print_r($exif['EXIF']);
-					unlink("temp.jpg");
-		}*/
 
 		//	Not a page, but some other resource (image, song, etc)
 		elseif (!$checkPermission || $permission->hasPermission($options['ircmessage'], "remotefile")) {
 			//	Show only file size and type from header
 			$contentLength = (preg_match("/\sContent-Length: ?(\d+)/", $headers, $match)) ? ", ". self::formatBytes($match[1]) : "";
-			//	Format URl and eliminate query parameters
-			$file = explode("?", rawurldecode(basename($search)))[0];
+
+            $filteredURL = preg_split("/[#?]/", $search)[0];
+            if ($this->isCached($filteredURL, "resource", $channel))
+                return false;
 
 			return sprintf("\"%s\": %s%s",
-						$file,
+						basename(rawurldecode($filteredURL)),
 						$contentType,
 						$contentLength);
 		}
@@ -139,21 +131,67 @@ class URLInfo implements WebSearch {
 		return round(pow(1024, $base - floor($base)), $precision). $suffixes[(int)floor($base)];
 	}
 
+    /**
+     * Convert an ISO8601 formatted time to a human readable duration
+     *
+     * @param string $iso8601
+     * @return string
+     */
+    private static function duration($iso8601) {
+        $duration = IRCUtility::italic("0sec");
+        if (preg_match("/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)$/", $iso8601, $match)) {
+            $units = array("d", "hr", "min", "sec");
+            $durationComponents = array();
+            for ($i = 0, $count = count($units); $i < $count; $i++) {
+                if ($match[$i+1] || ($i == $count - 1 && count($durationComponents) == 0))
+                    $durationComponents[] = IRCUtility::italic($match[$i+1]). $units[$i];
+            }
+
+            $duration = implode(" ", $durationComponents);
+        }
+
+        return $duration;
+    }
+
+	/**
+	 * Check if the name of a resource is cached, to prevent duplicate fetching and/or display
+	 * Additionally, cache timer will be set if needed
+	 *
+	 * @param string $item Search term
+	 * @param string $cache Subdivision of the cache (e.g., url, resource, youtube)
+	 * @return bool True/false if item is still within cache timer
+	 */
+	private function isCached($item, $cache, $target) {
+		$time = time();
+		if (isset($this->URLCache[$cache][$target][$item]) && $time - $this->URLCache[$cache][$target][$item] <= self::URL_CACHE_DELAY)
+			return true;
+
+		$this->URLCache[$cache][$target][$item] = $time;
+		return false;
+	}
+
 	/**
 	 * Get YouTube information about a video
 	 *
-	 * @param string $video A video ID
+	 * @param string $search Base URL
+     * @param array $match Regex match, index 1 will be video id
+     * @param string $channel Output channel name (for caching)
 	 * @return string A formatted string showing video information
-	 * @throws URLInfoException If video is not found
+	 * @throws URLParserException If video is not found
 	 */
-	public static function youtube($video) {
+	public function youtube($search, $match, $channel) {
+        $video = $match[1];
+		//	Don't fetch recent videos
+		if ($this->isCached($video, "youtube", $channel))
+			return "";
+
 		//	Access API and validate existence
-		$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=$video&key=". self::$youtubeAPIKey);
+		$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=$video&key=". $this->web->getAPIKey("youtube"));
 		$data = json_decode($json, true);
 
 		//	Invalid video
 		if ($data['pageInfo']['totalResults'] < 1)
-			throw new URLInfoException("Video '$video' not found.");
+			throw new URLParserException("Video '$video' not found.");
 
 		//	Assign and format relevant information
 		$info = $data['items'][0];
@@ -179,10 +217,10 @@ class URLInfo implements WebSearch {
 
 		//	Special info for live broadcasts
 		if ($info['snippet']['liveBroadcastContent'] == "live") {
-			$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=$video&key=". self::$youtubeAPIKey);
+			$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=$video&key=". $this->web->getAPIKey("youtube"));
 			$data = json_decode($json, true);
 			if ($data['pageInfo']['totalResults'] < 1)
-				throw new URLInfoException("Error getting live streaming info for '$video'.");
+				throw new URLParserException("Error getting live streaming info for '$video'.");
 			$info = $data['items'][0];
 
 			//	Format information and determine broadcast length
@@ -206,42 +244,27 @@ class URLInfo implements WebSearch {
 	}
 
 	/**
-	 * Convert an ISO8601 formatted time to a human readable duration
-	 *
-	 * @param string $iso8601
-	 * @return string
-	 */
-	private static function duration($iso8601) {
-		$duration = IRCUtility::italic("0sec");
-		if (preg_match("/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)$/", $iso8601, $match)) {
-			$units = array("d", "hr", "min", "sec");
-			$durationComponents = array();
-			for ($i = 0, $count = count($units); $i < $count; $i++) {
-				if ($match[$i+1] || ($i == $count - 1 && count($durationComponents) == 0))
-					$durationComponents[] = IRCUtility::italic($match[$i+1]). $units[$i];
-			}
-
-			$duration = implode(" ", $durationComponents);
-		}
-
-		return $duration;
-	}
-
-	/**
 	 * Get a preview for a Wikipedia article
 	 *
-	 * @param string $article Name of article as it appears in the URL
+     * @param string $search Base URL
+     * @param array $match Regex match, index 1 will be article name
+     * @param string $channel Output channel name (for caching)
 	 * @return string The beginning of the article with formatting removed
-	 * @throws URLInfoException If article is not found or lookup fails
+	 * @throws URLParserException If article is not found or lookup fails
 	 */
-	public static function wikipedia($article) {
+	public function wikipedia($search, $match, $channel) {
+        $article = $match[1];
+		//	Don't parse recent articles
+		if (self::isCached($article, "wikipedia", $channel))
+			return "";
+
 		$content = WebAccess::resourceBody("http://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=1&rvprop=content&format=json&rawcontinue&titles=$article");
 
 		$data = json_decode($content, true);
 
 		//	Page listing will be in here
 		if (!isset($data['query']['pages']) || !count($data['query']['pages']))
-			throw new URLInfoException("URLInfo::wikipedia: Invalid article '$article'.");
+			throw new URLParserException("URLInfo::wikipedia: Invalid article '$article'.");
 
 		//	Determine the index of the first result
 		$pageID = array_keys($data['query']['pages'])[0];
@@ -249,7 +272,7 @@ class URLInfo implements WebSearch {
 
 		//	The article in its current state will be under this index
 		if (!isset($pageArr['revisions']) || !isset($pageArr['revisions'][0]['*']))
-			throw new URLInfoException("URLInfo::wikipedia: Unable to get contents for '$article'.");
+			throw new URLParserException("URLInfo::wikipedia: Unable to get contents for '$article'.");
 
 		$pageContents = $data['query']['pages'][$pageID]['revisions'][0]['*'];
 		/*	Trim the beginning to lower processing time. We only need a few hundred content characters.
@@ -275,7 +298,7 @@ class URLInfo implements WebSearch {
 
 		//	Follow redirects
 		if (preg_match("/^#REDIRECT (.+)/i", $pageContents, $match))
-			return self::wikipedia($match[1]);
+			return $this->wikipedia($search, $match, $channel);
 
 		//	Return remaining content with hard cutoff
 		return sprintf("%s (%s): %s...",
@@ -284,12 +307,26 @@ class URLInfo implements WebSearch {
 					mb_substr($pageContents, 0, self::WIKIPEDIA_PREVIEW_LENGTH));
 	}
 
-	public static function soundcloud($url) {
-		$data = WebAccess::resourceBody("http://api.soundcloud.com/resolve?url=$url&client_id=". self::$soundcloudClientID);
+    /**
+     * Get metadata for a soundcloud song
+     *
+     * @param string $search Base URL
+     * @param array $match Regex match
+     * @param string $channel Output channel name (for caching)
+     * @return string Song metadata
+     * @throws ModuleException
+     * @throws URLParserException
+     */
+	public function soundcloud($search, $match, $channel) {
+
+		$data = WebAccess::resourceBody("http://api.soundcloud.com/resolve?url=$search&client_id=". $this->web->getAPIKey("soundcloud"));
 		$json = json_decode($data, true);
 
 		if (!isset($json['title']) || !$json['title'])
-			throw new URLInfoException("Invalid song URL.");
+			throw new URLParserException("Invalid song URL.");
+
+        if ($this->isCached($json['id'], "soundcloud", $channel))
+            return "";
 
 		$title = IRCUtility::italic($json['title']);
 		$artist = IRCUtility::italic($json['user']['username']);
@@ -316,14 +353,16 @@ class URLInfo implements WebSearch {
 	 * Get the title or a webpage as defined in the HTML <title> tag
 	 *
 	 * @param string $url
+     * @param string $channel Output channel name (for caching)
 	 * @param bool $skipSimilar True to abort if the URL and title are deemed "too similar" to provide any new information
 	 * @param float $similarPercent The minimum percentage of words in the title that must also be found in the URL for it to be considered "too similar" (default 70%)
 	 * @return string The connection delay and title tag formatted into output
-	 * @throws URLInfoException If <title> tag can't be located
+	 * @throws URLParserException If <title> tag can't be located
 	 */
-	public static function URLTitle($url, $skipSimilar = true, $similarPercent = 0.7) {
+	public function URLTitle($url, $channel, $skipSimilar = true, $similarPercent = 0.7) {
 		$time = microtime(true);
 		$page = WebAccess::resourceFull($url);
+        $fetchTime = round(microtime(true) - $time, 3);
 
 		if (preg_match("/<title>([^<]+)<\/title>/mi", $page, $match)) {
 			$title = $match[1];
@@ -371,11 +410,17 @@ class URLInfo implements WebSearch {
 					return "";
 			}
 
+			//	Trim long titles
 			if (mb_strlen($title) > 300)
 				$title = mb_substr($title, 0, 300). "...";
-			return sprintf("(%ss): %s", round(microtime(true) - $time, 3), $title);
+
+			//	Don't show recent titles
+			if ($this->isCached($title, "title", $channel))
+				return "";
+
+			return sprintf("(%ss): %s", $fetchTime, $title);
 		}
 
-		throw new URLInfoException("No title found for '$url'.");
+		throw new URLParserException("No title found for '$url'.");
 	}
 }

@@ -21,7 +21,7 @@ abstract class Manager {
 
 	public function __construct() {}
 
-	public function addItem($item, bool $unique = false): bool {
+	public function addItem($item, $unique = false) {
 		if (!$unique || !in_array($item, $this->collection, true)) {
 			$this->collection[] = $item;
 			$keys = array_keys($this->collection);
