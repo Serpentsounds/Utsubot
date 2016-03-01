@@ -88,23 +88,27 @@ class Calculator {
         if (preg_match('/[^0-9 \.+\-\/\*\^\(\)]/', $expression))
             throw new CalculatorException("Invalid characters in math parser expression: $expression");
 
+        //  Parentheses with no numbers inside
         if (preg_match('/(\([^0-9]*\))/', $expression, $match))
             throw new CalculatorException("Invalid group in math parser expression: {$match[1]}");
+        //  Closing parentheses with no opening
         if (preg_match('/((?:^|[^\(]+)\))/', $expression, $match))
             throw new CalculatorException("Invalid group in math parser expression: {$match[1]}");
 
+        //  Decimals with no numbers after them
         if (preg_match('/(\.[^0-9]+)/', $expression, $match))
             throw new CalculatorException("Invalid decimal in math parser expression: {$match[1]}");
 
+        //  Operations with invalid right operand
         if (preg_match('/([+\-\/\*\^](?:[^0-9\(]+|$))/', $expression, $match))
             throw new CalculatorException("Invalid symbol usage in math parser expression: {$match[1]}");
+        //  Operations with invalid left operand
         if (preg_match('/((?:^|[^0-9\)]+)[+\-\/\*\^])/', $expression, $match))
             throw new CalculatorException("Invalid symbol usage in math parser expression: {$match[1]}");
 
         //  Replace bitwise operator to intended exponent
         $expression = str_replace("^", "**", $expression);
 
-        echo $expression.PHP_EOL;
         return eval("return $expression;");
 
 	}
