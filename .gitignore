@@ -11,3 +11,4 @@ res/Thumbs.db
 res/*.json
 res/*.txt
 res/metagame/*
+.gitignore
