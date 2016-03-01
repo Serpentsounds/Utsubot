@@ -441,9 +441,11 @@ class IRCBot {
 
 	/**
 	 * Restart the bot program
+	 *
+	 * @param string $message Optional quit message
 	 */
-	public function restart() {
-		$this->raw("QUIT :");
+	public function restart($message = "") {
+		$this->raw("QUIT :$message");
 		sleep(1);
 		pclose(popen("start php -f Utsubot.php $this->network", "r"));
 		exit;

@@ -37,10 +37,6 @@ class Web extends Module {
 
 			'rdns'				=> "rdns",
 
-			'c'					=> "calculate",
-			'calc'				=> "calculate",
-			'calculate'			=> "calculate",
-
 			'ud'				=> "dictionary",
 			'urban'				=> "dictionary",
 			'urbandictionary'	=> "dictionary",
@@ -251,19 +247,6 @@ class Web extends Module {
 		$result = $dictionary::search(implode(" ", $parameters), $options);
 
 		$this->IRCBot->message($msg->getResponseTarget(), $result);
-	}
-
-	public function calculate(IRCMessage $msg) {
-		$query = $msg->getCommandParameterString();
-
-		if (strlen($query)) {
-			$result = Calculator::search($query);
-
-			if (!strlen($result))
-				throw new ModuleException("No calculation found.");
-
-			$this->IRCBot->message($msg->getResponseTarget(), $result);
-		}
 	}
 
 	/**

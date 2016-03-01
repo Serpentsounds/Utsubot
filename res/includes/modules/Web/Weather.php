@@ -27,7 +27,7 @@ class Weather implements WebSearch {
 	public static function search($search, $options = array()) {
 		//	Make sure API Key is set
 		if (!strlen(self::$APIKey))
-			self::$APIKey = Module::getAPIKey("weather");
+			self::$APIKey = Module::loadAPIKey("weather");
 
 		//	Convert location name into a string usable by the API
 		$location = self::weatherLocation($search);

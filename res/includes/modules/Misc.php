@@ -25,14 +25,23 @@ class Misc extends Module {
 
 			'eval'			=> "_eval",
 			'return'		=> "_return",
+			'restart'		=> "restart",
 
 			'nowplaying'	=> "nowPlaying",
 			'np'			=> "nowPlaying",
 
 			'includes'		=> "showIncludes",
 
-			'countdown'		=> "countdown"
+			'countdown'		=> "countdown",
+
+			'calculate'		=> "calculate",
+			'calc'			=> "calculate",
+			'c'				=> "calculate"
 		);
+	}
+
+	public function calculate(IRCMessage $msg) {
+		$this->IRCBot->message($msg->getResponseTarget(), (new Calculator($msg->getCommandParameterString()))->calculate());
 	}
 
 	public function ctcp(IRCMessage $msg) {
@@ -76,6 +85,17 @@ class Misc extends Module {
 	public function _return(IRCMessage $msg) {
 		$this->requireLevel($msg, 100);
 		$this->IRCBot->message($msg->getResponseTarget(), eval("return ". $msg->getCommandParameterString(). ";"));
+	}
+
+
+	/**
+	 * Restart the IRC bot with an optional quit message
+	 *
+	 * @param IRCMessage $msg
+	 */
+	public function restart(IRCMessage $msg) {
+		$this->requireLevel($msg, 100);
+		$this->IRCBot->restart($msg->getCommandParameterString());
 	}
 
 	/**
