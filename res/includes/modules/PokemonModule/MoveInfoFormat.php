@@ -9,6 +9,9 @@ namespace Pokemon;
 
 class MoveInfoFormat extends InfoFormat {
 
+	/** @var $object Move */
+	protected $object;
+
 	protected static $class = "Move";
 
 	protected static $defaultFormat =
@@ -42,7 +45,7 @@ EOF;
 			$fieldValue = "-";
 
 		if ($field != "effect" && $field != "shortEffect" && $field != "contestEffect" && $field != "superContestFlavorText" && $field != "contestFlavorText")
-			$fieldValue = \IRCUtility::bold($fieldValue);
+			$fieldValue = self::bold($fieldValue);
 
 
 		return $fieldValue;

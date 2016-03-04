@@ -5,9 +5,7 @@
  * Date: 16/11/14
  */
 
-class Misc extends Module {
-
-	use AccountAccess;
+class Misc extends ModuleWithPermission {
 
 	private $lastNowPlaying = 0;
 	private static $nowPlayingInterval = 60;
@@ -41,7 +39,7 @@ class Misc extends Module {
 	}
 
 	public function calculate(IRCMessage $msg) {
-		$this->IRCBot->message($msg->getResponseTarget(), (new Calculator($msg->getCommandParameterString()))->calculate());
+		$this->respond($msg, (new Calculator($msg->getCommandParameterString()))->calculate());
 	}
 
 	public function ctcp(IRCMessage $msg) {
@@ -74,7 +72,7 @@ class Misc extends Module {
 	 */
 	public function _eval(IRCMessage $msg) {
 		$this->requireLevel($msg, 100);
-		$this->IRCBot->message($msg->getResponseTarget(), eval($msg->getCommandParameterString().";"));
+		$this->respond($msg, eval($msg->getCommandParameterString().";"));
 	}
 
 	/**
@@ -84,7 +82,7 @@ class Misc extends Module {
 	 */
 	public function _return(IRCMessage $msg) {
 		$this->requireLevel($msg, 100);
-		$this->IRCBot->message($msg->getResponseTarget(), eval("return ". $msg->getCommandParameterString(). ";"));
+		$this->respond($msg, eval("return ". $msg->getCommandParameterString(). ";"));
 	}
 
 
@@ -123,47 +121,26 @@ class Misc extends Module {
 		if ($song[0] == "not running" || $song[0] == "?" || !$song[0])
 			throw new ModuleException("There is currently no music playing.");
 
-		list($codec, $artist, $title, $album, $date, $length, $bitrate, $composer, $performer, $time) = $song;
-
-		//	Optionally show album and composer/performer information as well
-		$parameters = $msg->getCommandParameters();
-		$showAlbum = ((boolean)@$parameters[0]) ?: false;
-		$showComposer = ((boolean)@$parameters[1]) ?: false;
-
-		//	Never mind, just show them
-		$showAlbum = $showComposer = true;
-
-		$composerString = "";
-		if ($showComposer) {
-			if ($performer != "?") {
-				if ($composer != "?")
-					$composerString = IRCUtility::color(" [$composer feat. $performer]", "navy", "black", false);
-				else
-					$composerString = IRCUtility::color(" [$performer]", "navy", "black", false);
-			}
-			elseif ($composer != "?")
-				$composerString = IRCUtility::color(" [$composer]", "navy", "black", false);
-		}
+		list($codec, $artist, $title, $album, $date, $length, $bitrate, $composer, $performer, $time, $genre, $albumArtist, $path) = $song;
 
 		$albumString = "";
-		if ($showAlbum && $album != "?")
-			$albumString = IRCUtility::color(" - ", "white", "black", false). IRCUtility::color($album, "lime", "black", false);
+		if ($album != "?")
+			$albumString = self::color(" - ", "white", "black", false). self::color($album, "lime", "black", false);
 
 		$nowPlaying =
-			IRCUtility::color("Playing ", 			"white",	"black", false).
-			IRCUtility::color($codec, 				"yellow",	"black", false).
-			IRCUtility::color("@", 					"white",	"black", false).
-			IRCUtility::color($bitrate, 			"yellow",	"black", false).
-			IRCUtility::color(": ",					"white",	"black", false).
-			IRCUtility::color($artist,				"lime",		"black", false).
-			$composerString.
-			IRCUtility::color(" - ",				"white",	"black", false).
-			IRCUtility::color($title,				"lime",		"black", false).
+			self::color("Playing ", 			"white",	"black", false).
+			self::color($codec, 				"yellow",	"black", false).
+			self::color("@", 					"white",	"black", false).
+			self::color($bitrate, 			"yellow",	"black", false).
+			self::color(": ",					"white",	"black", false).
+			self::color($artist,				"lime",		"black", false).
+			self::color(" - ",				"white",	"black", false).
+			self::color($title,				"lime",		"black", false).
 			$albumString.
-			IRCUtility::color(" [$time/$length]",	"fuchsia",	"black", true);
+			self::color(" [$time/$length]",	"fuchsia",	"black", true);
 
-		$this->IRCBot->message($msg->getResponseTarget(), $nowPlaying);
-		$this->IRCBot->message($msg->getResponseTarget(), "Tune in at http://radio.soredemo.net/ to listen along!");
+		$this->respond($msg, $nowPlaying);
+		$this->respond($msg, "Tune in at http://radio.soredemo.net/ to listen along!");
 		$this->lastNowPlaying = time();
 	}
 
@@ -190,13 +167,13 @@ class Misc extends Module {
 
 		$parameters = $msg->getCommandParameters();
 		if (isset($parameters[0]) && strtolower($parameters[0]) == "all")
-			$this->IRCBot->message($msg->getResponseTarget(), implode("; ", array_column($arr, "details")));
+			$this->respond($msg, implode("; ", array_column($arr, "details")));
 
 		else {
 			$totalLines = array_sum(array_column($arr, "lines"));
 			$totalSize = array_sum(array_column($arr, "sizes")) / 1024;
 			$totalFiles = count($arr);
-			$this->IRCBot->message($msg->getResponseTarget(), sprintf("There are a total of %d lines (%.2fKiB) over %d files, for an average of %.2f lines (%.2fKiB) per file.",
+			$this->respond($msg, sprintf("There are a total of %d lines (%.2fKiB) over %d files, for an average of %.2f lines (%.2fKiB) per file.",
 																	  $totalLines, $totalSize, $totalFiles, $totalLines / $totalFiles, $totalSize / $totalFiles));
 		}
 	}

@@ -7,8 +7,9 @@
 
 namespace Pokemon;
 
-class PokemonModule extends \Module {
-	use \AccountAccess;
+class PokemonModule extends \ModuleWithPermission {
+
+    use \WebAccess;
 
 	/** @var $PokemonManager PokemonManager */
 	private $PokemonManager;
@@ -23,8 +24,6 @@ class PokemonModule extends \Module {
 	private $LocationManager;
 	/** @var $Pokedex Pokedex */
 	private $Pokedex;
-	/** @var $StatCalculator StatCalculator */
-	private $StatCalculator;
 	/** @var $MetaTiers MetaTier[] */
 	private $MetaTiers;
 
@@ -58,11 +57,6 @@ class PokemonModule extends \Module {
 			$this->Pokedex = new Pokedex($interface);
 		else
 			$this->status("Pokemon\\Pokedex not defined.");
-
-		if (class_exists("Pokemon\\StatCalculator"))
-			$this->StatCalculator = new StatCalculator($this);
-		else
-			$this->status("Pokemon\\StatCalculator not defined.");
 
 		/** @var $pokemon Pokemon[] */
 		$pokemon = $this->PokemonManager->collection();
@@ -156,38 +150,60 @@ class PokemonModule extends \Module {
 	}
 
 	public function baseMax(\IRCMessage $msg) {
-		$parameters = $this->StatCalculator->parseBaseMaxParameters($msg->getCommandParameters(), $msg->getCommand());
+        $this->_require("Pokemon\\StatCalculator");
+        $this->_require("Pokemon\\ParameterParser");
 
-		if ($parameters['from'] == "base")
-			$result = $this->StatCalculator->calculateStat($parameters['stat'], 31, 252, $parameters['level'], 1.1, $parameters['hp']);
+        $parser = new ParameterParser();
+        $result = $parser->parseBaseMaxParameters($msg->getCommandParameters(), $msg->getCommand());
+
+		if ($result->getFrom() == "base")
+			$calculated = StatCalculator::calculateStat($result->getStat(), 31, 252, $result->getLevel(), 1.1, $result->isHp());
 		else
-			$result = $this->StatCalculator->calculateBase($parameters['stat'], 31, 252, $parameters['level'], 1.1, $parameters['hp']);
+            $calculated = StatCalculator::calculateBase($result->getStat(), 31, 252, $result->getLevel(), 1.1, $result->isHp());
 
-		$this->IRCBot->message($msg->getResponseTarget(), "{$parameters['stat']} {$parameters['from']} = $result {$parameters['to']}");
+		$this->respond($msg, sprintf(
+            "%s %s = %s %s",
+            $result->getStat(),
+            $result->getFrom(),
+            $calculated,
+            $result->getTo()
+        ));
 	}
 
 	public function baseStat(\IRCMessage $msg) {
-		$parameters = $msg->getCommandParameters();
-		/** @var $pokemon Pokemon */
-		list($pokemon, $level, $increases, $decreases, $natureMultipliers, $statNames, $IVs, $EVs) = array_values($this->StatCalculator->parseIVStatParameters($parameters));
+        $this->_require("Pokemon\\StatCalculator");
+        $this->_require("Pokemon\\ParameterParser");
+
+        $parser = new ParameterParser();
+        $parser->injectManager("Pokemon", $this->PokemonManager);
+        $parser->injectManager("Nature", $this->NatureManager);
+        $result = $parser->parseIVStatParameters($msg->getCommandParameters());
 
 		$statValues = array();
-		for ($i = 0; $i <= 5; $i++) {
-			$baseStat = $pokemon->getBaseStat($statNames[$i]);
-			$statValues[] = $this->StatCalculator->calculateStat($baseStat, $IVs[$i], $EVs[$i], $level, $natureMultipliers[$i], $i == 0);
-		}
+		for ($i = 0; $i <= 5; $i++)
+			$statValues[] = StatCalculator::calculateStat($result->getPokemon()->getBaseStat($i), $result->getStatValue($i), $result->getEV($i), $result->getLevel(), $result->getNatureMultiplier($i), $i == 0);
+
 		//	Suffix stat range or error message to each stat
 		$output = array();
+        $statNames = array("HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed");
 		foreach ($statNames as $key => $statName) {
-			if ($statName == $increases)
-				$statName = \IRCUtility::color($statName, "red");
-			elseif ($statName == $decreases)
-				$statName = \IRCUtility::color($statName, "blue");
+			if ($statName == $result->getNatureIncreases())
+				$statName = self::color($statName, "red");
+			elseif ($statName == $result->getNatureDecreases())
+				$statName = self::color($statName, "blue");
 
-			$output[] = sprintf("%s: %s", \IRCUtility::bold($statName), $statValues[$key]);
+			$output[] = sprintf(
+                "%s: %s",
+                self::bold($statName),
+                $statValues[$key]
+            );
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(), sprintf("Stats for %s: %s", \IRCUtility::bold($pokemon->getName()), implode(" ", $output)));
+		$this->respond($msg, sprintf(
+            "Stats for %s: %s",
+            self::bold($result->getPokemon()->getName()),
+            implode(" ", $output)
+        ));
 
 	}
 
@@ -215,7 +231,7 @@ class PokemonModule extends \Module {
 				$dexEntry = $this->Pokedex->getDexEntry($pokemon->getId(), $version);
 
 			if ($dexEntry)
-				$this->IRCBot->message($msg->getResponseTarget(), sprintf("%03d: %s, the %s pokemon. %s", $pokemon->getDexNumber(), $pokemon->getName(), $pokemon->getSpecies(), $dexEntry));
+				$this->respond($msg, sprintf("%03d: %s, the %s pokemon. %s", $pokemon->getDexNumber(), $pokemon->getName(), $pokemon->getSpecies(), $dexEntry));
 		}
 
 	}
@@ -278,7 +294,7 @@ class PokemonModule extends \Module {
 				$info->setUnits($units);
 
 			//	Pass format into info function for results
-			$this->IRCBot->message($msg->getResponseTarget(), $info->parseFormat($format));
+			$this->respond($msg, $info->parseFormat($format));
 
 			//	There were suggestions available for the Jaro-Winkler distance, output them
 			if ($suggestions) {
@@ -289,7 +305,7 @@ class PokemonModule extends \Module {
 					if ($key == $count - 1 && $count > 1)
 						$suggestionString .= " or ";
 
-					$suggestionString .= \IRCUtility::bold($suggestion);
+					$suggestionString .= self::bold($suggestion);
 
 					if ($count > 2 && $key < $count - 2)
 						$suggestionString .= ", ";
@@ -298,7 +314,7 @@ class PokemonModule extends \Module {
 						$suggestionString .= ".";
 				}
 
-				$this->IRCBot->message($msg->getResponseTarget(), $suggestionString);
+				$this->respond($msg, $suggestionString);
 			}
 		}
 
@@ -360,7 +376,7 @@ class PokemonModule extends \Module {
 			throw new \ModuleException("Invalid nature.");
 
 		$natureInfo = new NatureInfoFormat($nature);
-		$this->IRCBot->message($msg->getResponseTarget(), $natureInfo->parseFormat());
+		$this->respond($msg, $natureInfo->parseFormat());
 	}
 
 	public function move(\IRCMessage $msg) {
@@ -384,7 +400,7 @@ class PokemonModule extends \Module {
 			throw new \ModuleException("Invalid move.");
 
 		$moveInfo = new MoveInfoFormat($move);
-		$this->IRCBot->message($msg->getResponseTarget(), $moveInfo->parseFormat($format));
+		$this->respond($msg, $moveInfo->parseFormat($format));
 	}
 
 	public function ability(\IRCMessage $msg) {
@@ -425,9 +441,9 @@ class PokemonModule extends \Module {
 				foreach ($pokemon as $object)
 					$pokemonNames[] = $object->getName();
 
-				$this->IRCBot->message($msg->getResponseTarget(), sprintf(
+				$this->respond($msg, sprintf(
 					"These pokemon can have %s: %s.",
-					\IRCUtility::bold($abilityName),
+					self::bold($abilityName),
 					implode(", ", $pokemonNames)
 				));
 				return;
@@ -435,7 +451,7 @@ class PokemonModule extends \Module {
 		}
 
 		$abilityInfo = new AbilityInfoFormat($ability);
-		$this->IRCBot->message($msg->getResponseTarget(), $abilityInfo->parseFormat($format));
+		$this->respond($msg, $abilityInfo->parseFormat($format));
 	}
 
 	public function item(\IRCMessage $msg) {
@@ -454,85 +470,41 @@ class PokemonModule extends \Module {
 			throw new \ModuleException("Invalid item.");
 
 		$itemInfo = new ItemInfoFormat($item);
-		$this->IRCBot->message($msg->getResponseTarget(), $itemInfo->parseFormat($format));
-	}
-
-	public function getFirstPokemon($parameters) {
-		$maxWordsPerPokemon = 3;
-		$pokemon = null;
-
-		for ($words = 1; $words <= $maxWordsPerPokemon; $words++) {
-			//	Add 1 word at a time
-			$name = implode(" ", array_slice($parameters, 0, $words));
-			$pokemon = $this->PokemonManager->get($name);
-
-			//	Pokemon found
-			if ($pokemon instanceof Pokemon)
-				break;
-
-			//	No pokemon and we've no words left to check
-			elseif ($words == $maxWordsPerPokemon)
-				throw new \ModuleException("Unable to find pokemon.");
-
-		}
-
-		return $pokemon;
+		$this->respond($msg, $itemInfo->parseFormat($format));
 	}
 
 	public function calculateIVs(\IRCMessage $msg) {
-		$parameters = $msg->getCommandParameters();
-		/** @var $pokemon Pokemon */
-		list($pokemon, $level, $increases, $decreases, $natureMultipliers, $statNames, $statValues, $EVs) = array_values($this->StatCalculator->parseIVStatParameters($parameters));
+        $this->_require("Pokemon\\StatCalculator");
+        $this->_require("Pokemon\\ParameterParser");
 
-		$IVRange = array();
-		for ($i = 0; $i <= 5; $i++) {
-			$baseStat = $pokemon->getBaseStat($statNames[$i]);
-			
-			for ($IV = 0; $IV <= 31; $IV++) {
-				//	Stat formula with this IV plugged in
-				$statWithIV = floor(floor((($IV + 2 * $baseStat + ($EVs[$i]/4)) * $level / 100 + 5)) * $natureMultipliers[$i]);
-				//	Adjust for HP formula
-				if ($i == 0)
-					$statWithIV = floor(($IV + 2 * $baseStat + ($EVs[$i]/4) + 100) * $level / 100 + 10);
+        $parser = new ParameterParser();
+        $parser->injectManager("Pokemon", $this->PokemonManager);
+        $parser->injectManager("Nature", $this->NatureManager);
+        $result = $parser->parseIVStatParameters($msg->getCommandParameters());
 
-				//	User supplied stat is lower than stat with 0 IVs, invalid
-				if ($IV == 0 && $statValues[$i] < $statWithIV) {
-					$IVRange[$i][0] = "Too low";
-					break;
-				}
-				//	User supplied stat is higher than stat with 31 IVs, invalid
-				elseif ($IV == 31 && $statValues[$i] > $statWithIV) {
-					$IVRange[$i][0] = "TOO DAMN HIGH";
-					break;
-				}
-
-				//	Stat matches, this is a possible IV match
-				if ($statWithIV == $statValues[$i]) {
-					//	Add lower bound if it doesn't exist
-					if (!isset($IVRange[$i][0]))
-						$IVRange[$i][0] = $IV;
-					//	Update upper bound
-					$IVRange[$i][1] = $IV;
-				}
-
-			}
-			//	Remove range if bounds are the same
-			if (isset($IVRange[$i][1]) && $IVRange[$i][0] == $IVRange[$i][1])
-				unset($IVRange[$i][1]);
-		}
+        $IVRange = StatCalculator::calculateIVs(array_values($result->getPokemon()->getBaseStat()), $result->getStatValues(), $result->getEVs(), $result->getLevel(), $result->getNatureMultipliers());
 
 		//	Suffix stat range or error message to each stat
 		$output = array();
+        $statNames = array("HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed");
 		foreach ($statNames as $key => $statName) {
-			if ($statName == $increases)
-				$statName = \IRCUtility::color($statName, "red");
-			elseif ($statName == $decreases)
-				$statName = \IRCUtility::color($statName, "blue");
+			if ($statName == $result->getNatureIncreases())
+				$statName = self::color($statName, "red");
+			elseif ($statName == $result->getNatureDecreases())
+				$statName = self::color($statName, "blue");
 
-			$output[] = sprintf("%s: %s", \IRCUtility::bold($statName), implode("-", $IVRange[$key]));
+			$output[] = sprintf(
+                "%s: %s",
+                self::bold($statName),
+                implode("-", $IVRange[$key])
+            );
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(), sprintf("Possible IVs for %s: %s", \IRCUtility::bold($pokemon->getName()), implode(" ", $output)));
+		$this->respond($msg, sprintf(
+            "Possible IVs for %s: %s",
+            self::bold($result->getPokemon()->getName()),
+            implode(" ", $output)
+        ));
 	}
 
 	/**
@@ -546,40 +518,15 @@ class PokemonModule extends \Module {
 		//	Match 6 numbers in a row
 		if (preg_match('/^(\d{1,2}[\/ \\\\]){5}\d{1,2}$/', $parameterString)) {
 			//	Split into individual numbers
-			$ivs = preg_split('/[\/ \\\\]/', $parameterString);
+			$ivs = array_map("intval", preg_split('/[\/ \\\\]/', $parameterString));
 
-			//	Adjust order to put speed between physical and special stats (necessary for math), and copy array
-			$typeTerms = $powerTerms = array($ivs[0], $ivs[1], $ivs[2], $ivs[5], $ivs[3], $ivs[4]);
+			$hiddenPower = (new HiddenPowerCalculator(...$ivs))->calculate();
 
-			/*	Hidden power type formula is given by (15/63)(a+2b+4c+8d+16e+32f), where a through f correspond to our reordered stats, and are 0 or 1 if the IV is even or odd (last binary bit)
-			 *	The floor()'d result is an index applied to a list of types
-			 *	This routine converts each IV to its term value in that equation
-			 */
-			array_walk($typeTerms, function(&$iv, $key) {
-				//	The 0-5 index corresponds with the term placement and coefficient, so we can use it calculate the term value
-				$iv = ($iv % 2) * pow(2, $key);
-			});
-
-			//	Apply the final part of the type formula to the list of types
-			$types = array("Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark");
-			$index = intval(floor(array_sum($typeTerms) * 15 / 63));
-			$type = $types[$index];
-
-
-			/*	Hidden power base power formula is given by (40/63)(a+2b+4c+8d+16e+32f)+30, where a through f again correspond to the stats, but this time take on the 2nd to last binary bit
-			 *	This can be easily determined by checking if the value modulo 4 is greater than 1
-			 * 	The floor()'d result is the base power
-			 */
-			array_walk($powerTerms, function(&$iv, $key) {
-				//	This operates similarly to the type routine
-				$secondToLast = ($iv % 4 > 1) ? 1 : 0;
-				$iv = $secondToLast * pow(2, $key);
-			});
-
-			$power = floor(array_sum($powerTerms) * 40 / 63 + 30);
-
-
-			$this->IRCBot->message($msg->getResponseTarget(), sprintf("Your hidden power is %s-type, with a base power of %s.", \IRCUtility::bold(Types::colorType($type)), \IRCUtility::bold($power)));
+			$this->respond($msg, sprintf(
+					"Your hidden power is %s-type, with a base power of %s.",
+					self::bold(Types::colorType($hiddenPower->getType())),
+					self::bold($hiddenPower->getPower())
+			));
 		}
 	}
 
@@ -618,7 +565,7 @@ class PokemonModule extends \Module {
 
 				//	No pokemon and we've no words left to check
 				elseif ($words == $maxWordsPerPokemon)
-					throw new \ModuleException("PokemonModule::parseTypeParameters: Invalid type.");
+					throw new \ModuleException("Invalid type.");
 
 			}
 
@@ -714,7 +661,7 @@ class PokemonModule extends \Module {
 
 		$result = array();
 
-		//	Output pokemon mode and halt
+		//	Pokemon mode, search for pokemon whose typing matches what was given
 		if ($mode == "pokemon") {
 			//	Replace pokemon with type list instead
 			if ($type1 instanceof Pokemon)
@@ -750,8 +697,8 @@ class PokemonModule extends \Module {
 			foreach ($pokemon as $object)
 				$pokemonNames[] = $object->getName();
 
-			$response = "There are ". \IRCUtility::bold(count($pokemonNames)). " ". Types::colorType($searchType, true). "-type pokemon: ". implode(", ", $pokemonNames). ".";
-			$this->IRCBot->message($msg->getResponseTarget(), $response);
+			$response = "There are ". self::bold(count($pokemonNames)). " ". Types::colorType($searchType, true). "-type pokemon: ". implode(", ", $pokemonNames). ".";
+			$this->respond($msg, $response);
 			return;
 		}
 
@@ -763,7 +710,7 @@ class PokemonModule extends \Module {
 			if (!$type2) {
 				//	Type chart vs. this pokemon
 				if ($mode == "defensive")
-					$result = Types::pokemonMatchup("chart", $type1);
+					$result = Types::pokemonMatchup(TYPES::CHART_BASIC, $type1);
 				//	This pokemon's compound types vs. type chart
 				elseif ($mode == "offensive")
 					$result = Types::typeChart($type1->getType(0), "offensive");
@@ -817,7 +764,7 @@ class PokemonModule extends \Module {
 			}
 		}
 
-		//	Output chart
+		//	Vs. nothing, output chart results
 		if (!$type2) {
 			$abilities = array();
 			//	Save ability effects, if applicable
@@ -829,7 +776,7 @@ class PokemonModule extends \Module {
 				return (is_numeric($element) && $element != 1);
 			});
 
-			//	Function to format matchups. Save for use in ability charts if needed
+			//	Function to format matchups. Save for additional use in ability charts if needed
 			$parseChart = function($result) {
 				//	Group types of the same effectiveness together
 				$chart = array();
@@ -837,24 +784,24 @@ class PokemonModule extends \Module {
 					$chart[(string)$multiplier][] = Types::colorType($type);
 				ksort($chart);
 
-				//	Append list of types to each multiplier
+				//	Append list of types to each multiplier for output
 				$output = array();
 				foreach ($chart as $multiplier => $entry)
-					$output[] = \IRCUtility::bold($multiplier."x") . ": " . implode(", ", $entry);
+					$output[] = self::bold($multiplier."x") . ": " . implode(", ", $entry);
 
 				//	Each element has Multipler: type1, type2, etc
 				return $output;
 			};
 			$output = $parseChart($result);
 
-			//	Add an extra line for abilities if needed, using the same $parseChart functions
+			//	Add an extra line for abilities if needed, using the same $parseChart function
 			$abilityOutput = array();
 			foreach ($abilities as $ability => $abilityChart)
-				$abilityOutput[] = sprintf("[%s]: %s", \IRCUtility::bold($ability), implode(" :: ", $parseChart($abilityChart)));
+				$abilityOutput[] = sprintf("[%s]: %s", self::bold($ability), implode(" :: ", $parseChart($abilityChart)));
 
 			//	Format intro with Pokemon name and type
 			if ($type1 instanceof Pokemon)
-				$outputString = sprintf("%s (%s)", \IRCUtility::bold($type1->getName()), Types::colorType($type1->getType(0), true));
+				$outputString = sprintf("%s (%s)", self::bold($type1->getName()), Types::colorType($type1->getType(0), true));
 			//	Just a type
 			else
 				$outputString = Types::colorType($type1, true);
@@ -866,10 +813,10 @@ class PokemonModule extends \Module {
 			if ($abilityOutput)
 				$outputString .= "\n". implode("; ", $abilityOutput);
 
-			$this->IRCBot->message($msg->getResponseTarget(), $outputString);
+			$this->respond($msg, $outputString);
 		}
 
-		//	Output matchup
+		//	Vs. another type, output matchup
 		else {
 			$abilities = array();
 			//	Save ability effects, if applicable
@@ -878,6 +825,7 @@ class PokemonModule extends \Module {
 				unset($result['abilities']);
 			}
 
+			//	Flatten array after removal of abilities
 			if (is_array($result)) {
 				$key = array_keys($result)[0];
 				$result = $result[$key];
@@ -888,12 +836,12 @@ class PokemonModule extends \Module {
 			foreach ($abilities as $ability => $abilityChart) {
 				//	There should only be a single entry
 				$key = array_keys($abilityChart)[0];
-				$abilityOutput[] = sprintf("[%s]: %sx", \IRCUtility::bold($ability), $abilityChart[$key]);
+				$abilityOutput[] = sprintf("[%s]: %sx", self::bold($ability), $abilityChart[$key]);
 			}
 
 			//	Format intro with Pokemon name and type
 			if ($type1 instanceof Pokemon)
-				$outputString = sprintf("%s (%s)", \IRCUtility::bold($type1->getName()), Types::colorType($type1->getType(0), true));
+				$outputString = sprintf("%s (%s)", self::bold($type1->getName()), Types::colorType($type1->getType(0), true));
 			//	Just a type
 			else
 				$outputString = Types::colorType($type1, true);
@@ -901,17 +849,17 @@ class PokemonModule extends \Module {
 			$outputString .= " vs ";
 			//	Format opponent
 			if ($type2 instanceof Pokemon)
-				$outputString .= sprintf("%s (%s)", \IRCUtility::bold($type2->getName()), Types::colorType($type2->getType(0), true));
+				$outputString .= sprintf("%s (%s)", self::bold($type2->getName()), Types::colorType($type2->getType(0), true));
 			//	Just a type
 			else
 				$outputString .= Types::colorType($type2, true);
 
-			$outputString .= ": ". \IRCUtility::bold($result). "x";
+			$outputString .= ": ". self::bold($result). "x";
 			//	Stick ability output on a new line if we have any
 			if ($abilityOutput)
 				$outputString .= "\n". implode("; ", $abilityOutput);
 
-			$this->IRCBot->message($msg->getResponseTarget(), $outputString);
+			$this->respond($msg, $outputString);
 		}
 
 	}
@@ -962,7 +910,7 @@ class PokemonModule extends \Module {
 				else {
 					foreach ($abilityNames as $ability) {
 						if (isset($actualResistances[$ability]) && ($actualResistances[$ability] + $actualResistances['base']) == $requiredResistances)
-							$resistingPokemon[] = $pokemon->getName(). " [". \IRCUtility::italic(ucwords($ability)). "]";
+							$resistingPokemon[] = $pokemon->getName(). " [". self::italic(ucwords($ability)). "]";
 					}
 				}
 
@@ -977,7 +925,7 @@ class PokemonModule extends \Module {
 
 		$output = "There are $count pokemon that resist ". implode(", ", $typeDisplay). ": ". implode(", ", $resistingPokemon);
 
-		$this->IRCBot->message($msg->getResponseTarget(), $output);
+		$this->respond($msg, $output);
 	}
 
 	public function search(\IRCMessage $msg) {
@@ -1059,7 +1007,7 @@ class PokemonModule extends \Module {
 			$results[$key] = $result->getName($language);
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(), implode(", ", $results));
+		$this->respond($msg, implode(", ", $results));
 	}
 
 	public function compare(\IRCMessage $msg) {
@@ -1108,7 +1056,7 @@ class PokemonModule extends \Module {
 
 		$statNames = array(2 => "HP", 3 => "Atk", 4 => "Def", 5 => "SpA", 6 => "SpD", 7 => "Spe");
 		for ($i = 2; $i <= 7; $i++) {
-			$stats = array(\IRCUtility::stripControlCodes($data[0][$i]), \IRCUtility::stripControlCodes($data[1][$i]));
+			$stats = array(self::stripControlCodes($data[0][$i]), self::stripControlCodes($data[1][$i]));
 			$colors = array("blue", "blue");
 
 			$paddingWidth = ($i == 2) ? 4 : 3;
@@ -1120,8 +1068,8 @@ class PokemonModule extends \Module {
 			elseif ($stats[0] < $stats[1])
 				$colors = array("red", "lime");
 
-			$data[0][$i] = str_repeat(chr(160), $padding[0]). \IRCUtility::color($data[0][$i], $colors[0]). $statNames[$i];
-			$data[1][$i] = str_repeat(chr(160), $padding[1]). \IRCUtility::color($data[1][$i], $colors[1]). $statNames[$i];
+			$data[0][$i] = str_repeat(chr(160), $padding[0]). self::color($data[0][$i], $colors[0]). $statNames[$i];
+			$data[1][$i] = str_repeat(chr(160), $padding[1]). self::color($data[1][$i], $colors[1]). $statNames[$i];
 		}
 
 		for ($i = 0; $i <= 1; $i++) {
@@ -1142,10 +1090,10 @@ class PokemonModule extends \Module {
 
 		$lines = array();
 		for ($i = 0; $i <= 1; $i++) {
-			$maxLength = max(array_map("strlen", array_map(array("IRCUtility", "stripControlCodes"), $data[$i])));
+			$maxLength = max(array_map("strlen", array_map(array("self", "stripControlCodes"), $data[$i])));
 			foreach ($data[$i] as $key => $line) {
 				if ($i == 0) {
-					$realLength = strlen(\IRCUtility::stripControlCodes($line));
+					$realLength = strlen(self::stripControlCodes($line));
 					$line = str_repeat(chr(160), $maxLength - $realLength). $line;
 				}
 				$lines[$key][$i] = $line;
@@ -1155,7 +1103,7 @@ class PokemonModule extends \Module {
 		foreach ($lines as $key => $compareValues)
 			$lines[$key] = implode(" | ", $compareValues);
 
-		$this->IRCBot->message($msg->getResponseTarget(), implode("\n", $lines));
+		$this->respond($msg, implode("\n", $lines));
 	}
 
 	public function updateMetagameDatabase(\IRCMessage $msg) {
@@ -1175,7 +1123,7 @@ class PokemonModule extends \Module {
 
 	private function downloadMetagameDatabase(\IRCMessage $msg) {
 		$base = "http://www.smogon.com/stats/";
-		$index = \WebAccess::resourcebody($base);
+		$index = self::resourcebody($base);
 		if (!preg_match_all('/^<a href="(\d{4}-\d{2}\/)">/m', $index, $match, PREG_PATTERN_ORDER))
 			throw new \ModuleException("Unable to find latest metagame stats.");
 		$latest = $match[1][count($match[1]) - 1];
@@ -1185,17 +1133,17 @@ class PokemonModule extends \Module {
 		if (!is_dir("metagame"))
 			mkdir("metagame");
 		else {
-			$this->IRCBot->message($msg->getResponseTarget(), "Clearing out old statistics files...");
+			$this->respond($msg, "Clearing out old statistics files...");
 			array_map("unlink", glob("metagame/*.json"));
 		}
-		$this->IRCBot->message($msg->getResponseTarget(), "Downloading newest metagame statistics...");
+		$this->respond($msg, "Downloading newest metagame statistics...");
 		foreach ($files as $file) {
 			if (file_put_contents("metagame/$file.json", file_get_contents($jsonDir.$file.".json")))
-				$this->IRCBot->message($msg->getResponseTarget(), "Successfully downloaded $file.");
+				$this->respond($msg, "Successfully downloaded $file.");
 			else
-				$this->IRCBot->message($msg->getResponseTarget(), "Failed to download $file.");
+				$this->respond($msg, "Failed to download $file.");
 		}
-		$this->IRCBot->message($msg->getResponseTarget(), "Download complete.");
+		$this->respond($msg, "Download complete.");
 	}
 
 	private function insertMetagameDatabase(\IRCmessage $msg) {
@@ -1236,7 +1184,7 @@ class PokemonModule extends \Module {
 			}
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(), "Clearing out old data...");
+		$this->respond($msg, "Clearing out old data...");
 		$interface->query("TRUNCATE TABLE `metagame_data`");
 
 		$table = "`metagame_data`";
@@ -1251,7 +1199,7 @@ class PokemonModule extends \Module {
 		$fieldNameTranslation = array("raw count" => "count", "checks and counters" => "counters");
 
 		foreach ($files as $file) {
-			$this->IRCBot->message($msg->getResponseTarget(), "Beginning to process $file...");
+			$this->respond($msg, "Beginning to process $file...");
 
 			$data = json_decode(file_get_contents($file), true);
 			$tierId = $tierIds[$data['info']['metagame']];
@@ -1353,10 +1301,10 @@ class PokemonModule extends \Module {
 				$tempStatement->execute($queryData);
 				$tempStatement = null;
 			}
-			#$this->IRCBot->message($msg->getResponseTarget(), "Finished processing $file.");
+			#$this->respond($msg, "Finished processing $file.");
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(), "All done.");
+		$this->respond($msg, "All done.");
 		$interface->disconnect($statements = array($statement));
 	}
 

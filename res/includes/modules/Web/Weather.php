@@ -8,6 +8,9 @@
 class WeatherException extends WebSearchException {}
 
 class Weather implements WebSearch {
+
+	use WebAccess;
+
 	const IMPERIAL = 0;
 	const METRIC = 1;
 	const BOTH = 2;
@@ -57,7 +60,7 @@ class Weather implements WebSearch {
 	 */
 	public static function weatherLocation($search) {
 		//	Convert from UTF-8 to UTF-8 to fix some special character errors
-		$string = mb_convert_encoding(WebAccess::resourceBody('http://autocomplete.wunderground.com/aq?query='. urlencode($search)), 'UTF-8', 'UTF-8');
+		$string = mb_convert_encoding(self::resourceBody('http://autocomplete.wunderground.com/aq?query='. urlencode($search)), 'UTF-8', 'UTF-8');
 
 		$results = json_decode($string, TRUE);
 
@@ -129,7 +132,7 @@ class Weather implements WebSearch {
 	 * @throws WeatherException If information isn't available
 	 */
 	public static function conditions($location, $measurementSystem = self::BOTH) {
-		$page = WebAccess::resourceBody("http://api.wunderground.com/api/". self::$APIKey. "/conditions$location.json");
+		$page = self::resourceBody("http://api.wunderground.com/api/". self::$APIKey. "/conditions$location.json");
 		$results = json_decode($page, TRUE);
 
 		//	Check for this index to verify the search was successful
@@ -140,7 +143,7 @@ class Weather implements WebSearch {
 
 		//	Location, conditions, temperature
 		$output[] = sprintf("Current conditions for %s: %s (%s).",
-						IRCUtility::bold($conditions['display_location']['full']),
+						self::bold($conditions['display_location']['full']),
 						$conditions['weather'],
 						self::formatMeasurements("temperature", array($conditions['temp_f'], $conditions['temp_c']), $measurementSystem));
 
@@ -170,7 +173,7 @@ class Weather implements WebSearch {
 	 * @throws WeatherException If information isn't available
 	 */
 	public static function forecast($location, $measurementSystem = self::BOTH) {
-		$page = WebAccess::resourceBody("http://api.wunderground.com/api/". self::$APIKey. "/forecast$location.json");
+		$page = self::resourceBody("http://api.wunderground.com/api/". self::$APIKey. "/forecast$location.json");
 		$results = json_decode($page, TRUE);
 
 		//	Check for this index to verify the search was successful
@@ -183,7 +186,7 @@ class Weather implements WebSearch {
 		for ($day = 0; $day < self::FORECAST_DAYS; $day++) {
 			$conditions = $forecast[$day];
 			$output[] = sprintf('%s: %s. High of %s. Low of %s.',
-							IRCUtility::bold($conditions['date']['weekday']),
+							self::bold($conditions['date']['weekday']),
 							$conditions['conditions'],
 							self::formatMeasurements("temperature", array($conditions['high']['fahrenheit'], $conditions['high']['celsius']), $measurementSystem),
 							self::formatMeasurements("temperature", array($conditions['low']['fahrenheit'], $conditions['low']['celsius']), $measurementSystem));

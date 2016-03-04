@@ -9,6 +9,8 @@ class UrbanDictionaryException extends WebSearchException {}
 
 class UrbanDictionary implements WebSearch {
 
+	use WebAccess;
+
 	/**
 	 * Look up a word on Urban Dictionary
 	 *
@@ -28,14 +30,15 @@ class UrbanDictionary implements WebSearch {
 	 * Get a definition from Urban Dictionary
 	 *
 	 * @param string $term URL encoded search term
+     * @param int number Ordinal definition number to obtain
 	 * @return string Definition and examples
 	 * @throws UrbanDictionaryException If term is not found
 	 */
 	public static function urbanDictionarySearch($term, $number = 1) {
 		if (!$term)
-			$content = WebAccess::resourceBody("http://www.urbandictionary.com/random.php");
+			$content = self::resourceBody("http://www.urbandictionary.com/random.php");
 		else
-			$content = WebAccess::resourceBody("http://www.urbandictionary.com/define.php?term=". urlencode($term));
+			$content = self::resourceBody("http://www.urbandictionary.com/define.php?term=". urlencode($term));
 
 		$regex = "/<div class='def-header'>\s*<a[^>]+>([^<]+)<\/a>\s*(?:<a class='play-sound'[^>]+>\s*<i[^>]+><\/i>\s*<\/a>\s*)?<\/div>\s*<div class='meaning'>\s*(.+?)<\/div>\s*<div class='example'>\s*(.+?)<\/div>/s";
 		$number -= 1;
@@ -47,9 +50,9 @@ class UrbanDictionary implements WebSearch {
 			throw new UrbanDictionaryException("Definition number $number not found for '$term'.");
 
 		$result = sprintf("%s: %s\n%s",
-					   IRCUtility::bold(WebAccess::stripHTML($match[$number][1])),
-					   WebAccess::stripHTML($match[$number][2]),
-					   WebAccess::stripHTML($match[$number][3]));
+					   self::bold(self::stripHTML($match[$number][1])),
+					   self::stripHTML($match[$number][2]),
+					   self::stripHTML($match[$number][3]));
 
 		if (mb_strlen($result) > 750)
 			$result = mb_substr($result, 0, 750). " ...More at http://www.urbandictionary.com/define.php?term=". urlencode($match[$number][1]);

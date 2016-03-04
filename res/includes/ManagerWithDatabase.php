@@ -28,9 +28,9 @@ abstract class ManagerWithDatabase extends Manager {
 		//	Mandate definition of class in $this->manages (include namespace), and make sure the database interface has the method to retrieve the relevant information
 		$class = (static::$managesNamespace) ? static::$managesNamespace . "\\". static::$manages : static::$manages;
 		if (!class_exists($class))
-			throw new ManagerException(get_class($this)."::load: $class is not a defined class.");
+			throw new ManagerException("(".get_class($this).") $class is not a defined class.");
 		elseif (!method_exists($this->interface, "get".static::$manages))
-			throw new ManagerException(get_class($this)."::load: Interface does not have a get". static::$manages. " method.");
+			throw new ManagerException("(". get_class($this).") Interface does not have a get". static::$manages. " method.");
 
 		$load = array();
 		$method = "get". static::$manages;

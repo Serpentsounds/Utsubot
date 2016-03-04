@@ -9,6 +9,8 @@ class DictionaryException extends WebSearchException {}
 
 class Dictionary implements WebSearch {
 
+	use WebAccess;
+
 	const NUMBER_OF_SUGGESTIONS = 5;
 
 	private static $APIKey = "";
@@ -23,7 +25,7 @@ class Dictionary implements WebSearch {
 	public static function search($search, $options = array()) {
 		//	Make sure API Key is set
 		if (!strlen(self::$APIKey))
-			self::$APIKey = Module::getAPIKey("dictionary");
+			self::$APIKey = Module::loadAPIKey("dictionary");
 
 		$number = 1;
 		if (isset($options['number']) && is_int($options['number']) && $options['number'] > 0)
@@ -33,7 +35,7 @@ class Dictionary implements WebSearch {
 	}
 
 	public static function dictionarySearch($term, $number = 1) {
-		$xml = WebAccess::resourceBody("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/". urlencode($term). "?key=". self::$APIKey);
+		$xml = self::resourceBody("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/". urlencode($term). "?key=". self::$APIKey);
 		$parser = xml_parser_create("UTF-8");
 		xml_parse_into_struct($parser, $xml, $values, $indices);
 
@@ -140,7 +142,7 @@ class Dictionary implements WebSearch {
 		if (!$return)
 			return self::dictionarySearch($term, $number + 1);
 
-		return sprintf("%s (%s): %s", IRCUtility::bold($term), IRCUtility::italic($partOfSpeech), implode("; ", $return));
+		return sprintf("%s (%s): %s", self::bold($term), self::italic($partOfSpeech), implode("; ", $return));
 
 	}
 

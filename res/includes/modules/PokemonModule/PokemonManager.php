@@ -22,6 +22,7 @@ class PokemonManager extends \ManagerWithDatabase {
 	 *
 	 * @param string|int $search An identifier to search for (usu. name or id#)
 	 * @param bool $all (Optional) Pass true to search for all matching items. Default false returns only first object found
+	 * @param bool $loose Get approximate results using Jaro-Winkler distance
 	 * @return Object|array|bool The found object or an array of all found objects will returned on search success, or false on failure
 	 */
 	public function get($search, $all = false, $loose = true) {

@@ -10,6 +10,7 @@ class IRCBotException extends Exception {}
 class IRCBot {
 
 	use EasySetters;
+	use IRCFormatting;
 
 	const SOCKET_POLL_TIME = 100000;
 	const RECONNECT_TIMEOUT = 7;
@@ -40,12 +41,12 @@ class IRCBot {
 	/**
 	 * Load up the config for this IRCBot
 	 *
-	 * @param Array $config An array of $field => $value configuration options. Many are required to connect, like host, port, and nickname
+	 * @param array $config An array of $field => $value configuration options. Many are required to connect, like host, port, and nickname
 	 * @throws IRCBotException If invalid config is supplied
 	 */
 	public function __construct($config) {
 		if (!is_array($config))
-			throw new IRCBotException("IRCBot::__construct: Configuration must be an array.");
+			throw new IRCBotException("Configuration must be an array.");
 
 		foreach ($config as $field => $value) {
 			switch ($field) {
@@ -94,6 +95,9 @@ class IRCBot {
 		}
 	}
 
+	/**
+	 * Kill the server connection
+	 */
 	public function disconnect() {
 		$this->socket = null;
 	}
@@ -237,7 +241,7 @@ class IRCBot {
 	 * Set the list of channels this bot autojoins on connect
 	 * Note: This will not immediately join any new channels
 	 *
-	 * @param Array $channels An array of channel names
+	 * @param array $channels An array of channel names
 	 * @return bool True on success, false on failure
 	 */
 	public function setDefaultChannels($channels) {
@@ -248,7 +252,7 @@ class IRCBot {
 	 * Set the list of commands this bot sends to the server upon connecting
 	 * Note: This will not immediately execute any commands
 	 *
-	 * @param Array $onConnect An array of command strings
+	 * @param array $onConnect An array of command strings
 	 * @return bool True on success, false on failure
 	 */
 	public function setOnConnect($onConnect) {
@@ -258,7 +262,7 @@ class IRCBot {
 	/**
 	 * Set the list of command prefixes this bot responds to, e.g. "!" in "!command"
 	 *
-	 * @param Array $commandPrefix An array of prefixes
+	 * @param array $commandPrefix An array of prefixes
 	 * @return bool True on success, false on failure
 	 */
 	public function setCommandPrefix($commandPrefix) {
@@ -372,7 +376,7 @@ class IRCBot {
 	 */
 	public function loadModule($class, $namespace = "") {
 		if (!is_subclass_of("$namespace\\$class", "\\Module"))
-			throw new IRCBotException("loadModule: $namespace\\$class does not exist or does not extend \\Module.");
+			throw new IRCBotException("$namespace\\$class does not exist or does not extend \\Module.");
 
 		$qualifiedName = "$namespace\\$class";
 		$module = new $qualifiedName($this, $class);
@@ -389,18 +393,24 @@ class IRCBot {
 		//	These modules will receive the information first, if any relevant pre-processing needs to be done
 		$priority = array("Core");
 
-		//	Send event to priority modules
-		foreach ($priority as $module) {
-			if (isset($this->modules[$module]))
-				$this->sendToModule($this->modules[$module], $function, $msg);
+		try {
+			//	Send event to priority modules
+			foreach ($priority as $module) {
+				if (isset($this->modules[$module]))
+					$this->sendToModule($this->modules[$module], $function, $msg);
+			}
+
+			//	Send event to all other modules
+			foreach ($this->modules as $name => $module) {
+				//	Skip the priority modules we already called
+				if (!in_array($name, $priority))
+					$this->sendToModule($module, $function, $msg);
+			}
+		}
+		catch (IRCBotException $e) {
+			$this->console("Processing force halted: ". $e->getMessage());
 		}
 
-		//	Send event to all other modules
-		foreach ($this->modules as $name => $module) {
-			//	Skip the priority modules we already called
-			if (!in_array($name, $priority))
-				$this->sendToModule($module, $function, $msg);
-		}
 	}
 
 	/**
@@ -409,6 +419,7 @@ class IRCBot {
 	 * @param Module $module
 	 * @param string $function The name of the function relevant to the IRC event, e.g. "privmsg"
 	 * @param Object|float|null $msg If available, send the IRCMessage object that was created from this event, or other relevant information
+	 * @throws IRCBotException Bubble up IRCBotExceptions to force halt processing
 	 */
 	private function sendToModule($module, $function, $msg = null) {
 		//	These events don't require an IRCMessage
@@ -422,9 +433,11 @@ class IRCBot {
 				elseif ($msg)
 					$module->{$function}($msg);
 			}
-
-			catch (Exception $exception) {
-				$this->console(sprintf("%s: %s", get_class($exception), $exception->getMessage()));
+			catch (IRCBotException $e) {
+				throw $e;
+			}
+			catch (Exception $e) {
+				$this->console(sprintf("%s: %s", get_class($e), $e->getMessage()));
 			}
 		}
 
@@ -468,7 +481,7 @@ class IRCBot {
 		}
 
 		//	Empty line
-		if (strlen(trim(IRCUtility::stripControlCodes($text))) == 0)
+		if (strlen(trim(self::stripControlCodes($text))) == 0)
 			return;
 
 		/*	Maximum size of irc command is 512 bytes

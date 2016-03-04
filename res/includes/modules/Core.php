@@ -133,7 +133,7 @@ class Core extends Module {
 					//	Update channel status on User object
 					foreach ($modes as $mode) {
 						if (isset($modeLetters[$mode]))
-							$user->mode($channel, "+". $modeLetters[$mode]);
+							$user->mode($channelName, "+". $modeLetters[$mode]);
 					}
 				}
 			break;

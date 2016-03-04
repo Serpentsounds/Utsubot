@@ -15,6 +15,9 @@ namespace Pokemon;
 
 trait PokemonCommon {
 
+    use \IRCFormatting;
+	use \Jaro;
+
 	private $id = -1;
 	private $generation = -1;
 	private $names = array();
@@ -75,14 +78,14 @@ trait PokemonCommon {
 		$englishName = $this->getName();
 		if ($englishOnly) {
 			if ($englishName)
-				return \IRCUtility::jaroWinklerDistance($englishName, $search);
+				return self::jaroWinklerDistance($englishName, $search);
 
 			return false;
 		}
 
 		$return = 0;
 		foreach ($this->names as $name) {
-			if (($jaroWinkler = \IRCUtility::jaroWinklerDistance($name, $search)) > $return)
+			if (($jaroWinkler = self::jaroWinklerDistance($name, $search)) > $return)
 				$return = $jaroWinkler;
 		}
 

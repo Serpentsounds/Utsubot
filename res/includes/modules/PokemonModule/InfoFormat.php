@@ -10,6 +10,10 @@ namespace Pokemon;
 class InfoFormatException extends \Exception {}
 
 abstract class InfoFormat {
+
+	use \IRCFormatting;
+    use \Japanese;
+
 	protected $object;
 	protected static $class = "";
 	protected static $defaultFormat = "";
@@ -35,7 +39,7 @@ abstract class InfoFormat {
 		$headerColors = array(static::$headerColor, static::$headerBackgroundColor);
 		$format = preg_replace_callback('/\^([^\^]*)\^/',
 			function ($match) use ($headerColors) {
-				return ($headerColors[0] === false) ? $match[1] : \IRCUtility::color($match[1], $headerColors[0], $headerColors[1]);
+				return ($headerColors[0] === false) ? $match[1] : self::color($match[1], $headerColors[0], $headerColors[1]);
 			},
 			$format);
 
@@ -79,6 +83,6 @@ abstract class InfoFormat {
 	protected abstract function getField($field);
 
 	protected function formatField($field, $fieldValue) {
-		return \IRCUtility::bold($fieldValue);
+		return self::bold($fieldValue);
 	}
 } 

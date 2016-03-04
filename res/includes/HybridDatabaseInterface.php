@@ -5,6 +5,8 @@
  * Date: 18/04/2015
  */
 
+class HybridDatabaseInterfaceException extends DatabaseInterfaceException {}
+
 abstract class HybridDatabaseInterface extends DatabaseInterface {
 	/** @var $users Users */
 	protected $users;
@@ -30,18 +32,18 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 		//	Get User object
 		$user = $this->users->get($nickname);
 		if (!($user instanceof User))
-			throw new ModuleException("Error getting User object.");
+			throw new HybridDatabaseInterfaceException("Error getting User object.");
 
 		//	Get account associated with nickname
 		$userList = $this->accounts->getInterface()->searchSettings("nick", $nickname);
 		if (!count($userList))
-			throw new ModuleException("Your nickname is not linked with an account.");
+			throw new HybridDatabaseInterfaceException("Your nickname is not linked with an account.");
 
 		//	Check accounts against eachother
 		$accountID = $this->accounts->confirmLogin($user);
 		$targetID = $userList[0]['user_id'];
 		if ($accountID != $targetID)
-			throw new ModuleException("You are not logged in to the account your nickname is linked with.");
+			throw new HybridDatabaseInterfaceException("You are not logged in to the account your nickname is linked with.");
 
 		//	Check codes still filed under the nickname
 		$results = $this->query(
@@ -50,7 +52,7 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 		);
 		$resultCount = count($results);
 		if (!$resultCount)
-			throw new ModuleException("You have no items to migrate.");
+			throw new HybridDatabaseInterfaceException("You have no items to migrate.");
 
 		//	Update codes to be filed under account
 		$rowCount = $this->query(
@@ -61,7 +63,7 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 
 		//	No rows updated
 		if (!$rowCount)
-			throw new ModuleException("An error occured while trying to migrate your codes.");
+			throw new HybridDatabaseInterfaceException("An error occured while trying to migrate your codes.");
 
 		return $rowCount;
 	}
@@ -115,7 +117,7 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 			$user = $analysis->getNickname();
 		}
 		else
-			throw new ModuleException("Invalid mode '$mode'.");
+			throw new HybridDatabaseInterfaceException("Invalid mode '$mode'.");
 
 		if (!$secure && $analysis->getLinkedAccountID() !== null) {
 			$column = static::$userIDColumn;
@@ -130,7 +132,7 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 			$nickname = $analysis->getNickname();
 			$settings = $this->accounts->getInterface()->searchSettings("nick", $nickname);
 			if (count($settings))
-				throw new ModuleException("Your nickname is already linked to an account, but you are not logged in to one.");
+				throw new HybridDatabaseInterfaceException("Your nickname is already linked to an account, but you are not logged in to one.");
 		}
 	}
 

@@ -7,19 +7,15 @@
 
 namespace Pokemon;
 
-class FriendSafari extends \Module {
+class FriendSafari extends \ModuleWithPermission {
 	private $interface;
 	private $validPokemon = array();
 
 	public function __construct(\IRCBot $irc) {
 		parent::__construct($irc);
 
-		$accounts = $this->externalModule("Accounts");
-		if (!($accounts instanceof \Accounts))
-			throw new \ModuleException("Accounts module must be loaded to use FriendSafari.");
-
 		$users = $this->IRCBot->getUsers();
-		$this->interface = new FriendSafariDatabaseInterface("utsubot", $users, $accounts);
+		$this->interface = new FriendSafariDatabaseInterface("utsubot", $users = $this->IRCBot->getUsers(), $accounts = $this->getAccounts());
 		$this->updateValidPokemonCache();
 
 		$this->triggers = array(
@@ -84,19 +80,21 @@ class FriendSafari extends \Module {
 
 
 	/**
-	 * If a user is logged in to an account but has Friend Safari entries stored in nickname mode, this command will transfer the entries over to the account
+	 * If a user is logged in to an account but has Friend Safari entries stored in nickname mode, this command will
+	 * transfer the entries over to the account
 	 *
 	 * @param \IRCMessage $msg
-	 * @throws \ModuleException User object retrieval fail, no registered nickname, not logged in, no entries to migrate, or database error
+	 * @throws \ModuleException User object retrieval fail, no registered nickname, not logged in, no entries to
+	 *     migrate, or database error
 	 */
 	public function migrateSafari(\IRCMessage $msg) {
 		$rowCount = $this->interface->migrate($msg->getNick());
 		if (!$rowCount)
 			throw new \ModuleException("An error occured while trying to migrate your Friend Safari entries.");
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 	   		sprintf(	"%d Friend Safari entries were migrated to %s's account.",
-					   	\IRCUtility::bold($rowCount), \IRCUtility::bold($msg->getNick()))
+					   	self::bold($rowCount), self::bold($msg->getNick()))
 		);
 	}
 
@@ -123,10 +121,10 @@ class FriendSafari extends \Module {
 		ksort($pokemon);
 		$response = array();
 		foreach ($pokemon as $slot => $pokemonList)
-			$response[] = sprintf("[%s: %s]", \IRCUtility::bold("Slot $slot"), implode(", ", $pokemonList));
+			$response[] = sprintf("[%s: %s]", self::bold("Slot $slot"), implode(", ", $pokemonList));
 
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 			sprintf(	"Possible %s-type Friend Safari pokemon: %s",
 						Types::colorType($type, true), implode(" ", $response))
 		);
@@ -157,9 +155,9 @@ class FriendSafari extends \Module {
 			}
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 	   		sprintf(	"These users have a Friend Safari containing %s: %s",
-						\IRCUtility::bold($pokemon), implode(", ", $return))
+						self::bold($pokemon), implode(", ", $return))
 		);
 	}
 
@@ -180,13 +178,13 @@ class FriendSafari extends \Module {
 		foreach ($results as $row) {
 			$response[] = sprintf(
 				"[%s: %s]",
-				Types::colorType($row['type'], true), implode(", ", array_map(array("IRCUtility", "bold"), array_filter(array($row['slot_1'], $row['slot_2'], $row['slot_3']))))
+				Types::colorType($row['type'], true), implode(", ", array_map(array("self", "bold"), array_filter(array($row['slot_1'], $row['slot_2'], $row['slot_3']))))
 			);
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 		   	sprintf(	"%s's Friend Safaris: %s",
-						\IRCUtility::bold($nick), implode(" ", $response))
+						self::bold($nick), implode(" ", $response))
 		);
 
 	}
@@ -203,9 +201,9 @@ class FriendSafari extends \Module {
 		if (!$rowCount)
 			throw new \ModuleException("An error occured while attempting to add your Friend Safari.");
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 	   		sprintf(	"%s has been added as a %s-type Friend Safari for %s.",
-						implode(", ", array_map(array("IRCUtility", "bold"), array_filter($input['pokemon']))), Types::colorType($input['type'], true), \IRCUtility::bold($msg->getNick()))
+						implode(", ", array_map(array("self", "bold"), array_filter($input['pokemon']))), Types::colorType($input['type'], true), self::bold($msg->getNick()))
 		);
 	}
 
@@ -229,15 +227,15 @@ class FriendSafari extends \Module {
 		if (!$rowCount)
 			throw new \ModuleException("An error occured while attempting to remove your friend safari.");
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 	   		sprintf(	"%s matching Friend Safaris were removed from %s.",
-					   	\IRCUtility::bold($rowCount), \IRCUtility::bold($msg->getNick()))
+					   	self::bold($rowCount), self::bold($msg->getNick()))
 		);
 	}
 
 	/**
 	 * @param $pokemon
-	 * @return Array|bool
+	 * @return array|bool
 	 */
 	private function getValidPokemon($pokemon) {
 		foreach ($this->validPokemon as $rows) {

@@ -4,7 +4,11 @@
  * User: Benjamin
  * Date: 06/06/14
  */
-class GameNetworking extends Module {
+
+class GameNetworkingException extends ModuleException {}
+
+class GameNetworking extends ModuleWithPermission {
+
 	/**
 	 * Stores database entries for code types and formats
 	 * @var $validCodes GameNetworkingCode[]
@@ -16,18 +20,12 @@ class GameNetworking extends Module {
 
 	/**
 	 * @param IRCBot $irc
-	 * @throws ModuleException If Users module isn't loaded (required for hybrid nickname/account storage features)
+	 * @throws GameNetworkingException If Users module isn't loaded (required for hybrid nickname/account storage features)
 	 */
 	public function __construct(IRCBot $irc) {
 		parent::__construct($irc);
 
-		$accounts = $this->externalModule("Accounts");
-		if (!($accounts instanceof Accounts))
-			throw new ModuleException("Accounts module must be loaded to use GameNetworking.");
-
-		$users = $this->IRCBot->getUsers();
-
-		$this->interface = new GameNetworkingDatabaseInterface("utsubot", $users, $accounts);
+		$this->interface = new GameNetworkingDatabaseInterface("utsubot", $users = $this->IRCBot->getUsers(), $accounts = $this->getAccounts());
 		$this->updateValidCodeCache();
 
 		$this->triggers = array(
@@ -43,7 +41,7 @@ class GameNetworking extends Module {
 	 * @return bool Success/failure (or empty set)
 	 * @throws DatabaseInterfaceException PDO error
 	 */
-	public function updateValidCodeCache() {
+	public function updateValidCodeCache(): bool {
 		$this->validCodes = array();
 
 		$results = $this->interface->query(
@@ -78,7 +76,7 @@ class GameNetworking extends Module {
 	 * The only triggered command, split off to relevant functionality depending on parameters
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException If a subroutine errors
+	 * @throws GameNetworkingException If a subroutine errors
 	 */
 	public function code(IRCMessage $msg) {
 		$action = array_shift($msg->getCommandParameters());
@@ -119,14 +117,14 @@ class GameNetworking extends Module {
 	 * If a user is logged in to an account but has codes stored in nickname mode, this command will transfer the entries over to the account
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException User object retrieval fail, no registered nickname, not logged in, no codes to migrate, or database error
+	 * @throws GameNetworkingException User object retrieval fail, no registered nickname, not logged in, no codes to migrate, or database error
 	 */
 	public function migrateCode(IRCMessage $msg) {
 		$rowCount = $this->interface->migrate($msg->getNick());
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 	   		sprintf(	"%d codes were migrated to %s's account.",
-						IRCUtility::bold($rowCount), IRCUtility::bold($msg->getNick()))
+						self::bold($rowCount), self::bold($msg->getNick()))
 		);
 	}
 
@@ -134,7 +132,7 @@ class GameNetworking extends Module {
 	 * Retrieve a code or codes
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException Invalid parameters or empty lookup
+	 * @throws GameNetworkingException Invalid parameters or empty lookup
 	 * @throws DatabaseInterfaceException PDO error
 	 */
 	public function findCode(IRCMessage $msg) {
@@ -169,8 +167,8 @@ class GameNetworking extends Module {
 		//	No results
 		if (!$codes) {
 			if (is_int($input['codeID']))
-				throw new ModuleException("There are no codes for '$nick' for '". $this->validCodes[$input['codeID']]->getTitle(). "'.");
-			throw new ModuleException("There are no codes for '$nick'.");
+				throw new GameNetworkingException("There are no codes for '$nick' for '". $this->validCodes[$input['codeID']]->getTitle(). "'.");
+			throw new GameNetworkingException("There are no codes for '$nick'.");
 		}
 
 		//	Organize codes by type for output
@@ -182,28 +180,28 @@ class GameNetworking extends Module {
 			$codeTypes[$row['code_id']][] = $value;
 		}
 
-		$output = "Codes for " . IRCUtility::bold($nick);
+		$output = "Codes for " . self::bold($nick);
 		//	Output single type of code if it was requested (Type: code1, code2)
 		if (is_int($input['codeID']))
-			$output .= sprintf(" for %s: %s", IRCUtility::bold($this->validCodes[$input['codeID']]->getTitle()), implode(", ", $codeTypes[$input['codeID']]));
+			$output .= sprintf(" for %s: %s", self::bold($this->validCodes[$input['codeID']]->getTitle()), implode(", ", $codeTypes[$input['codeID']]));
 
 		//	Output all codes by type ([Type: code1, code2] [Type2: code1, code2])
 		else {
 			$response = array();
 			foreach ($codeTypes as $codeType => $list)
-				$response[] = sprintf("[%s: %s]", IRCUtility::bold($this->validCodes[$codeType]->getTitle()), implode(", ", $list));
+				$response[] = sprintf("[%s: %s]", self::bold($this->validCodes[$codeType]->getTitle()), implode(", ", $list));
 
 			$output .= ": " . implode(" ", $response);
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(), $output);
+		$this->respond($msg, $output);
 	}
 
 	/**
 	 * Add a new code
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException Invalid parameters or duplicate code
+	 * @throws GameNetworkingException Invalid parameters or duplicate code
 	 * @throws DatabaseInterfaceException PDO error
 	 */
 	public function addCode(IRCMessage $msg) {
@@ -238,18 +236,18 @@ class GameNetworking extends Module {
 					$nickname = $this->interface->getNicknameFor($row['user_id']);
 
 				if (strlen($nickname))
-					throw new ModuleException("'{$input['code']}' already exists as a(n) ". $this->validCodes[$input['codeID']]->getTitle(). " code for '$nickname'.");
+					throw new GameNetworkingException("'{$input['code']}' already exists as a(n) ". $this->validCodes[$input['codeID']]->getTitle(). " code for '$nickname'.");
 				//	Offline user account with no default nick
-				throw new ModuleException("'{$input['code']}' already exists as a(n) ". $this->validCodes[$input['codeID']]->getTitle(). " code under a user account.");
+				throw new GameNetworkingException("'{$input['code']}' already exists as a(n) ". $this->validCodes[$input['codeID']]->getTitle(). " code under a user account.");
 			}
 
 			//	No existing entry, unknown error
-			throw new ModuleException("An error occured while attempting to add your code.");
+			throw new GameNetworkingException("An error occured while attempting to add your code.");
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 			sprintf(	"%s has been added as a(n) %s code for %s.",
-						IRCUtility::bold($input['code']), IRCUtility::bold($this->validCodes[$input['codeID']]->getTitle()), IRCUtility::bold($msg->getNick()))
+						self::bold($input['code']), self::bold($this->validCodes[$input['codeID']]->getTitle()), self::bold($msg->getNick()))
 		);
 	}
 
@@ -257,7 +255,7 @@ class GameNetworking extends Module {
 	 * Remove an existing code or codes
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException Invalid parameters or no matching code(s) to remove
+	 * @throws GameNetworkingException Invalid parameters or no matching code(s) to remove
 	 * @throws DatabaseInterfaceException PDO error
 	 */
 	public function removeCode(IRCMessage $msg) {
@@ -271,18 +269,18 @@ class GameNetworking extends Module {
 		$currentCode = $this->interface->select($msg->getNick(), $input['codeID'], $input['code']);
 		if (!$currentCode) {
 			if ($input['code'])
-				throw new ModuleException("You have no " . $this->validCodes[$input['codeID']]->getTitle() . " codes matching '{$input['code']}'.");
-			throw new ModuleException("You have no " . $this->validCodes[$input['codeID']]->getTitle() . " codes.");
+				throw new GameNetworkingException("You have no " . $this->validCodes[$input['codeID']]->getTitle() . " codes matching '{$input['code']}'.");
+			throw new GameNetworkingException("You have no " . $this->validCodes[$input['codeID']]->getTitle() . " codes.");
 		}
 
 		//	Delete codes
 		$rowCount = $this->interface->delete($msg->getNick(), $input['codeID'], $input['code']);
 		if (!$rowCount)
-			throw new ModuleException("An error occured while attempting to remove your code.");
+			throw new GameNetworkingException("An error occured while attempting to remove your code.");
 
-		$this->IRCBot->message($msg->getResponseTarget(),
+		$this->respond($msg,
 			sprintf(	"%s matching codes were deleted from %s.",
-						IRCUtility::bold($rowCount), IRCUtility::bold($msg->getNick()))
+						self::bold($rowCount), self::bold($msg->getNick()))
 		);
 	}
 
@@ -293,12 +291,12 @@ class GameNetworking extends Module {
 	 * @param bool $requireCodeID If code type is required (add, remove, find [optional])
 	 * @param bool $requireCode If code value is required (add, remove [optional])
 	 * @return array Array(Code ID, Code Value), null values if absent
-	 * @throws ModuleException Validation failed
+	 * @throws GameNetworkingException Validation failed
 	 */
 	protected function parseInput($userInput, $requireCodeID = true, $requireCode = true) {
 		//	Get this out of the way
 		if (!is_string($userInput))
-			throw new ModuleException("Invalid user input.");
+			throw new GameNetworkingException("Invalid user input.");
 
 		$newCode = $codeID = $code = $newCode = null;
 		//	Loop through valid code types to see if code string matches any
@@ -327,7 +325,7 @@ class GameNetworking extends Module {
 
 		//	Code type required but not found
 		if ($codeID === null && $requireCodeID)
-			throw new ModuleException("Invalid code type specified. Valid codes are: ". implode(", ",
+			throw new GameNetworkingException("Invalid code type specified. Valid codes are: ". implode(", ",
 			   array_map(function($entry) {
 					   if ($entry instanceof GameNetworkingCode)
 						   return $entry->getTitle();
@@ -337,7 +335,7 @@ class GameNetworking extends Module {
 
 		//	Code value required but not found
 		if ($code === null && ($requireCode || $newCode))
-			throw new ModuleException("Invalid code format for '{$this->validCodes[$codeID]->getTitle()}'.");
+			throw new GameNetworkingException("Invalid code format for '{$this->validCodes[$codeID]->getTitle()}'.");
 
 		return array('codeID' => $codeID, 'code' => $code, 'restOfString' => $newCode);
 	}
@@ -347,7 +345,7 @@ class GameNetworking extends Module {
 	 *
 	 * @param IRCMessage $msg
 	 * @throws DatabaseInterfaceException If interface->update method encounters an error
-	 * @throws ModuleException If a matching code entry is not found
+	 * @throws GameNetworkingException If a matching code entry is not found
 	 */
 	public function editNotes(IRCMessage $msg) {
 		//	Shave off "note" from user input
@@ -375,18 +373,18 @@ class GameNetworking extends Module {
 
 			//	Out of codes to match
 			if ($key + 1 == count($codes))
-				throw new ModuleException("You have no " . $this->validCodes[$input['codeID']]->getTitle(). " codes matching '{$input['code']}'.");
+				throw new GameNetworkingException("You have no " . $this->validCodes[$input['codeID']]->getTitle(). " codes matching '{$input['code']}'.");
 		}
 
 		if (!$codes)
-			throw new ModuleException("You have no " . $this->validCodes[$input['codeID']]->getTitle(). " codes.");
+			throw new GameNetworkingException("You have no " . $this->validCodes[$input['codeID']]->getTitle(). " codes.");
 
 		switch ($mode) {
 			//	Add or overwrite note
 			case "add":
 			case "set":
 				$this->interface->update($msg->getNick(), $input['codeID'], $input['code'], "notes", $note);
-				$this->IRCBot->message($msg->getResponseTarget(), IRCUtility::bold($note). " has been added as a note for ". IRCUtility::bold($msg->getNick()). "'s code.");
+				$this->respond($msg, self::bold($note). " has been added as a note for ". self::bold($msg->getNick()). "'s code.");
 			break;
 
 			//	Remove note
@@ -395,12 +393,12 @@ class GameNetworking extends Module {
 			case "delete":
 			case "del":
 				$this->interface->update($msg->getNick(), $input['codeID'], $input['code'], "notes", null);
-				$this->IRCBot->message($msg->getResponseTarget(), "Note has been removed from ". IRCUtility::bold($msg->getNick()). "'s code.");
+				$this->respond($msg, "Note has been removed from ". self::bold($msg->getNick()). "'s code.");
 			break;
 
 			//	Invalid parameters
 			default:
-				throw new ModuleException("Invalid notes action '$mode'.");
+				throw new GameNetworkingException("Invalid notes action '$mode'.");
 			break;
 		}
 	}
@@ -410,7 +408,7 @@ class GameNetworking extends Module {
 	 *
 	 * @param IRCMessage $msg
 	 * @throws DatabaseInterfaceException If interface->update method encounters an error
-	 * @throws ModuleException If a matching code entry is not found
+	 * @throws GameNetworkingException If a matching code entry is not found
 	 */
 	public function lockCode(IRCMessage $msg) {
 		//	Shave off "lock" or "unlock" from user input
@@ -423,24 +421,24 @@ class GameNetworking extends Module {
 		//	Verify specified code exists
 		$currentCode = $this->interface->select($msg->getNick(), $input['codeID'], $input['code']);
 		if (!$currentCode)
-			throw new ModuleException("You have no " . $this->validCodes[$input['codeID']]->getTitle() . " codes matching '{$input['code']}'.");
+			throw new GameNetworkingException("You have no " . $this->validCodes[$input['codeID']]->getTitle() . " codes matching '{$input['code']}'.");
 
 		switch ($mode) {
 			//	Mark code as private
 			case "lock":
 				$this->interface->update($msg->getNick(), $input['codeID'], $input['code'], "locked", 1);
-				$this->IRCBot->message($msg->getResponseTarget(), "Code for ". IRCUtility::bold($msg->getNick()). " has been locked.");
+				$this->respond($msg, "Code for ". self::bold($msg->getNick()). " has been locked.");
 			break;
 
 			//	Mark code as public
 			case "unlock":
 				$this->interface->update($msg->getNick(), $input['codeID'], $input['code'], "locked", null);
-				$this->IRCBot->message($msg->getResponseTarget(), "Code for ". IRCUtility::bold($msg->getNick()). " has been unlocked.");
+				$this->respond($msg, "Code for ". self::bold($msg->getNick()). " has been unlocked.");
 			break;
 
 			//	Invalid parameters
 			default:
-				throw new ModuleException("Invalid lock action '$mode'.");
+				throw new GameNetworkingException("Invalid lock action '$mode'.");
 			break;
 		}
 
@@ -476,7 +474,7 @@ class GameNetworkingCode {
 	 * @param $id int
 	 * @return bool Success/failure
 	 */
-	public function setId($id) {
+	public function setId($id): bool {
 		if (!is_int($id) || $id < 0)
 			return false;
 
@@ -488,7 +486,7 @@ class GameNetworkingCode {
 	 * @param $title string
 	 * @return bool Success/failure
 	 */
-	public function setTitle($title) {
+	public function setTitle($title): bool {
 		if (!is_string($title) || !strlen($title))
 			return false;
 
@@ -500,7 +498,7 @@ class GameNetworkingCode {
 	 * @param $validFormatRegex string
 	 * @return bool Success/failure
 	 */
-	public function setValidFormatRegex($validFormatRegex) {
+	public function setValidFormatRegex($validFormatRegex): bool {
 		if (@preg_match($validFormatRegex, null) === false)
 			return false;
 
@@ -512,7 +510,7 @@ class GameNetworkingCode {
 	 * @param $validTitleRegex string
 	 * @return bool Success/failure
 	 */
-	public function setValidTitleRegex($validTitleRegex) {
+	public function setValidTitleRegex($validTitleRegex): bool {
 		if (@preg_match($validTitleRegex, null) === false)
 			return false;
 
@@ -523,28 +521,28 @@ class GameNetworkingCode {
 	/**
 	 * @return string
 	 */
-	public function getTitle() {
+	public function getTitle(): string {
 		return $this->title;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getId() {
+	public function getId(): int {
 		return $this->id;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getValidFormatRegex() {
+	public function getValidFormatRegex(): string {
 		return $this->validFormatRegex;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getValidTitleRegex() {
+	public function getValidTitleRegex(): string {
 		return $this->validTitleRegex;
 	}
 

@@ -11,13 +11,16 @@ class TypesException extends \Exception {}
 
 class Types {
 
+	use \IRCFormatting;
+
 	const IMMUNE = 0;
 	const NOT_VERY_EFFECTIVE = 1;
 	const SUPER_EFFECTIVE = 2;
 	const EFFECTIVE = 3;
 
-	const FOREGROUND_COLOR = 10;
-	const BACKGROUND_COLOR = 11;
+	const CHART_BASIC = 10;
+    const CHART_SPECIAL = 11;
+    const CHART_BOTH = 12;
 
 	private static $typeList = array(
 		"Bug",		"Dark",		"Dragon",	"Electric",	"Fairy",	"Fighting",
@@ -152,11 +155,11 @@ class Types {
 
 			$typeName = strtolower($type);
 			//	Call color function with our color names
-			$types[$key] = \IRCUtility::color(ucfirst($typeName), self::$typeColors[$typeName][0], self::$typeColors[$typeName][1]);
+			$types[$key] = self::color(ucfirst($typeName), self::$typeColors[$typeName][0], self::$typeColors[$typeName][1]);
 
 			//	Optionally bold
 			if ($bold)
-				$types[$key] = \IRCUtility::bold($types[$key]);
+				$types[$key] = self::bold($types[$key]);
 		}
 
 		return implode($delimeter, $types);
@@ -202,7 +205,7 @@ class Types {
 
 		//	Type 1 must have a chart (can be flying press or freeze-dry), type 2 must be a type
 		if (!self::hasChart($type1) || !self::isType($type2))
-			throw new TypesException("Types::typeEffectiveness: Invalid type given.");
+			throw new TypesException("Invalid type given.");
 
 		//	Immune
 		if (self::hasMatchup($type1, $type2, self::IMMUNE))
@@ -268,10 +271,19 @@ class Types {
 		return $mult;
 	}
 
-	public static function typeChart($type, $mode = "defensive", $chart = "chart") {
+	/**
+     * Calculate a type effectiveness chart for a given type
+     *
+	 * @param string $type
+	 * @param string $mode Defensive or offensive
+	 * @param int $chart Chart type. CHART_BASIC is basic types, CHART_SPECIAL includes flying press and freeze-dry, and CHART_BOTH includes both sets
+	 * @return array An array of "type" => "effectiveness" entries
+	 * @throws TypesException
+	 */
+	public static function typeChart($type, $mode = "defensive", $chart = self::CHART_BASIC) {
 		$chart = self::parseTypeParameter($chart);
 		if (!is_array($chart))
-			throw new TypesException("Types::typeChart: Invalid chart name '$chart'.");
+			throw new TypesException("Invalid chart name '$chart'.");
 
 		$return = array();
 		foreach ($chart as $entry) {
@@ -284,15 +296,21 @@ class Types {
 		return $return;
 	}
 
+    /**
+     * Convert input parameters to charts if applicable, or leave them alone
+     *
+     * @param mixed $parameter
+     * @return mixed Chart array or $parameter
+     */
 	private static function parseTypeParameter($parameter) {
 		//	Get list of types for full chart
-		if ($parameter == "chart")
+		if ($parameter == self::CHART_BASIC)
 			$parameter = self::$typeList;
 		//	Check matchups for flying press and freeze-dry
-		elseif ($parameter == "special")
+		elseif ($parameter == self::CHART_SPECIAL)
 			$parameter = self::$specialTypes;
 		//	Check all available matchups
-		elseif ($parameter == "all")
+		elseif ($parameter == self::CHART_BOTH)
 			$parameter = array_merge(self::$typeList, self::$specialTypes);
 
 		return $parameter;
@@ -302,7 +320,8 @@ class Types {
 	 * Match a pokemon object up against any number of individual or combinations of types. Additional matchup information will be given based on relevant pokemon abilities.
 	 *
 	 * @param mixed $attacking A type name or an array of type names/combinations. A combination must be an array within the array of types, e.g., array(array("fire", "flying"), "electric", "water")
-	 * 							Some special names can be used for predefined groups of types: "chart" => All actual types, "special" => Moves with their own chart, "all" => Both of the aforementioned
+	 * 							Some class constants can be used for predefined groups of types:
+     *                          CHART_BASIC => All actual types, CHART_SPECIAL => Moves with their own chart, CHART_BOTH => Both of the aforementioned
 	 * @param Pokemon $pokemon A pokemon object which will contain the relevant type and ability information
 	 * @param int $depth Used internally to alter flow based on recursion depth
 	 * @return array The matchup result, with type names as indexes and multipliers as values. Indices for compound types take the form of a string separated by "/", e.g. "fire/flying".
@@ -375,6 +394,8 @@ class Types {
 
 		return $mult;
 	}
+
+
 
 
 }

@@ -7,9 +7,12 @@
 
 require_once("WebSearch.php");
 
-class URLParserException extends Exception {}
+class URLParserException extends ModuleException {}
 
 class URLParser {
+
+	use WebAccess;
+
 	const WIKIPEDIA_PREVIEW_LENGTH = 250;
     const URL_CACHE_DELAY = 1800;
 
@@ -30,29 +33,17 @@ class URLParser {
 	 * Parse a URL and give standard or custom information about the contents, if relevant
 	 *
 	 * @param string $search The URL
-	 * @param array $options Options array from interface. No effect.
+	 * @param IRCMessage $msg
 	 * @return bool|string Relevant output, or false on failure
 	 * @throws URLParserException If content type is unable to be determined, or if the URL string can't be parsed properly
 	 */
-	public function search($search, $options = array()) {
-		//  Enable permission checking if object was passed
-        $checkPermission = false;
-		$permission = null;
-        $channel = ".default";
-        if (isset($options['ircmessage']) && ($msg = $options['ircmessage']) && $msg instanceof IRCMessage) {
-            $channel = $msg->getResponseTarget();
-
-            if (isset($options['permission']) && ($permission = $options['permission']) && $permission instanceof Permission)
-                $checkPermission = true;
-        }
-
-
+	public function search($search, IRCMessage $msg) {
         //  Don't look up recent links
-        if ($this->isCached($search, "url", $channel))
+        if ($this->isCached($search, "url", $msg->getResponseTarget()))
 			return false;
 
 		//	HTTP header only, if necessary individual parsers can download content later
-		$headers = WebAccess::resourceHeader($search);
+		$headers = self::resourceHeader($search);
 
 		//	Check content type
 		if (!preg_match("/\sContent-Type: ?([^\s;]+)/i", $headers, $match))
@@ -78,25 +69,24 @@ class URLParser {
                 foreach ($this->URLRegexes[$mainDomain] as $entry) {
 
                     //  Page file name regex match and permission ok
-                    if (preg_match($entry['regex'], $page, $match) &&
-                    (!$checkPermission || $permission->hasPermission($options['ircmessage'], $entry['permission'])))
-                        return call_user_func_array($entry['method'], array($search, $match, $channel));
+                    if (preg_match($entry['regex'], $page, $match) && $this->web->hasPermission($msg, $entry['permission']))
+                        return call_user_func_array($entry['method'], array($search, $match, $msg->getResponseTarget()));
                 }
             }
 
             //  Default, return URL title
-            elseif (!$checkPermission || $permission->hasPermission($options['ircmessage'], "urltitle"))
-                return $this->URLTitle($search, $channel);
+            elseif ($this->web->hasPermission($msg, "urltitle"))
+                return $this->URLTitle($search, $msg->getResponseTarget());
 		}
 
 
 		//	Not a page, but some other resource (image, song, etc)
-		elseif (!$checkPermission || $permission->hasPermission($options['ircmessage'], "remotefile")) {
+		elseif ($this->web->hasPermission($msg, "remotefile")) {
 			//	Show only file size and type from header
 			$contentLength = (preg_match("/\sContent-Length: ?(\d+)/", $headers, $match)) ? ", ". self::formatBytes($match[1]) : "";
 
             $filteredURL = preg_split("/[#?]/", $search)[0];
-            if ($this->isCached($filteredURL, "resource", $channel))
+            if ($this->isCached($filteredURL, "resource", $msg->getResponseTarget()))
                 return false;
 
 			return sprintf("\"%s\": %s%s",
@@ -146,13 +136,13 @@ class URLParser {
      * @return string
      */
     private static function duration($iso8601) {
-        $duration = IRCUtility::italic("0sec");
+        $duration = self::italic("0sec");
         if (preg_match("/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)$/", $iso8601, $match)) {
             $units = array("d", "hr", "min", "sec");
             $durationComponents = array();
             for ($i = 0, $count = count($units); $i < $count; $i++) {
                 if ($match[$i+1] || ($i == $count - 1 && count($durationComponents) == 0))
-                    $durationComponents[] = IRCUtility::italic($match[$i+1]). $units[$i];
+                    $durationComponents[] = self::italic($match[$i+1]). $units[$i];
             }
 
             $duration = implode(" ", $durationComponents);
@@ -167,6 +157,7 @@ class URLParser {
 	 *
 	 * @param string $item Search term
 	 * @param string $cache Subdivision of the cache (e.g., url, resource, youtube)
+     * @param string $target Location of the action
 	 * @return bool True/false if item is still within cache timer
 	 */
 	private function isCached($item, $cache, $target) {
@@ -194,7 +185,7 @@ class URLParser {
 			return "";
 
 		//	Access API and validate existence
-		$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=$video&key=". $this->web->getAPIKey("youtube"));
+		$json = self::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=$video&key=". $this->web->getAPIKey("youtube"));
 		$data = json_decode($json, true);
 
 		//	Invalid video
@@ -203,14 +194,14 @@ class URLParser {
 
 		//	Assign and format relevant information
 		$info = $data['items'][0];
-		$title = IRCUtility::italic(str_replace("''", "\"", $info['snippet']['title']));
-		$uploader = IRCUtility::italic($info['snippet']['channelTitle']);
-		$date = IRCUtility::italic(date("F j, Y", strtotime($info['snippet']['publishedAt'])));
+		$title = self::italic(str_replace("''", "\"", $info['snippet']['title']));
+		$uploader = self::italic($info['snippet']['channelTitle']);
+		$date = self::italic(date("F j, Y", strtotime($info['snippet']['publishedAt'])));
 		$duration = $info['contentDetails']['duration'];
-		$views = IRCUtility::italic(number_format($info['statistics']['viewCount']));
-		$likes = IRCUtility::italic(number_format($info['statistics']['likeCount']));
-		$dislikes = IRCUtility::italic(number_format($info['statistics']['dislikeCount']));
-		$comments = IRCUtility::italic(number_format($info['statistics']['commentCount']));
+		$views = self::italic(number_format($info['statistics']['viewCount']));
+		$likes = self::italic(number_format($info['statistics']['likeCount']));
+		$dislikes = self::italic(number_format($info['statistics']['dislikeCount']));
+		$comments = self::italic(number_format($info['statistics']['commentCount']));
 		$duration = self::duration($duration);
 
 		//	Add in individual information sections to be joined
@@ -225,7 +216,7 @@ class URLParser {
 
 		//	Special info for live broadcasts
 		if ($info['snippet']['liveBroadcastContent'] == "live") {
-			$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=$video&key=". $this->web->getAPIKey("youtube"));
+			$json = self::resourceBody("https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=$video&key=". $this->web->getAPIKey("youtube"));
 			$data = json_decode($json, true);
 			if ($data['pageInfo']['totalResults'] < 1)
 				throw new URLParserException("Error getting live streaming info for '$video'.");
@@ -236,8 +227,8 @@ class URLParser {
 			$startTime = $info['liveStreamingDetails']['actualStartTime'];
 			$currentBroadcastLength = $currentTime->diff(new DateTime($startTime));
 			$duration = self::duration($currentBroadcastLength->format("P%dDT%hH%iM%sS"));
-			$viewers = IRCUtility::italic($info['liveStreamingDetails']['concurrentViewers']);
-			$startDate = IRCUtility::italic(date("H:i:s", strtotime($startTime))). " on ". IRCUtility::italic(date("m/d/y", strtotime($startTime)));
+			$viewers = self::italic($info['liveStreamingDetails']['concurrentViewers']);
+			$startDate = self::italic(date("H:i:s", strtotime($startTime))). " on ". self::italic(date("m/d/y", strtotime($startTime)));
 
 			//	Information sections for broadcast
 			$output = array(
@@ -266,7 +257,7 @@ class URLParser {
 		if (self::isCached($article, "wikipedia", $channel))
 			return "";
 
-		$content = WebAccess::resourceBody("http://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=1&rvprop=content&format=json&rawcontinue&titles=$article");
+		$content = self::resourceBody("http://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=1&rvprop=content&format=json&rawcontinue&titles=$article");
 
 		$data = json_decode($content, true);
 
@@ -302,7 +293,7 @@ class URLParser {
 		//	Remove references
 		$pageContents = preg_replace("/<ref>.*?<\/ref>/", "", $pageContents);
 		//	Get rid of html and surrounding whitespace
-		$pageContents = trim(WebAccess::stripHTML($pageContents));
+		$pageContents = trim(self::stripHTML($pageContents));
 
 		//	Follow redirects
 		if (preg_match("/^#REDIRECT (.+)/i", $pageContents, $match))
@@ -310,7 +301,7 @@ class URLParser {
 
 		//	Return remaining content with hard cutoff
 		return sprintf("%s (%s): %s...",
-					IRCUtility::bold("Wikipedia"),
+					self::bold("Wikipedia"),
 					$data['query']['pages'][$pageID]['title'],
 					mb_substr($pageContents, 0, self::WIKIPEDIA_PREVIEW_LENGTH));
 	}
@@ -327,7 +318,7 @@ class URLParser {
      */
 	public function soundcloud($search, $match, $channel) {
 
-		$data = WebAccess::resourceBody("http://api.soundcloud.com/resolve?url=$search&client_id=". $this->web->getAPIKey("soundcloud"));
+		$data = self::resourceBody("http://api.soundcloud.com/resolve?url=$search&client_id=". $this->web->getAPIKey("soundcloud"));
 		$json = json_decode($data, true);
 
 		if (!isset($json['title']) || !$json['title'])
@@ -336,12 +327,12 @@ class URLParser {
         if ($this->isCached($json['id'], "soundcloud", $channel))
             return "";
 
-		$title = IRCUtility::italic($json['title']);
-		$artist = IRCUtility::italic($json['user']['username']);
-		$plays = IRCUtility::italic(number_format($json['playback_count']));
+		$title = self::italic($json['title']);
+		$artist = self::italic($json['user']['username']);
+		$plays = self::italic(number_format($json['playback_count']));
 		$timestamp = strtotime($json['created_at']);
-		$date = IRCUtility::italic(date("M j, Y", $timestamp));
-		$time = IRCUtility::italic(date("H:i:s", $timestamp));
+		$date = self::italic(date("M j, Y", $timestamp));
+		$time = self::italic(date("H:i:s", $timestamp));
 
 		$currentTime = new DateTime();
 		$offsetTime = $currentTime->diff(new DateTime(date("r", time() + floor($json['duration'] / 1000))));
@@ -369,7 +360,7 @@ class URLParser {
 	 */
 	public function URLTitle($url, $channel, $skipSimilar = true, $similarPercent = 0.7) {
 		$time = microtime(true);
-		$page = WebAccess::resourceFull($url);
+		$page = self::resourceFull($url);
         $fetchTime = round(microtime(true) - $time, 3);
 
 		if (preg_match("/<title>([^<]+)<\/title>/mi", $page, $match)) {
@@ -390,7 +381,7 @@ class URLParser {
 				$title = iconv($encoding, "UTF-8", $title);
 
 			//	Convert entities
-			$title = WebAccess::stripHTML($title);
+			$title = self::stripHTML($title);
 
 			//	Compare words in title to part of the URL. If a certain percentage are present, abort returning the title
 			if ($skipSimilar) {

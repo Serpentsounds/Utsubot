@@ -73,6 +73,7 @@ class Users extends Manager {
 	 * Given a $field to search against, this function should return info on how to get the field
 	 *
 	 * @param string $field The name of an aspect of one of this manager's collection
+	 * @param string $operator
 	 * @param string $value The value being searched against, if relevant
 	 * @return ManagerSearchObject|null
 	 */

@@ -65,7 +65,7 @@ class Accounts extends Module {
 					if (time() - $info['time'] <= 5) {
 						try {
 							$this->interface->setSettings($info['accountID'], "nick", $nick);
-							$this->IRCBot->message($nick, "Your default nickname has been saved as ". IRCUtility::bold($nick). ".");
+							$this->IRCBot->message($nick, "Your default nickname has been saved as ". self::bold($nick). ".");
 						}
 						catch (Exception $e) {
 							$this->IRCBot->message($nick, "Unable to save your default nickname in the database. Is it already set?");
@@ -133,7 +133,7 @@ class Accounts extends Module {
 		$this->loginUser($user, $accountID);
 
 		$level = $this->interface->getAccessByID($accountID);
-		$this->IRCBot->message($msg->getResponseTarget(), "Login successful. Your access level is $level.");
+		$this->respond($msg, "Login successful. Your access level is $level.");
 	}
 
 	/**
@@ -152,7 +152,7 @@ class Accounts extends Module {
 		if (!$this->logoutUser($user))
 			throw new ModuleException("An error occured while logging you out. Please try again.");
 
-		$this->IRCBot->message($msg->getResponseTarget(), "You have logged out of your account.");
+		$this->respond($msg, "You have logged out of your account.");
 	}
 
 	/**
@@ -191,7 +191,7 @@ class Accounts extends Module {
 		}
 
 		//	Success
-		$this->IRCBot->message($msg->getResponseTarget(),"Registration successful. Please remember your username and password for later use: '$username', '$password'. You will now be automatically logged in.");
+		$this->respond($msg,"Registration successful. Please remember your username and password for later use: '$username', '$password'. You will now be automatically logged in.");
 
 		//	Add autologin host
 		$autoLogin =  "*!*". $msg->getIdent(). "@". $msg->getFullHost();
@@ -199,13 +199,13 @@ class Accounts extends Module {
 		$this->interface->setSettings($accountID, "autologin", $autoLogin);
 		//	Automatically login upon registration
 		$this->loginUser($user, $accountID);
-		$this->IRCBot->message($msg->getResponseTarget(), "$autoLogin has been added as an autologin host for this account. You will automatically be logged in when connecting from this host. To remove this, please use 'unset autologin'.");
+		$this->respond($msg, "$autoLogin has been added as an autologin host for this account. You will automatically be logged in when connecting from this host. To remove this, please use 'unset autologin'.");
 
 
 		//	Attempt to automatically set nickname, if it's not already set
 		$settings = $this->interface->searchSettings("nick", $msg->getNick());
 		if (count($settings))
-			$this->IRCBot->message($msg->getResponseTarget(), "Your nickname could not be linked to your account because it is already linked to another account.");
+			$this->respond($msg, "Your nickname could not be linked to your account because it is already linked to another account.");
 		else
 			$this->setDefaultNick($accountID, $msg->getNick());
 	}
@@ -246,7 +246,7 @@ class Accounts extends Module {
 			$username = $this->interface->getUsername($accountID);
 			$this->interface->verifyPassword($username, $password);
 			$this->interface->setPassword($username, $newPassword);
-			$this->IRCBot->message($msg->getResponseTarget(), "Your password has been saved.");
+			$this->respond($msg, "Your password has been saved.");
 		}
 
 		//	Change another account setting
@@ -257,7 +257,7 @@ class Accounts extends Module {
 			//	Exception thrown if settings are invalid or unsuccessful
 			$this->interface->setSettings($accountID, $parameters[0], $value);
 
-			$this->IRCBot->message($msg->getResponseTarget(), "Settings have been saved.");
+			$this->respond($msg, "Settings have been saved.");
 		}
 	}
 
@@ -285,7 +285,7 @@ class Accounts extends Module {
 		//	Exception thrown if settings are invalid or unsuccessful
 		$this->interface->removeSettings($accountID, $parameters[0], $entry);
 
-		$this->IRCBot->message($msg->getResponseTarget(), "Settings have been removed.");
+		$this->respond($msg, "Settings have been removed.");
 	}
 
 	/**
@@ -324,7 +324,7 @@ class Accounts extends Module {
 		foreach ($response as $setting => $values)
 			$responseString[] = "$setting: ". implode(", ", $values);
 
-		$this->IRCBot->message($msg->getResponseTarget(), implode("; ", $responseString));
+		$this->respond($msg, implode("; ", $responseString));
 	}
 
 	/**
@@ -341,7 +341,7 @@ class Accounts extends Module {
 		//	No parameters, return user's access level
 		if (empty($parameters)) {
 			$level = $this->getAccessByUser($user);
-			$this->IRCBot->message($msg->getResponseTarget(), "Your current level is $level.");
+			$this->respond($msg, "Your current level is $level.");
 		}
 		else {
 
@@ -379,7 +379,7 @@ class Accounts extends Module {
 					//	Attempt to set level. A malformed $level will thrown an exception
 					$this->interface->setAccess($accountID, intval($level));
 
-					$this->IRCBot->message($msg->getResponseTarget(), "Access has been updated for '". $targetUser->getNick(). "'.");
+					$this->respond($msg, "Access has been updated for '". $targetUser->getNick(). "'.");
 				break;
 
 				/**
@@ -411,7 +411,7 @@ class Accounts extends Module {
 					//	Attempt to set level. A malformed $level will thrown an exception
 					$this->interface->setAccess($accountID, 0);
 
-					$this->IRCBot->message($msg->getResponseTarget(), "Access has been updated for '". $targetUser->getNick(). "'.");
+					$this->respond($msg, "Access has been updated for '". $targetUser->getNick(). "'.");
 				break;
 
 				/**
@@ -435,7 +435,7 @@ class Accounts extends Module {
 
 					$targetUserLevel = $this->interface->getAccessByID($accountID);
 
-					$this->IRCBot->message($msg->getResponseTarget(), "Access level for '". $targetUser->getNick(). "' is $targetUserLevel.");
+					$this->respond($msg, "Access level for '". $targetUser->getNick(). "' is $targetUserLevel.");
 				break;
 
 				/**
@@ -498,21 +498,21 @@ class Accounts extends Module {
 	 * Fetch the account ID of a User
 	 *
 	 * @param User $user
-	 * @return int|bool Account ID, or false if they're not logged in
+	 * @return int|null Account ID, or null if they're not logged in
 	 */
 	public function getAccountIDByUser(User $user) {
 		$id = $user->getId();
 		if (isset($this->loggedIn[$id]))
 			return $this->loggedIn[$id];
 
-		return false;
+		return null;
 	}
 
 	/**
 	 * Fetch the nickname of the user current logged in to an account
 	 *
 	 * @param string $accountID
-	 * @return string|bool Nickname or false on failure
+	 * @return User|bool Nickname or false on failure
 	 */
 	public function getUserByAccountID($accountID) {
 		$index = array_search($accountID, $this->loggedIn);
@@ -569,17 +569,16 @@ class Accounts extends Module {
 }
 
 
-trait AccountAccess {
+abstract class ModuleWithAccounts extends Module {
 
-	protected function AccountAccessVerify() {
-		if (!$this instanceof Module)
-			throw new Exception(get_class($this) . " must extend Module to use " . __TRAIT__);
-
-		$accounts = $this->externalModule("Accounts");
-		if (!class_exists("Accounts") || !($accounts instanceof Accounts))
-			throw new Exception("Accounts class must be defined to use ". __TRAIT__);
-
-		return $accounts;
+	/**
+	 * Internal function to verify and return the Accounts class and object
+	 *
+	 * @return Accounts
+	 * @throws Exception
+	 */
+	protected function getAccounts(): Accounts {
+		return $this->externalModule("Accounts");
 	}
 
 	/**
@@ -591,9 +590,7 @@ trait AccountAccess {
 	 * @return string|bool The setting value or false if it isn't set
 	 */
 	protected function getSetting($nick, $setting) {
-		$accounts = $this->AccountAccessVerify();
-		/** @var Module $this */
-		/** @var Accounts $accounts	*/
+		$accounts = $this->getAccounts();
 
 		$users = $this->IRCBot->getUsers();
 		if (($user = $users->get($nick)) && $user instanceof User) {
@@ -606,22 +603,30 @@ trait AccountAccess {
 		return false;
 	}
 
+    /**
+     * Used to restrict access of a command to a particular level or above
+     *
+     * @param IRCMessage $msg
+     * @param int $level
+     * @throws ModuleException Accounts not loaded or user does not have permission
+     */
 	protected function requireLevel(IRCMessage $msg, $level) {
-		$accounts = $this->AccountAccessVerify();
-		/** @var Module $this */
-		/** @var Accounts $accounts	*/
+		$accounts = $this->getAccounts();
 
 		$users = $this->IRCBot->getUsers();
 		$user = $users->confirmUser($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
 		$accounts->requireLevel($user, $level);
-
-		return true;
 	}
 
+    /**
+     * Get the account ID of a user if they are logged in
+     *
+     * @param User $user
+     * @return bool|int ID or false if not logged in
+     * @throws ModuleException Accounts not loaded
+     */
 	protected function getAccountIDByUser(User $user) {
-		$accounts = $this->AccountAccessVerify();
-		/** @var Module $this */
-		/** @var Accounts $accounts	*/
+		$accounts = $this->getAccounts();
 
 		return $accounts->getAccountIDByUser($user);
 	}

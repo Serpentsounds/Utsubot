@@ -22,7 +22,7 @@ class AbilityInfoFormat extends InfoFormat {
 
 	protected function formatField($field, $fieldValue) {
 		if ($field != "effect" && $field != "shortEffect")
-			$fieldValue = \IRCUtility::bold($fieldValue);
+			$fieldValue = self::bold($fieldValue);
 
 		return $fieldValue;
 	}

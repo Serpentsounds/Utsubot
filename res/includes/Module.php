@@ -10,6 +10,8 @@ class ModuleException extends Exception {}
 /** @property IRCBot */
 abstract class Module {
 
+	use IRCFormatting;
+
 	protected $IRCBot;
 	protected $triggers = array();
 	protected $timerQueue = array();
@@ -28,8 +30,29 @@ abstract class Module {
 	 *
 	 * @param string $msg
 	 */
-	public function status($msg) {
+	protected function status($msg) {
 		$this->IRCBot->console(get_class($this). ": $msg\n");
+	}
+
+	/**
+	 * Shorthand function to reply to channel/user in commands
+	 *
+	 * @param IRCMessage $msg
+	 * @param $text
+	 */
+	protected function respond(IRCMessage $msg, $text) {
+		$this->IRCBot->message($msg->getResponseTarget(), $text);
+	}
+
+	/**
+	 * Shorthand function to require the existence of classes before executing a command
+	 *
+	 * @param string $class
+	 * @throws ModuleException
+	 */
+	protected function _require($class) {
+		if (!class_exists($class))
+			throw new \ModuleException("This action requires $class to be loaded.");
 	}
 
 	/**
@@ -37,14 +60,15 @@ abstract class Module {
 	 *
 	 * @param string $module Name of module class
 	 * @param string $namespace Namespace of module, if applicable
-	 * @return bool|Module Module object, or false if it doesn't exist
+	 * @return Module
+	 * @throws ModuleException If the specified module is not loaded
 	 */
 	protected function externalModule($module, $namespace = "") {
 		$name = ($namespace) ? "$namespace\\$module" : $module;
 		if (class_exists($name) && ($instance = $this->IRCBot->getModule($module)) instanceof $name)
 			return $instance;
 
-		return false;
+		throw new ModuleException("Module $module is not loaded.");
 	}
 
 	/**
@@ -81,11 +105,6 @@ abstract class Module {
 		//	Triggered a command
 		if (isset($triggers[$cmd]) && method_exists($this, $triggers[$cmd])) {
 			try {
-
-				$permission = $this->externalModule("Permission");
-				if ($permission instanceof Permission && !($permission->hasPermission($msg, $triggers[$cmd])))
-					return;
-
 				//	Call command
 				call_user_func(array($this, $triggers[$cmd]), $msg);
 				$msg->respond($triggers[$cmd]);
@@ -93,7 +112,7 @@ abstract class Module {
 			//	Output error
 			catch (Exception $e) {
 				$response = $this->parseException($e, $msg);
-				$this->IRCBot->message($msg->getResponseTarget(), $response);
+				$this->respond($msg, $response);
 			}
 		}
 	}

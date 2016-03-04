@@ -26,7 +26,7 @@ class ItemInfoFormat extends InfoFormat {
 
 	protected function formatField($field, $fieldValue) {
 		if ($field != "effect" && $field != "shortEffect" && $field != "flags" && $field != "flingEffect")
-			$fieldValue = \IRCUtility::bold($fieldValue);
+			$fieldValue = self::bold($fieldValue);
 
 		return $fieldValue;
 	}
@@ -92,7 +92,7 @@ class ItemInfoFormat extends InfoFormat {
 							$display[] = $flag;
 					}
 
-					$display = array_map(array("IRCUtility", "bold"), $display);
+					$display = array_map(array("self", "bold"), $display);
 					return implode(", ", $display);
 				}
 				return "";

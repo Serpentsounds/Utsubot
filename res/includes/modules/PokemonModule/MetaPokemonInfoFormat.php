@@ -53,7 +53,7 @@ EOF;
 				return $this->MetaPokemon->getName("roumaji");
 			break;
 			case "roumaji":
-				return ucfirst(\IRCUtility::romanizeKana($this->MetaPokemon->getName("japanese")));
+				return ucfirst(self::romanizeKana($this->MetaPokemon->getName("japanese")));
 			break;
 
 			case "pickPercent":
@@ -74,5 +74,6 @@ EOF;
 			return implode(", ", $data);
 		}
 
+		return "";
 	}
 }

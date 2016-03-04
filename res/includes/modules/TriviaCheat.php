@@ -29,7 +29,7 @@ class TriviaCheat extends Module {
 
     public function privmsg(IRCMessage $msg) {
 
-        if ($msg->getNick() == self::$botnick && preg_match(self::$triggerRegex, IRCUtility::stripControlCodes($msg->getParameterString()), $match)) {
+        if ($msg->getNick() == self::$botnick && preg_match(self::$triggerRegex, self::stripControlCodes($msg->getParameterString()), $match)) {
             foreach ($this->questions as $arr) {
                 if (!strcmp(strtolower(trim($match[1])), strtolower(trim($arr[0])))) {
                     $this->timerQueue[] = array(

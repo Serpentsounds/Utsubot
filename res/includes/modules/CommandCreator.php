@@ -5,8 +5,7 @@
  * Date: 01/02/2015
  */
 
-class CommandCreator extends Module {
-	use AccountAccess;
+class CommandCreator extends ModuleWithPermission {
 
 	private $interface;
 	private $customTriggers = array();
@@ -51,7 +50,7 @@ class CommandCreator extends Module {
 					}
 					catch (Exception $e) {
 						$response = $this->parseException($e, $msg);
-						$this->IRCBot->message($msg->getResponseTarget(), $response);
+						$this->respond($msg, $response);
 					}
 				}
 
@@ -76,7 +75,7 @@ class CommandCreator extends Module {
 			throw new ModuleException("Invalid format '$format'.");
 
 		$this->createCommand($command, $type, $format);
-		$this->IRCBot->message($msg->getResponseTarget(), "Command '$command' has been successfully created. Use !editcommand to begin creating lists and triggers for it.");
+		$this->respond($msg, "Command '$command' has been successfully created. Use !editcommand to begin creating lists and triggers for it.");
 	}
 
 	public function removeCommand(IRCMessage $msg) {
@@ -85,7 +84,7 @@ class CommandCreator extends Module {
 		$command = $msg->getCommandParameters()[0];
 
 		$this->destroyCommand($command);
-		$this->IRCBot->message($msg->getResponseTarget(), "Command '$command' has been destroyed. All associated lists and triggers have been deleted.");
+		$this->respond($msg, "Command '$command' has been destroyed. All associated lists and triggers have been deleted.");
 	}
 
 	public function viewCommand(IRCMessage $msg) {
@@ -98,16 +97,16 @@ class CommandCreator extends Module {
 		switch ($property) {
 			case "type":
 				$type = $this->getType($command);
-				$this->IRCBot->message($msg->getResponseTarget(), "Type of command '$command' is '$type'.");
+				$this->respond($msg, "Type of command '$command' is '$type'.");
 			break;
 			case "format":
 				$format = $this->getFormat($command);
-				$this->IRCBot->message($msg->getResponseTarget(), "Format of command '$command' is '$format'.");
+				$this->respond($msg, "Format of command '$command' is '$format'.");
 			break;
 			case "trigger":
 			case "triggers":
 				$triggers = $this->getTriggers($command);
-				$this->IRCBot->message($msg->getResponseTarget(), "Trigger(s) for '$command': ". implode(", ", $triggers));
+				$this->respond($msg, "Trigger(s) for '$command': ". implode(", ", $triggers));
 			break;
 			case "list":
 				$slot = array_shift($parameters);
@@ -116,7 +115,7 @@ class CommandCreator extends Module {
 
 				$slot = intval($slot);
 				$items = $this->getListItems($command, $slot);
-				$this->IRCBot->message($msg->getResponseTarget(), "Items in list slot $slot for command '$command': ". implode(", ", array_column($items, "value")));
+				$this->respond($msg, "Items in list slot $slot for command '$command': ". implode(", ", array_column($items, "value")));
 			break;
 			default:
 				throw new ModuleException("Invalid property '$property'.");
@@ -142,7 +141,7 @@ class CommandCreator extends Module {
 				switch ($mode) {
 					case "set":
 						$this->setType($command, $type);
-						$this->IRCBot->message($msg->getResponseTarget(), "Type of command '$command' has been changed to '$type'.");
+						$this->respond($msg, "Type of command '$command' has been changed to '$type'.");
 					break;
 					default:
 						throw new ModuleException("Invalid mode '$mode' for property '$property'.");
@@ -156,7 +155,7 @@ class CommandCreator extends Module {
 				switch ($mode) {
 					case "set":
 						$this->setFormat($command, $format);
-						$this->IRCBot->message($msg->getResponseTarget(), "Format of command '$command' has been changed to '$format'.");
+						$this->respond($msg, "Format of command '$command' has been changed to '$format'.");
 					break;
 					default:
 						throw new ModuleException("Invalid mode '$mode' for property '$property'.");
@@ -169,15 +168,15 @@ class CommandCreator extends Module {
 				switch ($mode) {
 					case "add":
 						$this->addTrigger($command, $trigger);
-						$this->IRCBot->message($msg->getResponseTarget(), "Trigger '$trigger' has been added for command '$command'.");
+						$this->respond($msg, "Trigger '$trigger' has been added for command '$command'.");
 					break;
 					case "remove":
 						$this->removeTrigger($command, $trigger);
-						$this->IRCBot->message($msg->getResponseTarget(), "Trigger '$trigger' has been removed from command '$command'.");
+						$this->respond($msg, "Trigger '$trigger' has been removed from command '$command'.");
 					break;
 					case "clear":
 						$cleared = $this->clearTriggers($command);
-						$this->IRCBot->message($msg->getResponseTarget(), "$cleared trigger(s) were removed from command '$command'.");
+						$this->respond($msg, "$cleared trigger(s) were removed from command '$command'.");
 					break;
 					default:
 						throw new ModuleException("Invalid mode '$mode' for property '$property'.");
@@ -196,15 +195,15 @@ class CommandCreator extends Module {
 				switch ($mode) {
 					case "add":
 						$this->addListItem($command, $item, $slot);
-						$this->IRCBot->message($msg->getResponseTarget(), "Item '$item' has been added to list slot $slot for command '$command'.");
+						$this->respond($msg, "Item '$item' has been added to list slot $slot for command '$command'.");
 					break;
 					case "remove":
 						$this->removeListItem($command, $item, $slot);
-						$this->IRCBot->message($msg->getResponseTarget(), "Item '$item' has been removed from list slot $slot for command '$command'.");
+						$this->respond($msg, "Item '$item' has been removed from list slot $slot for command '$command'.");
 					break;
 					case "clear":
 						$cleared = $this->clearListItems($command, $slot);
-						$this->IRCBot->message($msg->getResponseTarget(), "$cleared item(s) were removed from list slot $slot on command '$command'.");
+						$this->respond($msg, "$cleared item(s) were removed from list slot $slot on command '$command'.");
 					break;
 					default:
 						throw new ModuleException("Invalid mode '$mode' for property '$property'.");
@@ -261,7 +260,7 @@ class CommandCreator extends Module {
 
 		$output = preg_replace_callback("/%(\d+|[nct])/", $subParameters, $commandInfo['format']);
 		if ($commandInfo['type'] == "message")
-			$this->IRCBot->message($msg->getResponseTarget(), $output);
+			$this->respond($msg, $output);
 		elseif ($commandInfo['type'] == "action")
 			$this->IRCBot->action($msg->getResponseTarget(), $output);
 	}

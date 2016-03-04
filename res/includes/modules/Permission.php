@@ -5,10 +5,11 @@
  * Date: 02/12/2014
  */
 
-class Permission extends Module {
-	use AccountAccess;
+class PermissionException extends ModuleException {}
 
-	private $interface;
+class Permission extends ModuleWithPermission {
+
+    private $interface;
 
 	/**
 	 * Create interface upon construct
@@ -16,6 +17,8 @@ class Permission extends Module {
 	 * @param IRCBot $irc
 	 */
 	public function __construct(IRCBot $irc) {
+        $this->_require("DatabaseInterface");
+
 		parent::__construct($irc);
 
 		$this->interface = new DatabaseInterface("utsubot");
@@ -31,7 +34,7 @@ class Permission extends Module {
 	 * Add an allow line
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException If any parameters are invalid, or if allow line exists
+	 * @throws PermissionException If any parameters are invalid, or if allow line exists
 	 */
 	public function allow(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
@@ -42,7 +45,7 @@ class Permission extends Module {
 	 * Add a deny line
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException If any parameters are invalid, or if deny line already exists
+	 * @throws PermissionException If any parameters are invalid, or if deny line already exists
 	 */
 	public function deny(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
@@ -53,7 +56,7 @@ class Permission extends Module {
 	 * Remove an allow line
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException If any parameters are invalid, or if allow line doesn't exist
+	 * @throws PermissionException If any parameters are invalid, or if allow line doesn't exist
 	 */
 	public function unallow(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
@@ -64,7 +67,7 @@ class Permission extends Module {
 	 * Remove a deny line
 	 *
 	 * @param IRCMessage $msg
-	 * @throws ModuleException If any parameters are invalid, or if deny line doesn't exist
+	 * @throws PermissionException If any parameters are invalid, or if deny line doesn't exist
 	 */
 	public function undeny(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
@@ -77,7 +80,7 @@ class Permission extends Module {
 	 * @param string $type "allow" or "deny"
 	 * @param array $parameters Array of command parameters (words)
 	 * @return array array(array of query parameters matching up with values, array of sql statement values as either "?" or null)
-	 * @throws ModuleException
+	 * @throws PermissionException
 	 * @throws Exception
 	 */
 	private function parseParameters($type, $parameters) {
@@ -119,7 +122,7 @@ class Permission extends Module {
 
 					//	User is invalid or not logged in, send control to catch block
 					else
-						throw new ModuleException("'$value' is not a logged in user.");
+						throw new PermissionException("'$value' is not a logged in user.");
 
 				break;
 
@@ -138,7 +141,7 @@ class Permission extends Module {
 
 				//	Abort if any parameters are invalid
 				default:
-					throw new ModuleException("Permission::parseParameters: Not all constraints are valid.");
+					throw new PermissionException("Not all constraints are valid.");
 				break;
 			}
 		}
@@ -169,7 +172,7 @@ class Permission extends Module {
 			$queryParameters[] = $addressField;
 
 		if (!$parametersField)
-			$values[6];
+			$values[6] = null;
 		else
 			$queryParameters[] = $parametersField;
 
@@ -182,7 +185,7 @@ class Permission extends Module {
 	 *
 	 * @param string $type "allow" or "deny"
 	 * @param IRCMessage $msg
-	 * @throws ModuleException If any parameters are invalid, or if line exists
+	 * @throws PermissionException If any parameters are invalid, or if line exists
 	 */
 	private function addPermission($type, IRCMessage $msg) {
 		list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
@@ -199,9 +202,9 @@ class Permission extends Module {
 			$queryParameters);
 
 		if (!$rowCount)
-			throw new ModuleException("Permission already exists.");
+			throw new PermissionException("Permission already exists.");
 
-		$this->IRCBot->message($msg->getResponseTarget(), "Permission has been added.");
+		$this->respond($msg, "Permission has been added.");
 	}
 
 	/**
@@ -209,13 +212,13 @@ class Permission extends Module {
 	 *
 	 * @param string $type
 	 * @param IRCMessage $msg
-	 * @throws ModuleException If any parameters are invalid, or if line doesn't exist
+	 * @throws PermissionException If any parameters are invalid, or if line doesn't exist
 	 */
 	private function removePermission($type, IRCMessage $msg) {
 		list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
 		//	Form conditionals for each column
-		$columns = array("`trigger`", "`type`", "`channel`", "`user_id`", "`nickname`", "`address`, `parameters`");
+		$columns = array("`trigger`", "`type`", "`channel`", "`user_id`", "`nickname`", "`address`", "`parameters`");
 		array_walk($values, function(&$element, $key) use ($columns) {
 			if ($element === null)
 				$element = $columns[$key]. " IS NULL";
@@ -229,9 +232,9 @@ class Permission extends Module {
 			$queryParameters);
 
 		if (!$rowCount)
-			throw new ModuleException("Permission does not exist.");
+			throw new PermissionException("Permission does not exist.");
 
-		$this->IRCBot->message($msg->getResponseTarget(), "Permission has been removed.");
+		$this->respond($msg, "Permission has been removed.");
 	}
 
 	/**
@@ -269,38 +272,36 @@ class Permission extends Module {
 		$parameters = $msg->getParameterString();
 
 		//	Attempt to grab user ID for comparison
-		$id = null;
-		try {
-			$users = $this->IRCBot->getUsers();
-			$accounts = $this->externalModule("Accounts");
-			if ($accounts instanceof Accounts) {
-				$user = $users->confirmUser($address);
-				$id = $accounts->getAccountIDByUser($user);
-			}
-		}
-		catch (Exception $e) {}
+        $users = $this->IRCBot->getUsers();
+        $user = $users->confirmUser($address);
+        $id = $this->getAccountIDByUser($user);
 
 		//	Apply rows 1 by 1
 		foreach ($results as $row) {
-			//	All 4 of these must be true for the rule to apply. If the db value is NULL, it will automatically apply
+			//	All of these must be true for the rule to apply. If the db value is NULL, it will automatically apply
 			$channelMatch = $userMatch = $nickMatch = $addressMatch = $parameterMatch = false;
 
+            //  Channel name (exact match)
 			if (!$row['channel'] || ($inChannel && $row['channel'] == $channel))
 				$channelMatch = true;
 
+            //  Nickname (wildcard match)
 			if (!$row['nickname'] || fnmatch(strtolower($row['nickname']), strtolower($nick)))
 				$nickMatch = true;
 
+            //  Address (wildcard match)
 			if (!$row['address'] || fnmatch($row['address'], $address))
 				$addressMatch = true;
 
+            //  Account id (exact match)
 			if (!$row['user_id'] || $row['user_id'] == $id)
 				$userMatch = true;
 
-			if (!$row['parameters'] || $row['parameters'] != $parameters)
+            //  Command parameters (wildcard match)
+			if (!$row['parameters'] || fnmatch(strtolower($row['parameters']), strtolower($parameters)))
 				$parameterMatch = true;
 
-			//	Enforce passing of all 4 checks
+			//	Enforce passing of all checks
 			if (!$channelMatch || !$userMatch || !$nickMatch || !$addressMatch || !$parameterMatch)
 				continue;
 
@@ -314,4 +315,56 @@ class Permission extends Module {
 		return $permission;
 	}
 
-} 
+}
+
+/**
+ * Class ModuleWithPermission
+ *
+ * Extends Module functionality further on top of accounts levels to allow individual command blocking based on any
+ * combination of nickname (wildcard), channel, address (wildcard), account id, or specific parameter string (wildcard)
+ */
+abstract class ModuleWithPermission extends ModuleWithAccounts {
+
+    /**
+     * Check if a user has permission to use their issued command
+     *
+     * @param IRCMessage $msg
+     * @param string $trigger
+     * @return bool
+     * @throws ModuleException If Permission module isn't loaded
+     */
+    public function hasPermission(IRCMessage $msg, string $trigger) {
+        /** @var $permission Permission */
+        $permission = $this->externalModule("Permission");
+        return $permission->hasPermission($msg, $trigger);
+    }
+
+    /**
+     * Throw an exception if a command is denied
+     *
+     * @param IRCMessage $msg
+     * @param string $trigger
+     * @throws PermissionException
+     */
+    protected function requirePermission(IRCMessage $msg, string $trigger) {
+        if (!($this->hasPermission($msg, $trigger)))
+            throw new PermissionException("You do not have permission to use $trigger.");
+    }
+
+    /**
+     * Check permission before calling default parseTriggers
+     *
+     * @param IRCMessage $msg
+     */
+    protected function parseTriggers(IRCMessage $msg) {
+        if (!$msg->isCommand())
+            return;
+
+        $triggers = $this->triggers;
+        $cmd = strtolower($msg->getCommand());
+        //	Triggered a command
+        if (isset($triggers[$cmd]) && method_exists($this, $triggers[$cmd]) && $this->hasPermission($msg, $triggers[$cmd]))
+            parent::parseTriggers($msg);
+    }
+
+}

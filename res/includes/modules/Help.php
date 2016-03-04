@@ -5,7 +5,10 @@
  * Date: 17/12/2014
  */
 
+class HelpException extends ModuleException {}
+
 class Help extends Module {
+
 	private static $helpDirectory = "help";
 	private $help = array();
 
@@ -27,11 +30,11 @@ class Help extends Module {
 	 * @throws ModuleException If no help is available
 	 */
 	public function help(IRCMessage $msg) {
+        //  !showhelp to publicly message help, otherwise it is privately shown
 		if (strtolower($msg->getCommand()) == "showhelp")
 			$responseTarget = $msg->getResponseTarget();
 		else
 			$responseTarget = $msg->getNick();
-
 
 		//	$parameters is the help topic to search for
 		$parameters = strtolower($msg->getCommandParameterString());
@@ -39,6 +42,7 @@ class Help extends Module {
 
 		//	Save command prefix to attach commands to
 		$commandPrefix = @$this->IRCBot->getCommandPrefix()[0];
+        //  Local function for array_map calls
 		$addPrefix = function ($command) use ($commandPrefix) {
 			return $commandPrefix . $command;
 		};
@@ -48,30 +52,42 @@ class Help extends Module {
 			//	Get help array (may throw exception)
 			$help = $this->findHelp($parameters);
 
-			//	Loop through help text and format it
-			for ($i = 0, $count = count(@$help['text']); $i < $count; $i++) {
-				$string = array(IRCUtility::bold($commandPrefix . $parameters));
+			//	Single command
+			if (isset($help['text'])) {
 
-				//	Optional: parameters
-				if (strlen(@$help['params'][$i]))
-					$string[] = $help['params'][$i];
+				//	Loop through help text and format it
+				for ($i = 0, $count = count(@$help['text']); $i < $count; $i++) {
+					$string = array(self::bold($commandPrefix . $parameters));
 
-				//	Separator and text
-				$string[] = "-";
-				$string[] = @$help['text'][$i];
+					//	Optional: parameters
+					if (strlen(@$help['params'][$i]))
+						$string[] = $help['params'][$i];
 
-				$return[] = implode(" ", $string);
+					//	Separator and text
+					$string[] = "-";
+					$string[] = @$help['text'][$i];
+
+					$return[] = implode(" ", $string);
+				}
+
+				//	Format and add command aliases, if applicable
+				if (isset($help['aliases']))
+					$return[] = self::bold("Aliases: ") . implode(" ", array_map($addPrefix, $help['aliases']));
+
+				//	Suffix notes, if applicable
+				if (isset($help['notes']))
+					$return[] = self::bold("Notes: ") . implode("\n", $help['notes']);
+
+				$this->IRCBot->message($responseTarget, implode("\n", $return));
 			}
 
-			//	Format and add command aliases, if applicable
-			if (isset($help['aliases']))
-				$return[] = IRCUtility::bold("Aliases: "). implode(" ", array_map($addPrefix, $help['aliases']));
-
-			//	Suffix notes, if applicable
-			if (isset($help['notes']))
-				$return[] = IRCUtility::bold("Notes: "). implode("\n", $help['notes']);
-
-			$this->IRCBot->message($responseTarget, implode("\n", $return));
+			//	Command category
+			else {
+				$category = array_keys($help)[0];
+				$commands = array_map($addPrefix, array_keys($help[$category]));
+				$return = self::bold($category). ": ". implode(" ", $commands);
+				$this->IRCBot->message($responseTarget, self::bold("Available commands: "). $return);
+			}
 		}
 
 		//	No command given, list available help
@@ -79,16 +95,16 @@ class Help extends Module {
 			foreach ($this->help as $file => $help) {
 				//	Format commands and put under under file header group
 				$commands = array_map($addPrefix, array_keys($help));
-				$return[] = IRCUtility::bold($file). ": ". implode(" ", $commands);
+				$return[] = self::bold($file). ": ". implode(" ", $commands);
 			}
 
-			$this->IRCBot->message($responseTarget, IRCUtility::bold("Available commands: "). implode(" :: ", $return));
+			$this->IRCBot->message($responseTarget, self::bold("Available commands: "). implode(" :: ", $return));
 		}
 
 	}
 
 	/**
-	 * Get the array of help information for a topic
+	 * Get the array of help information for a topic (command or category) from the internal cache
 	 *
 	 * @param string $topic
 	 * @return array Array in help format
@@ -96,11 +112,16 @@ class Help extends Module {
 	 */
 	private function findHelp($topic) {
 		foreach ($this->help as $file => $help) {
+			//	Help available for command
 			if (isset($help[$topic]))
 				return $help[$topic];
+
+			//	Help available for category
+			elseif (strtolower($file) == $topic)
+				return array($file => $this->help[$file]);
 		}
 
-		throw new ModuleException("Help::help: No help available for '$topic'");
+		throw new HelpException("No help available for '$topic'");
 	}
 
 	/**
@@ -113,9 +134,11 @@ class Help extends Module {
 		$files = scandir($directory);
 
 		foreach ($files as $file) {
+            //  Skip non files
 			if ($file == "." || $file == "..")
 				continue;
 
+            //  Ini parsing successful
 			if (($help = parse_ini_file("$directory/$file", true)) !== false) {
 				$category = basename($file, ".ini");
 				$this->help[$category] = $help;

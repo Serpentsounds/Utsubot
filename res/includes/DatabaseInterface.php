@@ -134,6 +134,9 @@ class DatabaseInterface {
 	 */
 	public function prepare($query) {
 		$this->connect(false);
+		if (!($this->pdo instanceof \PDO))
+			throw new DatabaseInterfaceException("PDO object is invalid.");
+
 		return $this->pdo->prepare($query);
 	}
 
@@ -145,6 +148,9 @@ class DatabaseInterface {
 	 */
 	public function beginTransaction() {
 		$this->connect(false);
+		if (!($this->pdo instanceof \PDO))
+			throw new DatabaseInterfaceException("PDO object is invalid.");
+
 		return $this->pdo->beginTransaction();
 	}
 

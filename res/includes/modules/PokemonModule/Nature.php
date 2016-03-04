@@ -175,11 +175,11 @@ class Nature {
 	 *
 	 * @param string $attribute Name of contest move category
 	 * @return string The attribute colored, or the original string if it's not a valid attribute
-	 * @throws \IRCUtilityException If a non-string is given
+	 * @throws \IRCFormattingException If a non-string is given
 	 */
 	public static function colorAttribute($attribute) {
 
-		if (!method_exists("IRCUtility", "color"))
+		if (!method_exists("self", "color"))
 			return $attribute;
 
 		$index = array_search(ucfirst(strtolower($attribute)), self::$contestAttributes);
@@ -191,6 +191,6 @@ class Nature {
 		$colors = self::$contestAttributeColors[$index];
 		list($foreground, $background) = $colors;
 
-		return \IRCUtility::color($attribute, $foreground, $background);
+		return self::color($attribute, $foreground, $background);
 	}
 } 

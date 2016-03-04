@@ -470,11 +470,11 @@ class Pokemon {
 					$conditions[$method] = $conditions[$method][0];
 				//	Join all sets of details
 				else
-					$conditions[$method] = implode(\IRCUtility::italic(" OR "), $conditions[$method]);
+					$conditions[$method] = implode(self::italic(" OR "), $conditions[$method]);
 			}
 
 			//	Join conditions for each method
-			$conditions = implode(\IRCUtility::italic(" OR "), $conditions);
+			$conditions = implode(self::italic(" OR "), $conditions);
 
 			if ($return == 2)
 				return $conditions;

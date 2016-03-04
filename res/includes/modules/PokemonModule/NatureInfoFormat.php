@@ -17,11 +17,11 @@ class NatureInfoFormat extends InfoFormat {
 
 	protected function formatField($field, $fieldValue) {
 		if ($field == "likes" || $field == "dislikes")
-			$fieldValue = \IRCUtility::bold(Nature::colorAttribute($fieldValue));
+			$fieldValue = self::bold(Nature::colorAttribute($fieldValue));
 
 		//	Default case, just bold
 		else
-			$fieldValue = \IRCUtility::bold($fieldValue);
+			$fieldValue = self::bold($fieldValue);
 
 		return $fieldValue;
 	}

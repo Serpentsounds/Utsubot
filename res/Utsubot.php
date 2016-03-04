@@ -25,7 +25,7 @@ set_time_limit(0);
  * Recursive function for searching directories
  *
  * @param string $dir Relative directory
- * @return Array
+ * @return array
  */
 function getDirs($dir) {
 	$files = scandir($dir);
@@ -50,6 +50,8 @@ spl_autoload_register(function($class) use ($dirs) {
 	$nameParts = explode("\\", $class);
 	$shortName = end($nameParts);
 	if (preg_match("/^(.+?)Exception$/", $shortName, $match))
+		$shortName = $match[1];
+	elseif (preg_match("/^ModuleWith(.+)/", $shortName, $match))
 		$shortName = $match[1];
 
 	foreach ($dirs as $dir) {

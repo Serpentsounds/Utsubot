@@ -10,6 +10,9 @@ require_once("WebSearch.php");
 class GoogleException extends WebSearchException {}
 
 class Google implements WebSearch {
+
+	use WebAccess;
+
 	const DEFAULT_RESULTS = 1;
 	const MAX_RESULTS = 5;
 	const SAFE_SEARCH = false;
@@ -47,7 +50,7 @@ class Google implements WebSearch {
 		if ($safeSearch == self::SAFE_SEARCH)
 			$safeSearch = (self::SAFE_SEARCH) ? "on" : "off";
 
-		$string = WebAccess::resourceBody("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=". urlencode($search). "&safe=$safeSearch&rsz=$results");
+		$string = self::resourceBody("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=". urlencode($search). "&safe=$safeSearch&rsz=$results");
 
 		$data = json_decode($string, TRUE);
 		$out = array();
@@ -57,7 +60,7 @@ class Google implements WebSearch {
 			//	If we're returning more than 1 result, add a small header to the top
 			if ($results > 1) {
 				$out[] = sprintf("Top $results Google result(s) for %s (of %s total):",
-							IRCUtility::bold($search),
+							self::bold($search),
 							number_format($data['responseData']['cursor']['estimatedResultCount']));
 
 				//	Loop through all results and add them
@@ -65,17 +68,17 @@ class Google implements WebSearch {
 				while (isset($data['responseData']['results'][$currentResult]))
 					$out[] = sprintf("%d. %s (%s) - %s",
 								$currentResult + 1,
-								WebAccess::stripHTML(rawurldecode($data['responseData']['results'][$currentResult]['url'])),
-								WebAccess::stripHTML($data['responseData']['results'][$currentResult]['titleNoFormatting']),
-								WebAccess::stripHTML($data['responseData']['results'][$currentResult++]['content']));
+								self::stripHTML(rawurldecode($data['responseData']['results'][$currentResult]['url'])),
+								self::stripHTML($data['responseData']['results'][$currentResult]['titleNoFormatting']),
+								self::stripHTML($data['responseData']['results'][$currentResult++]['content']));
 			}
 
 			//	Add only the single result
 			else
 				$out[] = sprintf("%s (%s) - %s",
-							 WebAccess::stripHTML(rawurldecode($data['responseData']['results'][0]['url'])),
-							 WebAccess::stripHTML($data['responseData']['results'][0]['titleNoFormatting']),
-							 WebAccess::stripHTML($data['responseData']['results'][0]['content']));
+							 self::stripHTML(rawurldecode($data['responseData']['results'][0]['url'])),
+							 self::stripHTML($data['responseData']['results'][0]['titleNoFormatting']),
+							 self::stripHTML($data['responseData']['results'][0]['content']));
 		}
 		//	No results
 		else

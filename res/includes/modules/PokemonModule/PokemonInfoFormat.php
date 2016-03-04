@@ -84,14 +84,14 @@ EOF;
 
 	protected function formatField($field, $fieldValue) {
 		if (substr($field, 0, 4) == "type")
-			$fieldValue = \IRCUtility::bold(Types::colorType($fieldValue));
+			$fieldValue = self::bold(Types::colorType($fieldValue));
 
 		//	Special case for evolutions, bold already added
 		elseif (substr($field, -9) == "evolution" || $field == "evs" || $field == "eggGroup" || (($field == "height" || $field == "weight") && $this->units == "both")) {}
 
 		//	Default case, just bold
 		else
-			$fieldValue = \IRCUtility::bold($fieldValue);
+			$fieldValue = self::bold($fieldValue);
 
 		return $fieldValue;
 	}
@@ -113,7 +113,7 @@ EOF;
 				return $this->object->getName("roumaji");
 			break;
 			case "roumaji":
-				return ucfirst(\IRCUtility::romanizeKana($this->object->getName("japanese")));
+				return ucfirst(self::romanizeKana($this->object->getName("japanese")));
 			break;
 
 			case "national":
@@ -193,8 +193,8 @@ EOF;
 
 					case "both":
 						$value = implode("/", array(
-							\IRCUtility::bold(round($this->object->getHeight("ft"), 2). "ft"),
-							\IRCUtility::bold(round($this->object->getHeight("m"), 2). "m")
+							self::bold(round($this->object->getHeight("ft"), 2). "ft"),
+							self::bold(round($this->object->getHeight("m"), 2). "m")
 						));
 					break;
 
@@ -216,8 +216,8 @@ EOF;
 
 					case "both":
 						$value = implode("/", array(
-							\IRCUtility::bold(round($this->object->getWeight("lb"), 2). "lb"),
-							\IRCUtility::bold(round($this->object->getWeight("kg"), 2). "kg")
+							self::bold(round($this->object->getWeight("lb"), 2). "lb"),
+							self::bold(round($this->object->getWeight("kg"), 2). "kg")
 						));
 					break;
 
@@ -248,14 +248,14 @@ EOF;
 					if ($stat == "Hp")
 						$stat = "HP";
 
-					$return[] = \IRCUtility::bold("$EV $stat");
+					$return[] = self::bold("$EV $stat");
 				}
 
 				return implode(", ", $return);
 			break;
 
 			case "eggGroup":
-				return implode("/", array_map(array("IRCUtility", "bold"), $this->object->getEggGroup("all")));
+				return implode("/", array_map(array("self", "bold"), $this->object->getEggGroup("all")));
 			break;
 
 			//	Stick names and methods together
@@ -270,7 +270,7 @@ EOF;
 
 				//	Suffix the methods, bold only the pokemon names for readability
 				foreach ($names as $key => $name)
-					$names[$key] = \IRCUtility::bold($name). "/". $methods[$key];
+					$names[$key] = self::bold($name). "/". $methods[$key];
 
 				return implode("; ", $names);
 			break;
@@ -287,7 +287,7 @@ EOF;
 
 				//	Suffix the methods, bold only the pokemon names for readability
 				foreach ($names as $key => $name)
-					$names[$key] = \IRCUtility::bold($name). "/". $methods[$key];
+					$names[$key] = self::bold($name). "/". $methods[$key];
 
 				return implode("; ", $names);
 			break;

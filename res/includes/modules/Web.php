@@ -5,8 +5,9 @@
  * Date: 25/11/14
  */
 
-class Web extends Module {
-	use AccountAccess;
+class Web extends ModuleWithPermission {
+
+    use WebAccess;
 
 	public static $separator = "";
     private static $APIServices = array("youtube", "soundcloud");
@@ -18,7 +19,7 @@ class Web extends Module {
 		parent::__construct($irc);
 
         //  Set formatting separator
-        self::$separator = " ". IRCUtility::bold(IRCUtility::color("¦", "red")). " ";
+        self::$separator = " ". self::bold(self::color("¦", "red")). " ";
 
         $this->loadAPIKeys();
 
@@ -60,23 +61,22 @@ class Web extends Module {
 		//	Not a command, parse URLs if applicable
 		if (!$msg->isCommand() && class_exists("URLParser")) {
 
-			$permission = $this->externalModule("Permission");
-			if ($permission instanceof Permission && !($permission->hasPermission($msg, "urlparser")))
-				return;
+            if (!$this->hasPermission($msg, "urlparser"))
+                return;
 
 			$return = array();
 			if (preg_match_all('/https?:\/\/[^\s\x01\x02\x03\x0F\x1D\x1F]+|(?:https?:\/\/)?www\.[^\s\x01\x02\x03\x0F\x1D\x1F]+/i', $msg->getParameterString(), $match, PREG_PATTERN_ORDER)) {
 
 				foreach ($match[0] as $url) {
 					try {
-						$return[] = $this->URLParser->search($url, array('permission' => $permission, 'ircmessage' => $msg));
+						$return[] = $this->URLParser->search($url, $msg);
 					}
 					catch (Exception $e) {
 						$this->status($e->getMessage());
 					}
 				}
 
-				$this->IRCBot->message($msg->getResponseTarget(), $return);
+				$this->respond($msg, $return);
 			}
 
 			//	The message wasn't a command, so no need to continue parsing
@@ -122,8 +122,7 @@ class Web extends Module {
 	 * @throws WeatherException If location is invalid, or lookup fails
 	 */
 	public function weather(IRCMessage $msg) {
-		if (!class_exists("Weather"))
-			throw new ModuleException("Weather class is not loaded.");
+		$this->_require("Weather");
 
 		//	Try and get default location from user settings
 		$location = $this->getSetting($msg->getNick(), "weather");
@@ -162,7 +161,7 @@ class Web extends Module {
 		//	Get weather info. WeatherException may be thrown if an error occurs
 		$result = Weather::search($location, $options);
 
-		$this->IRCBot->message($msg->getResponseTarget(), $result);
+		$this->respond($msg, $result);
 	}
 
 	/**
@@ -173,8 +172,7 @@ class Web extends Module {
 	 * @throws GoogleException If there are no results for the search
 	 */
 	public function google(IRCMessage $msg) {
-		if (!class_exists("Google"))
-			throw new ModuleException("Google class is not loaded.");
+		$this->_require("Google");
 
 		//	We need something to search for
 		$parameters = $msg->getCommandParameters();
@@ -204,7 +202,7 @@ class Web extends Module {
 		//	Perform google search. May throw a GoogleException, if no results are found
 		$result = Google::search($search, $options);
 
-		$this->IRCBot->message($msg->getResponseTarget(), $result);
+		$this->respond($msg, $result);
 	}
 
 	public function dictionary(IRCMessage $msg) {
@@ -224,10 +222,9 @@ class Web extends Module {
 		if ($dictionary === null)
 			throw new ModuleException("Invalid dictionary.");
 
-		if (!class_exists($dictionary))
-			throw new ModuleException("$dictionary class is not loaded.");
+		$this->_require($dictionary);
 
-		if (!is_subclass_of($dictionary, "WebSearch") || !method_exists($dictionary, "search"))
+		if (!is_subclass_of($dictionary, "WebSearch"))
 			throw new ModuleException("$dictionary does not implement WebSearch.");
 
 		$parameters = $msg->getCommandParameters();
@@ -246,7 +243,7 @@ class Web extends Module {
 		/** @var $dictionary WebSearch */
 		$result = $dictionary::search(implode(" ", $parameters), $options);
 
-		$this->IRCBot->message($msg->getResponseTarget(), $result);
+		$this->respond($msg, $result);
 	}
 
 	/**
@@ -274,11 +271,11 @@ class Web extends Module {
 		//	Filter DNS record array based on record type
 		foreach ($records as $entry) {
 			if ($entry['type'] == "A")
-				$result['A'][] = IRCUtility::bold($entry['ip']);
+				$result['A'][] = self::bold($entry['ip']);
 			elseif ($entry['type'] == "AAAA")
-				$result['AAAA'][] = IRCUtility::bold($entry['ipv6']);
+				$result['AAAA'][] = self::bold($entry['ipv6']);
 			elseif ($entry['type'] == "CNAME")
-				$result['CNAME'][] = IRCUtility::bold($entry['target']);
+				$result['CNAME'][] = self::bold($entry['target']);
 		}
 
 		//	Join multiple entries of the same type with a comma, and join types with a semicolon
@@ -287,8 +284,8 @@ class Web extends Module {
 			foreach ($result as $type => $arr)
 				$response[] = implode(", ", $arr). " [$type]";
 
-			$response = IRCUtility::bold($match[0]). " resolved to ". implode(self::$separator, $response);
-			$this->IRCBot->message($msg->getResponseTarget(), $response);
+			$response = self::bold($match[0]). " resolved to ". implode(self::$separator, $response);
+			$this->respond($msg, $response);
 		}
 
 	}
@@ -299,22 +296,22 @@ class Web extends Module {
 		if (!preg_match('/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/', $ip, $match))
 			throw new ModuleException("Invalid IP address format.");
 
-		$json = WebAccess::resourceBody("http://ip-api.com/json/$ip");
+		$json = self::resourceBody("http://ip-api.com/json/$ip");
 		$results = json_decode($json, true);
 
 		if ($results['status'] != "success")
 			throw new ModuleException("Lookup failed.");
 
 		$output = array(
-			sprintf("%s: %s [%s]", IRCUtility::bold("Country"), $results['country'], $results['countryCode']),
-			sprintf("%s: %s [%s]", IRCUtility::bold("Region"), $results['regionName'], $results['region']),
-			sprintf("%s: %s [%s]", IRCUtility::bold("City"), $results['city'], $results['zip']),
-			sprintf("%s: %s°%s, %s°%s", IRCUtility::bold("Location"), round(abs($results['lat']), 2), (($results['lat'] < 0) ? "S" : "N"), round(abs($results['lon']), 2), (($results['lon'] < 0) ? "W" : "E")),
-			sprintf("%s: %s", IRCUtility::bold("Time Zone"), str_replace("_", " ", $results['timezone'])),
-			sprintf("%s: %s", IRCUtility::bold("ISP"), $results['isp'])
+			sprintf("%s: %s [%s]", self::bold("Country"), $results['country'], $results['countryCode']),
+			sprintf("%s: %s [%s]", self::bold("Region"), $results['regionName'], $results['region']),
+			sprintf("%s: %s [%s]", self::bold("City"), $results['city'], $results['zip']),
+			sprintf("%s: %s°%s, %s°%s", self::bold("Location"), round(abs($results['lat']), 2), (($results['lat'] < 0) ? "S" : "N"), round(abs($results['lon']), 2), (($results['lon'] < 0) ? "W" : "E")),
+			sprintf("%s: %s", self::bold("Time Zone"), str_replace("_", " ", $results['timezone'])),
+			sprintf("%s: %s", self::bold("ISP"), $results['isp'])
 		);
 
-		$this->IRCBot->message($msg->getResponseTarget(), implode(self::$separator, $output));
+		$this->respond($msg, implode(self::$separator, $output));
 	}
 
 	public function youtubeSearch(IRCMessage $msg) {
@@ -327,7 +324,7 @@ class Web extends Module {
 			$parameterString = implode(" ", $parameters);
 		}
 
-		$json = WebAccess::resourceBody("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=". $this->getAPIKey("youtube"). "&q=". urlencode($parameterString));
+		$json = self::resourceBody("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=". $this->getAPIKey("youtube"). "&q=". urlencode($parameterString));
 		$items = json_decode($json, true)['items'];
 
 		$count = count($items);
@@ -343,7 +340,7 @@ class Web extends Module {
 			if ($items[$i]['id']['kind'] == "youtube#video") {
 				$output[] = sprintf(
 					"http://www.youtube.com/watch?v=%s%s%s%s%s",
-					$items[$i]['id']['videoId'], self::$separator, IRCUtility::bold($items[$i]['snippet']['title']), self::$separator, $items[$i]['snippet']['description']
+					$items[$i]['id']['videoId'], self::$separator, self::bold($items[$i]['snippet']['title']), self::$separator, $items[$i]['snippet']['description']
 				);
 			}
 
@@ -351,6 +348,6 @@ class Web extends Module {
 				break;
 		}
 
-		$this->IRCBot->message($msg->getResponseTarget(), implode("\n", $output));
+		$this->respond($msg, implode("\n", $output));
 	}
 }
