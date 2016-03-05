@@ -92,13 +92,6 @@ trait WebAccess {
 	 * @return string $html without html
 	 */
 	public static function stripHTML($html) {
-		//	Convert unicode entities
-		$html = preg_replace_callback("/\\\\u([0-9a-f]{4})|&#u([0-9a-f]{4});/i", function ($match) { return chr(hexdec(($match[2]?:$match[1]))); }, $html);
-		$html = preg_replace_callback("/\\\\x([0-9a-f]{2})|&#x([0-9a-f]{2});/i", function ($match) { return chr(hexdec(($match[2]?:$match[1]))); }, $html);
-		//	Convert standard entities
-		$html = preg_replace_callback("/&#([0-9]{2,3});/i", function ($match) { return chr($match[1]); }, $html);
-		$html = html_entity_decode($html, ENT_QUOTES, "UTF-8");
-
 		//	Convert basic text formatting (bold, italic, underline)
 		$html = preg_replace_callback("/<b>(.*?)<\/b>/i", function ($match) { return self::bold($match[1]); }, $html);
 		$html = preg_replace_callback("/<i>(.*?)<\/i>/i", function ($match) { return self::italic($match[1]); }, $html);
@@ -112,6 +105,13 @@ trait WebAccess {
 
 		//	Remove remaining html
 		$html = preg_replace("/<[^>]*>/s", "", $html);
+
+        //	Convert unicode entities
+        $html = preg_replace_callback("/\\\\u([0-9a-f]{4})|&#u([0-9a-f]{4});/i", function ($match) { return chr(hexdec(($match[2]?:$match[1]))); }, $html);
+        $html = preg_replace_callback("/\\\\x([0-9a-f]{2})|&#x([0-9a-f]{2});/i", function ($match) { return chr(hexdec(($match[2]?:$match[1]))); }, $html);
+        //	Convert standard entities
+        $html = preg_replace_callback("/&#([0-9]{2,3});/i", function ($match) { return chr($match[1]); }, $html);
+        $html = html_entity_decode($html, ENT_QUOTES, "UTF-8");
 
 		//	Condense extra space
 		$html = mb_ereg_replace("\s+", " ", $html);

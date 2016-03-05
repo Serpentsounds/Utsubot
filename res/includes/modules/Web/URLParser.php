@@ -13,7 +13,7 @@ class URLParser {
 
 	use WebAccess;
 
-	const WIKIPEDIA_PREVIEW_LENGTH = 250;
+	const WIKIPEDIA_PREVIEW_LENGTH = 350;
     const URL_CACHE_DELAY = 1800;
 
     private $web;
@@ -242,69 +242,63 @@ class URLParser {
 		return implode(Web::$separator, $output);
 	}
 
-	/**
-	 * Get a preview for a Wikipedia article
-	 *
+    /**
+     * Get a preview for a Wikipedia article
+     *
      * @param string $search Base URL
      * @param array $match Regex match, index 1 will be article name
      * @param string $channel Output channel name (for caching)
-	 * @return string The beginning of the article with formatting removed
-	 * @throws URLParserException If article is not found or lookup fails
-	 */
-	public function wikipedia($search, $match, $channel) {
+     * @return string The beginning of the article with formatting removed
+     * @throws URLParserException If article is not found or lookup fails
+     */
+    public function wikipedia($search, $match, $channel) {
         $article = $match[1];
-		//	Don't parse recent articles
-		if (self::isCached($article, "wikipedia", $channel))
-			return "";
+        //	Don't parse recent articles
+        if (self::isCached($article, "wikipedia", $channel))
+            return "";
 
-		$content = self::resourceBody("http://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=1&rvprop=content&format=json&rawcontinue&titles=$article");
+        $content = self::resourceBody("https://en.wikipedia.org/w/api.php?action=query&prop=text&action=parse&format=json&page=$article");
+        $data = json_decode($content, true);
 
-		$data = json_decode($content, true);
+        //  Most likely article not found error
+        if (isset($data['error']))
+            throw new URLParserException("(Wikipedia) {$data['error']['info']}.");
 
-		//	Page listing will be in here
-		if (!isset($data['query']['pages']) || !count($data['query']['pages']))
-			throw new URLParserException("URLInfo::wikipedia: Invalid article '$article'.");
+        //  Unknown error
+        elseif (!isset($data['parse']['text']['*']))
+            throw new URLParserException("Unable to grab Wikipedia text.");
 
-		//	Determine the index of the first result
-		$pageID = array_keys($data['query']['pages'])[0];
-		$pageArr = $data['query']['pages'][$pageID];
+        $pageContents = $data['parse']['text']['*'];
 
-		//	The article in its current state will be under this index
-		if (!isset($pageArr['revisions']) || !isset($pageArr['revisions'][0]['*']))
-			throw new URLParserException("URLInfo::wikipedia: Unable to get contents for '$article'.");
+        //  Form preview out of paragraphs
+        if (preg_match_all("/<p>(.*?)<\/p>/is", $pageContents, $match)) {
+            $return = array();
+            $output = "";
 
-		$pageContents = $data['query']['pages'][$pageID]['revisions'][0]['*'];
-		/*	Trim the beginning to lower processing time. We only need a few hundred content characters.
-			A string that is too long will also cause the recursive regex to silently crash PHP	*/
-		$pageContents = mb_substr($pageContents, 0, 5000);
+            foreach($match[1] as $paragraph) {
 
-		//	Delete {{stuff{{in}}braces}} recursively
-		$pageContents = preg_replace("/\{\{(([^\{\}])*|(?R))*\}\}/", "", $pageContents);
-		//	Remove infoboxes
-		$pageContents = preg_replace("/\{\|[^\}]+\|\}/", "", $pageContents);
-		//	Clear any file insert metadata
-		$pageContents = preg_replace("/\[\[File:.+/i", "", $pageContents);
-		//	Replace [[stuff|in|brackets]] with the last piece ("brackets" here)
-		$pageContents = preg_replace("/\[\[(?:[^|\]]*\|)*([^\]]*?)\]\]/", "\$1", $pageContents);
-		//	Replace ''words'' '''with quotes''' with the original word
-		$pageContents = preg_replace("/'''?([^']*)'''?/", "\$1", $pageContents);
-		//	Fix hanging parentheses openings if first item was cleared
-		$pageContents = str_replace("(, ", "(", $pageContents);
-		//	Remove references
-		$pageContents = preg_replace("/<ref>.*?<\/ref>/", "", $pageContents);
-		//	Get rid of html and surrounding whitespace
-		$pageContents = trim(self::stripHTML($pageContents));
+                $paragraph = self::stripHTML($paragraph);
+                //  Remove citation note links
+                $paragraph = preg_replace("/\[\d+\]/", "", $paragraph);
 
-		//	Follow redirects
-		if (preg_match("/^#REDIRECT (.+)/i", $pageContents, $match))
-			return $this->wikipedia($search, $match, $channel);
+                $return[] = $paragraph;
+                $output = implode(" ", $return);
 
-		//	Return remaining content with hard cutoff
-		return sprintf("%s (%s): %s...",
-					self::bold("Wikipedia"),
-					$data['query']['pages'][$pageID]['title'],
-					mb_substr($pageContents, 0, self::WIKIPEDIA_PREVIEW_LENGTH));
-	}
+                //  Preview length exceeded, crop and break for output
+                if (mb_strlen($output) > self::WIKIPEDIA_PREVIEW_LENGTH) {
+                    $output = mb_substr($output, 0, self::WIKIPEDIA_PREVIEW_LENGTH). "...";
+                    break;
+                }
+            }
+
+            return sprintf("%s (%s): %s",
+               self::bold("Wikipedia"),
+               $data['parse']['title'],
+               $output);
+        }
+
+        return "";
+    }
 
     /**
      * Get metadata for a soundcloud song

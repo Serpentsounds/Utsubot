@@ -5,6 +5,8 @@
  * Date: 30/11/2014
  */
 
+declare(strict_types = 1);
+
 Class LoggerException extends ModuleException {}
 
 Class Logger extends ModuleWithAccounts {
@@ -57,7 +59,7 @@ Class Logger extends ModuleWithAccounts {
 	 * @return bool True on success
 	 * @throws LoggerException If no command is given, or database insert fails
 	 */
-	private function log(string $command, int $user, string $channel): bool {
+	private function log(string $command, int $user = null, string $channel = null): bool {
 		//	Command name is the only requirement
 		if (!strlen($command))
 			throw new LoggerException("Command can not be blank.");
