@@ -25,7 +25,7 @@ abstract class InfoFormat {
 	public function __construct($object) {
 		$qualifiedName = "Pokemon\\". static::$class;
 		if (!($object instanceof $qualifiedName))
-			throw new InfoFormatException(get_class($this). "::__construct: Object is not an instance of '$qualifiedName'.");
+			throw new InfoFormatException(get_class($this). ": Object is not an instance of '$qualifiedName'.");
 
 		$this->object = $object;
 	}

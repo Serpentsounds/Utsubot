@@ -18,15 +18,11 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 	protected static $userIDColumn = "";
 	protected static $nicknameColumn = "";
 
-	public function __construct($database, Users &$users, Accounts &$accounts) {
-		parent::__construct($database);
+	public function __construct(DatabaseCredentials $credentials, Users &$users, Accounts &$accounts) {
+		parent::__construct($credentials);
 		$this->users = $users;
 		$this->accounts = $accounts;
 	}
-
-	public function insert() { return null; }
-	public function delete() { return null; }
-	public function select() { return null; }
 
 	public function migrate($nickname) {
 		//	Get User object

@@ -8,9 +8,7 @@
 namespace Pokemon;
 
 
-class MetaPokemon {
-
-	use PokemonCommon;
+class MetaPokemon extends PokemonBase implements \Manageable {
 
 	private $abilities;
 	private $moves;

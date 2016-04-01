@@ -5,6 +5,8 @@
  * Date: 12/11/14
  */
 
+declare(strict_types = 1);
+
 class IRCMessageException extends Exception {}
 
 class IRCMessage {
@@ -33,7 +35,7 @@ class IRCMessage {
 	private $commandParameters = array();
 	private $commandParameterString = "";
 	private $responseTarget = "";
-	private $responded = null;
+	private $responded = "";
 
 	/**
 	 * Create this IRCMessage by parsing an unedited line from the irc server
@@ -41,10 +43,10 @@ class IRCMessage {
 	 * @param string $raw A full line from the server
 	 * @throws IRCMessageException If passed string is determined to be invalid
 	 */
-	public function __construct($raw) {
+	public function __construct(string $raw) {
 		//	First check against invalid parameter
-		if (!is_string($raw) || !$raw)
-			throw new IRCMessageException("Parameter must be a non-empty string.");
+		if (!strlen($raw))
+			throw new IRCMessageException("IRCMessage can not be constructed from an empty string.");
 
 		//	Save string and prepare word array
 		$this->fullString = $raw;
@@ -62,11 +64,10 @@ class IRCMessage {
 			$this->parseSource($words[0]);
 			$this->parseTarget($words[2]);
 			$this->setParameters(self::removeColon(self::restOfString($words, 3)));
+			$this->type = strtolower($words[1]);
 
 			switch ($words[1]) {
 				case "PRIVMSG":
-					$this->type = "privmsg";
-
 					//	A PRIVMSG of this form is either a /me command or a CTCP request, adjust accordingly
 					if (preg_match('/:\x01(\S+) ?(.*)\x01$/', $raw, $match)) {
 						if ($match[1] == "ACTION")
@@ -81,9 +82,7 @@ class IRCMessage {
 				break;
 
 				case "NOTICE":
-					$this->type = "notice";
-
-					//	A NOTICE of this form is responding to a CTCP request
+                    //	A NOTICE of this form is responding to a CTCP request
 					if (preg_match('/:\x01(\S+) ?(.*)\x01$/', $raw, $match)) {
 						$this->type = "ctcpResponse";
 						//	Separate just like with a CTCP request
@@ -94,7 +93,6 @@ class IRCMessage {
 
 				case "QUIT":
 				case "NICK":
-					$this->type = strtolower($words[1]);
 					//	QUIT and NICK will have the param string start one word earlier, since it doesn't target a single channel/user
 					$this->setParameters(self::removeColon(self::restOfString($words, 2)));
 				break;
@@ -106,9 +104,6 @@ class IRCMessage {
 						$this->type = "raw";
 						$this->raw = intval($words[1]);
 					}
-					//	MODEs, JOINs, PARTs, and NICKs, all other relevant info should already be parsed
-					else
-						$this->type = strtolower($words[1]);
 				break;
 
 			}
@@ -121,7 +116,7 @@ class IRCMessage {
 	 *
 	 * @param string $source The 1st word of a complete irc message containing the source
 	 */
-	public function parseSource($source) {
+	public function parseSource(string $source) {
 		if (preg_match('/^:([^!]+)!([^@]+)@([^.]+\.?)((?:[^.]+\.?)*)/', $source, $match)) {
 			$this->nick = $match[1];
 			$this->ident = $match[2];
@@ -137,7 +132,7 @@ class IRCMessage {
 	 *
 	 * @param string $target The 3rd word of a comnplete irc message containing the target
 	 */
-	public function parseTarget($target) {
+	public function parseTarget(string $target) {
 		$this->target = self::removeColon($target);
 		if (substr($this->target, 0, 1) == "#") {
 			$this->inChannel = true;
@@ -158,10 +153,7 @@ class IRCMessage {
 	 * @param array $prefixes An array of command prefixes/triggers (e.g., ! for !command)
 	 * @return bool True if this message IS a command and properties were updated, false if not
 	 */
-	public function parseCommand($prefixes = array("!")) {
-		if (!is_array($prefixes))
-			return false;
-
+	public function parseCommand(array $prefixes = array("!")) {
 		//	Check each command prefix with the beginning of string
 		foreach ($prefixes as $prefix) {
 			//	Command found, update properties
@@ -192,12 +184,8 @@ class IRCMessage {
 	 *
 	 * @param string $parameterString The part of the irc message following the command and target
 	 * @param bool $command True to set the command parameters instead
-	 * @return bool True on success, false on failure
 	 */
-	private function setParameters($parameterString, $command = false) {
-		if (!is_string($parameterString))
-			return false;
-
+	private function setParameters(string $parameterString, bool $command = false) {
 		if ($command) {
 			$this->commandParameterString = $parameterString;
 			$this->commandParameters = array_filter(explode(" ", $parameterString), "strlen");
@@ -206,9 +194,26 @@ class IRCMessage {
 			$this->parameterString = $parameterString;
 			$this->parameters = array_filter(explode(" ", $parameterString), "strlen");
 		}
-
-		return true;
 	}
+
+
+    /**
+     * Mark this message as having triggered a command
+     *
+     * @param string $cmd
+     */
+    public function respond(string $cmd) {
+        $this->responded = $cmd;
+    }
+
+    /**
+     * Check if a module has triggered a command for this message
+     *
+     * @return string
+     */
+    public function responded(): string {
+        return $this->responded;
+    }
 
 	/**
 	 * Given an array of words in a complete irc message, return a string starting at the nth word
@@ -217,7 +222,7 @@ class IRCMessage {
 	 * @param int $position The first word to include
 	 * @return string The joined string
 	 */
-	private static function restOfString($words, $position) {
+	private static function restOfString(array $words, int $position): string {
 		if (!isset($words[$position]))
 			return "";
 
@@ -230,94 +235,144 @@ class IRCMessage {
 	 * @param string $string The irc message
 	 * @return string $string with no leading colon
 	 */
-	public static function removeColon($string) {
+	public static function removeColon(string $string): string {
 		if (substr($string, 0, 1) == ":")
 			$string = substr($string, 1);
+
 		return $string;
 	}
 
-	public function getType() {
+    /**
+     * @return string
+     */
+	public function getType(): string {
 		return $this->type;
 	}
 
-	public function getRaw() {
+    /**
+     * @return int
+     */
+	public function getRaw(): int {
 		return $this->raw;
 	}
 
-	public function getFullString() {
+    /**
+     * @return string
+     */
+	public function getFullString(): string {
 		return $this->fullString;
 	}
 
-	public function getNick() {
+    /**
+     * @return string
+     */
+	public function getNick(): string {
 		return $this->nick;
 	}
 
-	public function getIdent() {
+    /**
+     * @return string
+     */
+	public function getIdent(): string {
 		return $this->ident;
 	}
 
-	public function getFullHost() {
+    /**
+     * @return string
+     */
+	public function getFullHost(): string {
 		return $this->fullHost;
 	}
 
-	public function getTrailingHost() {
+    /**
+     * @return string
+     */
+	public function getTrailingHost(): string {
 		return $this->trailingHost;
 	}
 
-	public function getTarget() {
+    /**
+     * @return string
+     */
+	public function getTarget(): string {
 		return $this->target;
 	}
 
-	public function getCTCP() {
+    /**
+     * @return string
+     */
+	public function getCTCP(): string {
 		return $this->ctcp;
 	}
 
-	public function getParameters() {
+    /**
+     * @return array
+     */
+	public function getParameters(): array {
 		return $this->parameters;
 	}
 
-	public function getParameterString() {
+    /**
+     * @return string
+     */
+	public function getParameterString(): string {
 		return $this->parameterString;
 	}
 
-	public function inChannel() {
+    /**
+     * @return bool
+     */
+	public function inChannel(): bool {
 		return $this->inChannel;
 	}
 
-	public function inQuery() {
+    /**
+     * @return bool
+     */
+	public function inQuery(): bool {
 		return $this->inQuery;
 	}
 
-	public function isAction() {
+    /**
+     * @return bool
+     */
+	public function isAction(): bool {
 		return $this->isAction;
 	}
 
-	public function isCommand() {
+    /**
+     * @return bool
+     */
+	public function isCommand(): bool {
 		return $this->isCommand;
 	}
 
-	public function getCommand() {
+    /**
+     * @return string
+     */
+	public function getCommand(): string {
 		return $this->command;
 	}
 
-	public function getCommandParameters() {
+    /**
+     * @return array
+     */
+	public function getCommandParameters(): array {
 		return $this->commandParameters;
 	}
 
-	public function getCommandParameterString() {
+    /**
+     * @return string
+     */
+	public function getCommandParameterString(): string {
 		return $this->commandParameterString;
 	}
 
-	public function getResponseTarget() {
+    /**
+     * @return string
+     */
+	public function getResponseTarget(): string {
 		return $this->responseTarget;
-	}
-
-	public function responded() {
-		return $this->responded;
-	}
-
-	public function respond($cmd) {
-		$this->responded = $cmd;
 	}
 
 }

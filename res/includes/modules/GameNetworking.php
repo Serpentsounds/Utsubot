@@ -25,7 +25,12 @@ class GameNetworking extends ModuleWithPermission {
 	public function __construct(IRCBot $irc) {
 		parent::__construct($irc);
 
-		$this->interface = new GameNetworkingDatabaseInterface("utsubot", $users = $this->IRCBot->getUsers(), $accounts = $this->getAccounts());
+		$this->interface = new GameNetworkingDatabaseInterface(
+			MySQLDatabaseCredentials::createFromConfig("utsubot"),
+			$users = $this->IRCBot->getUsers(),
+			$accounts = $this->getAccounts()
+		);
+
 		$this->updateValidCodeCache();
 
 		$this->triggers = array(

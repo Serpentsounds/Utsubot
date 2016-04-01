@@ -12,11 +12,11 @@ class Core extends Module {
 		$this->IRCBot->raw("PROTOCTL UHNAMES");
 		$this->IRCBot->raw("MODE ". $this->IRCBot->getNickname(). " +B");
 
-		$commands = $this->IRCBot->getOnConnect();
+		if (!empty($commands = $this->IRCBot->getIRCNetwork()->getOnConnect()))
 		foreach ($commands as $command)
 			$this->IRCBot->raw($command);
 
-		$channels = $this->IRCBot->getDefaultChannels();
+		if (!empty($channels = $this->IRCBot->getIRCNetwork()->getDefaultChannels()))
 		foreach ($channels as $channel)
 			$this->IRCBot->join($channel);
 
@@ -79,6 +79,9 @@ class Core extends Module {
 		$allChannels = $channels->collection();
 		foreach ($allChannels as $channel)
 			$channel->part($user);
+
+        if ($msg->getNick() == $this->IRCBot->getIRCNetwork()->getNicknameCycle()->getPrimary())
+            $this->IRCBot->nick($msg->getNick());
 	}
 
 	public function part(IRCMessage $msg) {
@@ -105,7 +108,7 @@ class Core extends Module {
 			break;
 
 			case 004:
-				$this->IRCBot->setServer($parameters[0]);
+				$this->IRCBot->setHost($parameters[0]);
 			break;
 
 			/*
@@ -177,11 +180,8 @@ class Core extends Module {
 			break;
 
 			case "433":
-				$alternateNickname = $this->IRCBot->getAlternateNickname();
-				$this->IRCBot->raw("NICK :$alternateNickname");
-
-				$this->IRCBot->setAlternateNickname($this->IRCBot->getNickname());
-				$this->IRCBot->setNickname($alternateNickname);
+				$this->IRCBot->getIRCNetwork()->getNicknameCycle()->cycle();
+				$this->IRCBot->raw("NICK :". $this->IRCBot->getIRCNetwork()->getNicknameCycle()->get());
 			break;
 
 

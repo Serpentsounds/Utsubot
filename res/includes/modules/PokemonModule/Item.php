@@ -7,8 +7,7 @@
 
 namespace Pokemon;
 
-class Item {
-	use AbilityItemCommon;
+class Item extends AbilityItemBase implements \Manageable {
 
 	private $cost = 0;
 	private $flingPower = null;

@@ -100,4 +100,4 @@ class FriendSafariDatabaseInterface extends \HybridDatabaseInterface {
 
 	}
 
-} 
+}

@@ -130,15 +130,6 @@ class Dictionary implements WebSearch {
 			}
 		}
 
-		/*
-		ob_start();
-		print_r($values);
-		if (file_put_contents('values.txt', str_replace("\n", "\r\n", ob_get_contents())))
-			ob_clean();
-		print_r($indices);
-		file_put_contents('indexes.txt', str_replace("\n", "\r\n", ob_get_clean()));
-		*/
-
 		if (!$return)
 			return self::dictionarySearch($term, $number + 1);
 

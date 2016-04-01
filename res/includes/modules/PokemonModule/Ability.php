@@ -7,8 +7,7 @@
 
 namespace Pokemon;
 
-class Ability {
-	use AbilityItemCommon;
+class Ability extends AbilityItemBase implements \Manageable {
 
 	public function __construct($args) {
 		if (is_numeric($args))

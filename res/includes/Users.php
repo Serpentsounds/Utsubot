@@ -22,11 +22,15 @@ class Users extends Manager {
 	/**
 	 * Add a user object to the collection
 	 *
-	 * @param User $user User object
+	 * @param Manageable $user User object
 	 * @param bool $unique
 	 * @return bool True on success, false if it already exists
+	 * @throws ManagerException
 	 */
-	public function addItem(User $user, $unique = true) {
+	public function addItem(Manageable $user, $unique = true) {
+		if (!$user instanceof User)
+			throw new ManagerException("Cannot add item because it is not a User.");
+
 		if (($key = parent::addItem($user, true)) !== false) {
 			$user->setId($key);
 			return true;
@@ -104,7 +108,7 @@ class Users extends Manager {
 	 * @param string $value Value to compare against
 	 * @return bool True or false depending on comparison result
 	 */
-	protected function customComparison(User $object, $field, $operator, $value) {
+	protected function customComparison($object, $field, $operator, $value) {
 		$isOn = $object->isOn($value);
 		$status = $object->status($value);
 

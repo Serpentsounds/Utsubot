@@ -7,8 +7,7 @@
 
 namespace Pokemon;
 
-trait AbilityItemCommon {
-	use PokemonCommon;
+abstract class AbilityItemBase extends PokemonBase {
 
 	private $text = array();
 	private $effect = array();

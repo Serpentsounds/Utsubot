@@ -281,7 +281,7 @@ class URLParser {
                 //  Remove citation note links
                 $paragraph = preg_replace("/\[\d+\]/", "", $paragraph);
 
-                $return[] = $paragraph;
+                $return[] = trim($paragraph);
                 $output = implode(" ", $return);
 
                 //  Preview length exceeded, crop and break for output

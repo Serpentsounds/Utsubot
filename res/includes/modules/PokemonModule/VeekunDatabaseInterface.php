@@ -8,10 +8,10 @@ namespace Pokemon;
 
 class VeekunDatabaseInterfaceException extends \DatabaseInterfaceException {}
 
-class VeekunDatabaseInterface extends PokemonDatabaseInterface {
+class VeekunDatabaseInterface extends \DatabaseInterface {
 
 	public function __construct() {
-		parent::__construct("veekun");
+		parent::__construct(\MySQLDatabaseCredentials::createFromConfig("veekun"));
 	}
 
 	private static function stripCodes($string) {
@@ -34,6 +34,27 @@ class VeekunDatabaseInterface extends PokemonDatabaseInterface {
 				return ucfirst($word);
 			},
 			explode("-", $string)));
+	}
+
+	/**
+	 * Use the $id passed in an SQL function to determine whether it needs to be matched against
+	 * This makes the same routine reusable for fetching all rows or fetching a single row
+	 *
+	 * @param int $id The id to check against, or an invalid value for no constraint
+	 * @param string $column The column name the id is to be checked against
+	 * @param bool $first Whether or not this is the first constraint in the query, or false if you're tacking it on the end
+	 * @return array array of $constraint being the SQL snippet, and $params being the parameter array
+	 */
+	protected static function addConstraint($id, $column, $first = false) {
+		$constraint = "";
+		$params = array();
+		if (strlen($column) && is_int($id) && $id >= 0) {
+			$constraint = " AND $column=?";
+			if ($first)
+				$constraint = "WHERE $column=?";
+			$params = array($id);
+		}
+		return array($constraint, $params);
 	}
 
 	private static 	$versionGroups = array(
@@ -593,10 +614,10 @@ class VeekunDatabaseInterface extends PokemonDatabaseInterface {
 		foreach ($moveRow as $row) {
 			$moves[$row['id']] = array(
 				'generation'				=> $row['generation_id'],
-				'power'						=> $row['power'],
-				'pp'						=> $row['pp'],
-				'accuracy'					=> $row['accuracy'],
-				'priority'					=> $row['priority'],
+				'power'						=> (int)$row['power'],
+				'pp'						=> (int)$row['pp'],
+				'accuracy'					=> (int)$row['accuracy'],
+				'priority'					=> (int)$row['priority'],
 				'type'						=> self::formatIdentifier($row['type']),
 				'damageType'				=> self::formatIdentifier($row['damage']),
 				'target'					=> self::formatIdentifier($row['target']),

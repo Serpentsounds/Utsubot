@@ -12,6 +12,9 @@ class Accounts extends Module {
 	private $loggedIn = array();
 
 	public function __construct(\IRCBot $IRCBot) {
+		$this->_require("AccountsDatabaseInterface");
+		$this->_require("MySQLDatabaseCredentials");
+
 		parent::__construct($IRCBot);
 		$this->interface = new AccountsDatabaseInterface();
 

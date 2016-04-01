@@ -41,7 +41,7 @@ class Help extends Module {
 		$return = array();
 
 		//	Save command prefix to attach commands to
-		$commandPrefix = @$this->IRCBot->getCommandPrefix()[0];
+		$commandPrefix = $this->IRCBot->getIRCNetwork()->getCommandPrefixes()[0] ?? "";
         //  Local function for array_map calls
 		$addPrefix = function ($command) use ($commandPrefix) {
 			return $commandPrefix . $command;

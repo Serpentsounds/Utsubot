@@ -5,7 +5,14 @@
  * Date: 16/11/14
  */
 
+class MiscException extends ModuleException {}
+
 class Misc extends ModuleWithPermission {
+
+    const INCLUDES_TYPE_CLASS = 1;
+    const INCLUDES_TYPE_INTERFACE = 2;
+    const INCLUDES_TYPE_TRAIT = 3;
+    const INCLUDES_DISPLAY_MAX = 15;
 
 	private $lastNowPlaying = 0;
 	private static $nowPlayingInterval = 60;
@@ -148,35 +155,123 @@ class Misc extends ModuleWithPermission {
 	 * Give information about included files
 	 *
 	 * @param IRCMessage $msg
+     * @throws MiscException
 	 */
 	public function showIncludes(IRCMessage $msg) {
-		$files = get_included_files();
-		$arr = array();
+        $parameters = $msg->getCommandParameters();
+        $mode = $parameters[0] ?? "";
 
-		foreach ($files as $file) {
-			$lineCount = count(file($file));
-			$fileSize = fileSize($file);
-			$arr[$file]['lines'] = $lineCount;
-			$arr[$file]['sizes'] = $fileSize;
-			$arr[$file]['details'] = sprintf("%s: %s (%.2fKiB)", basename($file), $lineCount, $fileSize / 1024);
-		}
+        $output = array();
+        switch ($mode) {
+            case "class":
+            case "classes":
+                $output = self::classList(self::INCLUDES_TYPE_CLASS);
+            break;
 
-		usort($arr, function($a, $b) {
-			return $a['lines'] - $b['lines'];
-		});
+            case "interface":
+            case "interfaces":
+                $output = self::classList(self::INCLUDES_TYPE_INTERFACE);
+            break;
 
-		$parameters = $msg->getCommandParameters();
-		if (isset($parameters[0]) && strtolower($parameters[0]) == "all")
-			$this->respond($msg, implode("; ", array_column($arr, "details")));
+            case "trait":
+            case "traits":
+                $output = self::classList(self::INCLUDES_TYPE_TRAIT);
+            break;
 
-		else {
-			$totalLines = array_sum(array_column($arr, "lines"));
-			$totalSize = array_sum(array_column($arr, "sizes")) / 1024;
-			$totalFiles = count($arr);
-			$this->respond($msg, sprintf("There are a total of %d lines (%.2fKiB) over %d files, for an average of %.2f lines (%.2fKiB) per file.",
-																	  $totalLines, $totalSize, $totalFiles, $totalLines / $totalFiles, $totalSize / $totalFiles));
-		}
+            case "file":
+            case "files":
+                $files = self::includeInfo();
+                $output = array_column($files, "details");
+            break;
+
+            case "":
+                $files = self::includeInfo();
+
+                $totalLines = array_sum(array_column($files, "lines"));
+                $totalSize = array_sum(array_column($files, "sizes")) / 1024;
+                $totalFiles = count($files);
+
+                $this->respond($msg, sprintf(
+                    "There are a total of %d lines (%.2fKiB) over %d files, for an average of %.2f lines (%.2fKiB) per file.",
+                    $totalLines, $totalSize, $totalFiles, $totalLines / $totalFiles, $totalSize / $totalFiles
+                ));
+
+                $classCount = count(self::classList(self::INCLUDES_TYPE_CLASS));
+                $interfaceCount = count(self::classList(self::INCLUDES_TYPE_INTERFACE));
+                $traitCount = count(self::classList(self::INCLUDES_TYPE_TRAIT));
+
+                $this->respond($msg, sprintf(
+                    "There are %d custom classes, %d custom interfaces, and %d custom traits defined.",
+                    $classCount, $interfaceCount, $traitCount
+                ));
+            break;
+
+            default:
+                throw new MiscException("Invalid includes category '$mode'.");
+        }
+
+        if (count($output)) {
+            $numClasses = count($output);
+            if ($numClasses > self::INCLUDES_DISPLAY_MAX) {
+                $output   = array_slice($output, 0, self::INCLUDES_DISPLAY_MAX);
+                $output[] = "and " . ($numClasses - self::INCLUDES_DISPLAY_MAX) . " more.";
+            }
+
+            $this->respond($msg, sprintf(
+                "There are %d entries: %s",
+                $numClasses, implode(", ", $output)
+            ));
+
+        }
 	}
+
+    private static function includeInfo(): array {
+        $files = get_included_files();
+        $details = array();
+
+        foreach ($files as $file) {
+            $lineCount = count(file($file));
+            $fileSize = fileSize($file);
+
+            $details[$file]['lines'] = $lineCount;
+            $details[$file]['sizes'] = $fileSize;
+            $details[$file]['details'] = sprintf("%s (%d li.)", basename($file), $lineCount);
+        }
+
+        usort($details, function($a, $b) {
+            return $b['lines'] - $a['lines'];
+        });
+
+        return $details;
+    }
+
+    private static function classList(int $type): array {
+        $classes = array();
+
+        switch ($type) {
+            case self::INCLUDES_TYPE_CLASS:
+                $classes = get_declared_classes();
+            break;
+            case self::INCLUDES_TYPE_INTERFACE:
+                $classes = get_declared_interfaces();
+            break;
+            case self::INCLUDES_TYPE_TRAIT:
+                $classes = get_declared_traits();
+            break;
+        }
+
+        $classes = array_filter(
+            $classes,
+            function ($class) {
+                $reflection = new ReflectionClass($class);
+                return !($reflection->isInternal());
+            }
+        );
+
+        sort($classes);
+
+        return $classes;
+    }
 
 	public function countdown(IRCMessage $msg) {
 		$target = $msg->getResponseTarget();

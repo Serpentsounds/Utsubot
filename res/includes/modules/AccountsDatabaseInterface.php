@@ -12,7 +12,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
 	private $autoLoginCache = array();
 
 	public function __construct() {
-		parent::__construct("utsubot");
+		parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
 		$this->updateAutoLoginCache();
 	}
 

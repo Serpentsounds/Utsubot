@@ -9,6 +9,9 @@ class PermissionException extends ModuleException {}
 
 class Permission extends ModuleWithPermission {
 
+    const PERMISSION_ALLOW = 0;
+    const PERMISSION_DENY = 1;
+
     private $interface;
 
 	/**
@@ -18,10 +21,11 @@ class Permission extends ModuleWithPermission {
 	 */
 	public function __construct(IRCBot $irc) {
         $this->_require("DatabaseInterface");
+		$this->_require("MySQLDatabaseCredentials");
 
 		parent::__construct($irc);
 
-		$this->interface = new DatabaseInterface("utsubot");
+		$this->interface = new DatabaseInterface(\MySQLDatabaseCredentials::createFromConfig("utsubot"));
 		$this->triggers = array(
 			'allow'		=> "allow",
 			'deny'		=> "deny",
@@ -38,7 +42,7 @@ class Permission extends ModuleWithPermission {
 	 */
 	public function allow(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
-		$this->addPermission("allow", $msg);
+		$this->addPermission(self::PERMISSION_ALLOW, $msg);
 	}
 
 	/**
@@ -49,7 +53,7 @@ class Permission extends ModuleWithPermission {
 	 */
 	public function deny(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
-		$this->addPermission("deny", $msg);
+		$this->addPermission(self::PERMISSION_DENY, $msg);
 	}
 
 	/**
@@ -60,7 +64,7 @@ class Permission extends ModuleWithPermission {
 	 */
 	public function unallow(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
-		$this->removePermission("allow", $msg);
+		$this->removePermission(self::PERMISSION_ALLOW, $msg);
 	}
 
 	/**
@@ -71,19 +75,32 @@ class Permission extends ModuleWithPermission {
 	 */
 	public function undeny(IRCMessage $msg) {
 		$this->requireLevel($msg, 75);
-		$this->removePermission("deny", $msg);
+		$this->removePermission(self::PERMISSION_DENY, $msg);
 	}
 
 	/**
 	 * Internal function to translate a user-supplied parameter string into database values
 	 *
-	 * @param string $type "allow" or "deny"
+	 * @param int $type allow or deny
 	 * @param array $parameters Array of command parameters (words)
 	 * @return array array(array of query parameters matching up with values, array of sql statement values as either "?" or null)
 	 * @throws PermissionException
 	 * @throws Exception
 	 */
-	private function parseParameters($type, $parameters) {
+	private function parseParameters(int $type, array $parameters) {
+        //  Validate type
+        switch ($type) {
+            case self::PERMISSION_ALLOW:
+                $type = "allow";
+            break;
+            case self::PERMISSION_DENY:
+                $type = "deny";
+            break;
+            default:
+                throw new PermissionException("Invalid permission type constant '$type'.");
+            break;
+        }
+
 		//	Grab command in question from the front of parameters
 		$trigger = array_shift($parameters);
 		$channelField = $userField = $nickField = $addressField = $parametersField = "";
@@ -183,11 +200,11 @@ class Permission extends ModuleWithPermission {
 	/**
 	 * Used by allow() and deny() to add a row to the db
 	 *
-	 * @param string $type "allow" or "deny"
+	 * @param int $type
 	 * @param IRCMessage $msg
 	 * @throws PermissionException If any parameters are invalid, or if line exists
 	 */
-	private function addPermission($type, IRCMessage $msg) {
+	private function addPermission(int $type, IRCMessage $msg) {
 		list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
 		//	Replace null values with "null" to put into database
@@ -210,11 +227,11 @@ class Permission extends ModuleWithPermission {
 	/**
 	 * Used by unallow() and undeny() to remove a row from the db
 	 *
-	 * @param string $type
+	 * @param int $type
 	 * @param IRCMessage $msg
 	 * @throws PermissionException If any parameters are invalid, or if line doesn't exist
 	 */
-	private function removePermission($type, IRCMessage $msg) {
+	private function removePermission(int $type, IRCMessage $msg) {
 		list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
 		//	Form conditionals for each column
@@ -244,7 +261,7 @@ class Permission extends ModuleWithPermission {
 	 * @param string $trigger Command function name
 	 * @return bool True or false
 	 */
-	public function hasPermission(IRCMessage $msg, $trigger) {
+	public function hasPermission(IRCMessage $msg, string $trigger): bool {
 		$permission = true;
 
 		$results = $this->interface->query(
@@ -333,7 +350,7 @@ abstract class ModuleWithPermission extends ModuleWithAccounts {
      * @return bool
      * @throws ModuleException If Permission module isn't loaded
      */
-    public function hasPermission(IRCMessage $msg, string $trigger) {
+    public function hasPermission(IRCMessage $msg, string $trigger): bool {
         /** @var $permission Permission */
         $permission = $this->externalModule("Permission");
         return $permission->hasPermission($msg, $trigger);

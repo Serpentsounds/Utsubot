@@ -19,9 +19,12 @@ Class Logger extends ModuleWithAccounts {
 	 * @param IRCBot $irc
 	 */
 	public function __construct(IRCBot $irc) {
+		$this->_require("DatabaseInterface");
+		$this->_require("MySQLDatabaseCredentials");
+
 		parent::__construct($irc);
 
-		$this->interface = new DatabaseInterface("utsubot");
+		$this->interface = new DatabaseInterface(\MySQLDatabaseCredentials::createFromConfig("utsubot"));
 		$this->triggers = array(
 			'logs' => "logs"
 		);

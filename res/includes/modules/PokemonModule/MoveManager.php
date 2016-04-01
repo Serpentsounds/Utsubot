@@ -7,9 +7,13 @@
 
 namespace Pokemon;
 
-class MoveManager extends \ManagerWithDatabase {
+class MoveManager extends PokemonManagerBase {
 	protected static $manages = "Move";
 	protected static $managesNamespace = "Pokemon";
 
 	public function searchFields($field, $operator = "", $value = ""){}
+
+	public function customComparison($object, $field, $operator, $value) {
+		// TODO: Implement customComparison() method.
+	}
 } 

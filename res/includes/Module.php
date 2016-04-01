@@ -17,7 +17,9 @@ abstract class Module {
 	protected $timerQueue = array();
 	protected $path = "";
 
-	public function __construct(IRCBot $IRCBot, $path = "") {
+	protected static $settingsFile = "settings.ini";
+
+	public function __construct(IRCBot $IRCBot, string $path = "") {
 		if (!$path)
 			$path = "includes/modules/". get_class($this). "/";
 
@@ -30,7 +32,7 @@ abstract class Module {
 	 *
 	 * @param string $msg
 	 */
-	protected function status($msg) {
+	protected function status(string $msg) {
 		$this->IRCBot->console(get_class($this). ": $msg\n");
 	}
 
@@ -40,7 +42,7 @@ abstract class Module {
 	 * @param IRCMessage $msg
 	 * @param $text
 	 */
-	protected function respond(IRCMessage $msg, $text) {
+	protected function respond(IRCMessage $msg, string $text) {
 		$this->IRCBot->message($msg->getResponseTarget(), $text);
 	}
 
@@ -50,9 +52,9 @@ abstract class Module {
 	 * @param string $class
 	 * @throws ModuleException
 	 */
-	protected function _require($class) {
+	protected function _require(string $class) {
 		if (!class_exists($class))
-			throw new \ModuleException("This action requires $class to be loaded.");
+            throw new \ModuleException("This action requires $class to be loaded.");
 	}
 
 	/**
@@ -63,7 +65,7 @@ abstract class Module {
 	 * @return Module
 	 * @throws ModuleException If the specified module is not loaded
 	 */
-	protected function externalModule($module, $namespace = "") {
+	protected function externalModule(string $module, string $namespace = ""): Module {
 		$name = ($namespace) ? "$namespace\\$module" : $module;
 		if (class_exists($name) && ($instance = $this->IRCBot->getModule($module)) instanceof $name)
 			return $instance;
@@ -78,11 +80,9 @@ abstract class Module {
 	 * @param IRCMessage $msg Needed to determine the nature of the command, and if a nickname needs to be addressed
 	 * @return string The formatted response
 	 */
-	protected function parseException(Exception $e, IRCMessage $msg) {
-		$response = $e->getMessage();
-		//	Extract message from 'Class::method: Response' format
-		if (preg_match('/^([^:]+)::([^:]+): (.+)/', $response, $match))
-			$response = $match[3];
+	protected function parseException(Exception $e, IRCMessage $msg): string {
+		#$response = sprintf("A %s error occured (%s).", get_class($e), $e->getMessage());
+        $response = $e->getMessage();
 
 		//	If the error occured in a public channel, address the user directly for clarity
 		if (!$msg->inQuery())
@@ -117,11 +117,18 @@ abstract class Module {
 		}
 	}
 
-	public static function loadAPIKey($type) {
-		if (!file_exists("settings.ini"))
-			throw new ModuleException("Unable to retrieve $type API Key because settings.ini does not exist.");
+	/**
+	 * (Re)load an API key from file
+	 *
+	 * @param string $type
+	 * @return string
+	 * @throws ModuleException
+	 */
+	public static function loadAPIKey(string $type): string {
+		if (!file_exists(static::$settingsFile))
+			throw new ModuleException("Unable to retrieve $type API Key because ". static::$settingsFile. " does not exist.");
 
-		$settings = parse_ini_file("settings.ini", true);
+		$settings = parse_ini_file(static::$settingsFile, true);
 		if (!isset($settings['APIKeys']))
 			throw new ModuleException("Unable to retrieve $type API Key because there are no API Keys saved.");
 
@@ -131,11 +138,21 @@ abstract class Module {
 		return $settings['APIKeys'][$type];
 	}
 
+    /**
+     * Triggered when module is loaded, but before connecting
+     */
 	public function startup(){}
 	public function shutdown(){}
 	public function connect(){}
 	public function disconnect(){}
-	public function time($time){
+
+    /**
+     * Execute timed commands
+     * Triggered every time the bot polls for data
+     *
+     * @param $time
+     */
+	public function time(float $time){
 		foreach ($this->timerQueue as $key => $timer) {
 			if ($time >= $timer['time']) {
 				eval($timer['command']);
@@ -147,6 +164,11 @@ abstract class Module {
 	public function ping(IRCMessage $msg){}
 	public function error(IRCMessage $msg){}
 
+    /**
+     * Parse commands
+     *
+     * @param IRCMessage $msg
+     */
 	public function privmsg(IRCMessage $msg) {
 		$this->parseTriggers($msg);
 	}

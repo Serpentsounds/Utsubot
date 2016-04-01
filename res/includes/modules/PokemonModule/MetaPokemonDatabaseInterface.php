@@ -15,7 +15,7 @@ class MetaPokemonDatabaseInterface extends \DatabaseInterface{
 	private $fields = array();
 
 	public function __construct() {
-		parent::__construct("utsubot");
+		parent::__construct(\MySQLDatabaseCredentials::createFromConfig("utsubot"));
 		$this->loadTiers();
 		$this->loadFields();
 	}

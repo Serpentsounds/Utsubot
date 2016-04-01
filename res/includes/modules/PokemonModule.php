@@ -28,6 +28,9 @@ class PokemonModule extends \ModuleWithPermission {
 	private $MetaTiers;
 
 	public function __construct(\IRCBot $IRCBot) {
+        $this->_require("Pokemon\\VeekunDatabaseInterface");
+		$this->_require("Pokemon\\MetaPokemonDatabaseInterface");
+
 		parent::__construct($IRCBot, "includes/modules/pokemon/");
 
 		//	List of defined managers
@@ -1154,7 +1157,7 @@ class PokemonModule extends \ModuleWithPermission {
 		if (!$files)
 			throw new \ModuleException("There are no metagame statistics to insert. Download them first.");
 
-		$interface = new \DatabaseInterface("utsubot");
+		$interface = new \DatabaseInterface(\MySQLDatabaseCredentials::createFromConfig("utsubot"));
 
 		$tiers = $interface->query("SELECT * FROM `metagame_tiers` ORDER BY `id` ASC");
 		$tierIds = array();
@@ -1175,7 +1178,7 @@ class PokemonModule extends \ModuleWithPermission {
 		$cache = array();
 		foreach ($collections as $key => $collection) {
 			foreach ($collection as $currentObject) {
-				/** @var $currentObject PokemonCommon */
+				/** @var $currentObject PokemonBase */
 				$index = $name = $currentObject->getName();
 				if (substr_count($index, " ") > 1)
 					$index = implode(" ", array_slice(explode(" ", $index), 0, 2));

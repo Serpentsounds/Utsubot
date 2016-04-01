@@ -7,8 +7,7 @@
 
 namespace Pokemon;
 
-class Nature {
-	use PokemonCommon;
+class Nature extends PokemonBase implements \Manageable {
 
 	private static $contestAttributes = array("Cool", "Beauty", "Cute", "Smart", "Tough");
 	private static $contestAttributeColors = array(array("red", null), array("blue", null), array("fuchsia", null), array("green", null), array("yellow", "black"));

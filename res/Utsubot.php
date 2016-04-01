@@ -56,12 +56,12 @@ spl_autoload_register(function($class) use ($dirs) {
 
 	foreach ($dirs as $dir) {
 		if (file_exists("$dir\\$shortName.php")) {
-			include("$dir\\$shortName.php");
+			include_once("$dir\\$shortName.php");
 			return;
 		}
 	}
 
-	echo "$shortName not found in any of: ". implode(", ", $dirs). "\n";
+	#echo "$shortName not found in any of: ". implode(", ", $dirs). "\n";
 
 });
 
@@ -93,7 +93,8 @@ if (!isset($configFile[$argv[1]]))
 $config = array_merge($configFile['global'], $configFile[$argv[1]]);
 $config['network'] = $argv[1];
 
-$ircBot = new IRCBot($config);
+$network = new IRCNetwork($config['network'], $config['host'], $config['port'], $config['nickname'], (array)@$config['channel'], (array)@$config['onConnect'], (array)@$config['commandPrefix']);
+$ircBot = new IRCBot($network);
 //	Load all the good stuff
 if (isset($config['modules'])) {
 	foreach ($config['modules'] as $key => $module) {
@@ -122,7 +123,7 @@ while (true) {
 	if ($connected && ($data = $ircBot->read())) {
 		$lastData = time();
 		$msg = new IRCMessage($data);
-		$msg->parseCommand($ircBot->getCommandPrefix());
+		$msg->parseCommand($ircBot->getIRCNetwork()->getCommandPrefixes());
 		$type = $msg->getType();
 
 		//	See the world through bot eyes
@@ -148,7 +149,7 @@ while (true) {
 
 	//	Manual ping after no activity for a while
 	if ($time - $lastData >= IRCBot::PING_FREQUENCY && $time - $lastPing >= IRCBot::PING_FREQUENCY) {
-		$ircBot->raw("PING " . $ircBot->getServer());
+		$ircBot->raw("PING " . $ircBot->getHost());
 		$lastPing = $time;
 	}
 

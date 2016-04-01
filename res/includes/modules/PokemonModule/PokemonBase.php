@@ -7,13 +7,15 @@
 
 namespace Pokemon;
 
+abstract class PokemonBaseException extends \Exception {}
+
 /**
- * Trait PokemonCommon
- * Methods and members used by all substance classes of the pokemon extension (Pokemon, Ability, Nature, Item, Location)
+ * Class PokemonBase
+ * Method and members used by all substance classes of the pokemon extension (Pokemon, Ability, Nature, Item, MetaPokemon)
  * @package Pokemon
  */
 
-trait PokemonCommon {
+abstract class PokemonBase {
 
     use \IRCFormatting;
 	use \Jaro;
@@ -26,10 +28,10 @@ trait PokemonCommon {
 	 * Test if a search term matches this object
 	 *
 	 * @param int|string $search Term to search against (id number or any name)
-	 * @param boolean $strict False to allow wildcard searches
 	 * @return bool Search result
 	 */
-	public function search($search, $strict = false) {
+	public function search($search): bool {
+		$strict = false;
 		//	Numeric search
 		if (is_int($search)) {
 			if ($search == $this->id)

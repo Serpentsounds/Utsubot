@@ -15,7 +15,7 @@ class FriendSafari extends \ModuleWithPermission {
 		parent::__construct($irc);
 
 		$users = $this->IRCBot->getUsers();
-		$this->interface = new FriendSafariDatabaseInterface("utsubot", $users = $this->IRCBot->getUsers(), $accounts = $this->getAccounts());
+		$this->interface = new FriendSafariDatabaseInterface(\MySQLDatabaseCredentials::createFromConfig("utsubot"), $users = $this->IRCBot->getUsers(), $accounts = $this->getAccounts());
 		$this->updateValidPokemonCache();
 
 		$this->triggers = array(

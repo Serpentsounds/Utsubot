@@ -82,7 +82,7 @@ class Google implements WebSearch {
 		}
 		//	No results
 		else
-			throw new GoogleException("Google::google: No results found for search '$search'.");
+			throw new GoogleException("No results found for search '$search'.");
 
 		return implode("\n", $out);
 	}

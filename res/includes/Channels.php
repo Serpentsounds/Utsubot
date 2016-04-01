@@ -28,4 +28,8 @@ class Channels extends Manager {
 	public function searchFields($field, $operator = "", $value = "") {
 		return null;
 	}
+
+	public function customComparison($object, $field, $operator, $value) {
+		// TODO: Implement customComparison() method.
+	}
 } 

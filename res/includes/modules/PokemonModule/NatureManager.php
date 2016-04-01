@@ -7,7 +7,7 @@
 
 namespace Pokemon;
 
-class NatureManager extends \ManagerWithDatabase {
+class NatureManager extends PokemonManagerBase {
 	protected static $manages = "Nature";
 	protected static $managesNamespace = "Pokemon";
 
@@ -41,5 +41,9 @@ class NatureManager extends \ManagerWithDatabase {
 		}
 
 		return null;
+	}
+
+	public function customComparison($object, $field, $operator, $value) {
+		// TODO: Implement customComparison() method.
 	}
 } 

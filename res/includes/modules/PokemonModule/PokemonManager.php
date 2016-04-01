@@ -7,13 +7,31 @@
 
 namespace Pokemon;
 
-class PokemonManager extends \ManagerWithDatabase {
+class JaroFilter extends \FilterIterator {
+    private $search;
+
+    public function __construct(\Iterator $iterator, $search) {
+        parent::__construct($iterator);
+        $this->search = $search;
+    }
+
+    public function accept() {
+        $obj = $this->current();
+        if ($obj instanceof \Manageable)
+            return $obj->search($this->search);
+        return false;
+    }
+}
+
+class PokemonManagerException extends \ManagerException {}
+
+class PokemonManager extends PokemonManagerBase {
 	protected static $manages = "Pokemon";
 	protected static $managesNamespace = "Pokemon";
 
 	protected static $customOperators = array("hasabl");
 
-	public function __construct(PokemonDatabaseInterface $interface) {
+	public function __construct(VeekunDatabaseInterface $interface) {
 		parent::__construct($interface);
 	}
 
@@ -153,7 +171,10 @@ class PokemonManager extends \ManagerWithDatabase {
 		return null;
 	}
 
-	protected function customComparison(Pokemon $pokemon, $field, $operator, $value) {
+	protected function customComparison($pokemon, $field, $operator, $value) {
+        if (!($pokemon instanceof $pokemon))
+            throw new PokemonManagerException("Comparison object is not a Pokemon.");
+
 		switch (strtolower($operator)) {
 			case "hasabl":
 				return in_array(strtolower($value), array_map("strtolower", $pokemon->getAbility()));

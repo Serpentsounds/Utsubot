@@ -7,6 +7,22 @@
 
 class ManagerException extends Exception {}
 
+class ManagerFilter extends FilterIterator {
+    private $search;
+
+    public function __construct(Iterator $iterator, $search) {
+        parent::__construct($iterator);
+        $this->search = $search;
+    }
+
+    public function accept() {
+        $obj = $this->current();
+        if ($obj instanceof Manageable)
+            return $obj->search($this->search);
+        return false;
+    }
+}
+
 abstract class Manager {
 	//	Holds the manager's collection of objects
 	protected $collection = array();
@@ -21,7 +37,7 @@ abstract class Manager {
 
 	public function __construct() {}
 
-	public function addItem($item, $unique = false) {
+	public function addItem(Manageable $item, $unique = false) {
 		if (!$unique || !in_array($item, $this->collection, true)) {
 			$this->collection[] = $item;
 			$keys = array_keys($this->collection);
@@ -31,7 +47,7 @@ abstract class Manager {
 		return -1;
 	}
 
-	public function removeItem($item) {
+	public function removeItem(Manageable $item) {
 		if (($key = array_search($item, $this->collection, true)) !== false) {
 			unset($this->collection[$key]);
 			return $key;
@@ -39,6 +55,11 @@ abstract class Manager {
 
 		return false;
 	}
+
+    public function setIndex(Manageable $item, int $index, $unique = false) {
+        if (!$unique || !in_array($item, $this->collection, true))
+            $this->collection[$index] = $item;
+    }
 
 	public function normalizeItems() {
 		$this->collection = array_values($this->collection);
@@ -51,35 +72,33 @@ abstract class Manager {
 	 * @param bool $all (Optional) Pass true to search for all matching items. Default false returns only first object found
 	 * @return Object|array|bool The found object or an array of all found objects will returned on search success, or false on failure
 	 */
-	public function get($search, $all = false) {
-		$ret = array();
+    public function get($search, $all = false) {
+        $ret = array();
 
-		//	Check for id search to avoid looping if possible
-		if (is_numeric($search) && !$all && isset($this->collection[intval($search)]))
-			return $this->collection[$search];
+        //	Check for id search to avoid looping if possible
+        if (is_numeric($search) && !$all && isset($this->collection[intval($search)]))
+            return $this->collection[$search];
 
-		//	No search specified, return random item
-		elseif ($search === null || $search === false || $search === "")
-			return $this->collection[array_rand($this->collection)];
+        //	No search specified, return random item
+        elseif ($search === null || $search === false || $search === "")
+            return $this->collection[array_rand($this->collection)];
 
-		//	Perform search on all objects
-		foreach ($this->collection as $item) {
-			if (method_exists($item, "search") && $item->search($search)) {
-				//	Not returning all, return first result
-				if (!$all)
-					return $item;
+        $filter = new ManagerFilter(new ArrayIterator($this->collection), $search);
+        //	Perform search on all objects
+        foreach ($filter as $item) {
+            if (!$all)
+               return $item;
 
-				$ret[] = $item;
-			}
-		}
+            $ret[] = $item;
+        }
 
-		//	Return collection of results. If $ret has results, $all must be true to reach this point
-		if ($ret)
-			return $ret;
+        //	Return collection of results. If $ret has results, $all must be true to reach this point
+        if ($ret)
+            return $ret;
 
-		//	No results
-		return false;
-	}
+        //	No results
+        return false;
+    }
 
 	/**
 	 * @return array All objects saved in this manager
@@ -101,18 +120,16 @@ abstract class Manager {
 	/**
 	 * Given a member of the collection, the field to search against, the operator to evaluate, and the value to compare against, perform a comparison
 	 *
-	 * @param Object $object A member of this manager's collection
+	 * @param mixed $object A member of this manager's collection
 	 * @param mixed $field Field name
 	 * @param mixed $operator Custom operator
 	 * @param mixed $value Value to compare against
 	 * @return bool True or false depending on comparison result
 	 */
-	protected function customComparison($object, $field, $operator, $value) {
-		return false;
-	}
+	abstract protected function customComparison($object, $field, $operator, $value);
 
 	/**
-	 * Search for a single or many pokemon through a variety of criteria
+	 * Search for a single or many items through a variety of criteria
 	 *
 	 * @param array $criteria An array of ManagerSearchCriterion
 	 * @param bool $all (Optional) Pass false to return only first result, rather than array of results. Default true

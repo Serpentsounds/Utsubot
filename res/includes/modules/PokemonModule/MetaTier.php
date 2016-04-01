@@ -8,7 +8,7 @@
 namespace Pokemon;
 
 
-class MetaTier extends \ManagerWithDatabase {
+class MetaTier extends PokemonManagerBase {
 	protected static $manages = "MetaPokemon";
 	protected static $managesNamespace = "Pokemon";
 
@@ -30,7 +30,7 @@ class MetaTier extends \ManagerWithDatabase {
 	 * @param string $tier Name of competitive tier
 	 * @throws \ManagerException
 	 */
-	public function load($tier) {
+	public function load($tier = null) {
 		parent::load($tier);
 		$this->usages = $this->interface->getUsages($tier);
 		$this->pokemonUsages = $this->interface->getPokemonUsages();
@@ -51,4 +51,8 @@ class MetaTier extends \ManagerWithDatabase {
 	}
 
 	public function searchFields($field, $operator = "", $value = "") {}
+
+	public function customComparison($object, $field, $operator, $value) {
+		// TODO: Implement customComparison() method.
+	}
 }

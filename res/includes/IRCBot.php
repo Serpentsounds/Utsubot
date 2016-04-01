@@ -9,7 +9,6 @@ class IRCBotException extends Exception {}
 
 class IRCBot {
 
-	use EasySetters;
 	use IRCFormatting;
 
 	const SOCKET_POLL_TIME = 100000;
@@ -19,21 +18,19 @@ class IRCBot {
 	const PING_FREQUENCY = 90;
 	const ACTIVITY_TIMEOUT = 150;
 
-	private $socket;
 
-	private $network = "";
+    /** @var IRCNetwork $IRCNetwork */
+    private $IRCNetwork;
+    /** @var Users $users */
+    private $users;
+    /** @var Channels $channels */
+    private $channels;
+
+    private $socket = null;
+
 	private $host = "";
-	private $port = 0;
-	private $server = "";
-	private $defaultChannels = array();
-	private $onConnect = array();
-
 	private $nickname = "";
-	private $alternateNickname = "";
 	private $address = "";
-
-	private $users;
-	private $channels;
 
 	private $modules = array();
 	private $commandPrefix = array();
@@ -41,28 +38,11 @@ class IRCBot {
 	/**
 	 * Load up the config for this IRCBot
 	 *
-	 * @param array $config An array of $field => $value configuration options. Many are required to connect, like host, port, and nickname
+	 * @param IRCNetwork $network
 	 * @throws IRCBotException If invalid config is supplied
 	 */
-	public function __construct($config) {
-		if (!is_array($config))
-			throw new IRCBotException("Configuration must be an array.");
-
-		foreach ($config as $field => $value) {
-			switch ($field) {
-				case "network":				$this->setNetwork($value);				break;
-				case "host":				$this->setHost($value);					break;
-				case "port":				$this->setPort($value);					break;
-				case "nickname":			$this->setNickname($value);				break;
-				case "alternateNickname":	$this->setAlternateNickname($value);	break;
-				case "channels":			$this->setDefaultChannels($value);		break;
-				case "onConnect":			$this->setOnConnect($value);			break;
-				case "commandPrefix":		$this->setCommandPrefix($value);		break;
-			}
-		}
-
-		if (!$this->host || !$this->port || !$this->nickname)
-			throw new IRCBotException("Configuration must have at least a server, port, and nickname to connect.");
+	public function __construct(IRCNetwork $network) {
+		$this->IRCNetwork = $network;
 
 		$this->users = new Users($this);
 		$this->channels = new Channels($this);
@@ -77,11 +57,14 @@ class IRCBot {
 			$this->socket = null;
 
 		//	Suppress error on fsockopen, and handle it later
-		$this->console("Attempting to connect to $this->host:$this->port...");
-		$this->socket = @fsockopen($this->host, $this->port, $errno, $errstr, self::RECONNECT_TIMEOUT);
+        $server = $this->IRCNetwork->getServerCycle()->get();
+        $port = $this->IRCNetwork->getPort();
+		$this->console("Attempting to connect to $server:$port...");
+		$this->socket = @fsockopen($server, $port, $errno, $errstr, self::RECONNECT_TIMEOUT);
 
 		//	Connection was unsuccessful
 		if (!$this->socket) {
+            $this->IRCNetwork->getServerCycle()->cycle();
 			$this->reconnectCountdown();
 			return false;
 		}
@@ -89,8 +72,10 @@ class IRCBot {
 		//	Full speed ahead
 		else {
 			$this->console("Connection successful.");
-			$this->raw("USER Utsubot 0 * :$this->nickname");
-			$this->raw("NICK :$this->nickname");
+            $this->IRCNetwork->getNicknameCycle()->reset();
+            $nickname = $this->IRCNetwork->getNicknameCycle()->get();
+			$this->raw("USER Utsubot 0 * :$nickname");
+			$this->raw("NICK :$nickname");
 			return true;
 		}
 	}
@@ -164,138 +149,47 @@ class IRCBot {
 		$this->raw("JOIN :$channel");
 	}
 
-	/**
-	 * Save a new network name for this bot
-	 *
-	 * @param string $network
-	 * @return bool True on success, false on failure
-	 */
-	public function setNetwork($network) {
-		return $this->setProperty("network", $network, "is_string");
-	}
+    public function nick($nickname) {
+        $this->setNickname($nickname);
+		$this->IRCNetwork->getNicknameCycle()->setPrimary($nickname);
+		$this->raw("NICK $nickname");
+    }
 
 	/**
-	 * Save the irc server address for this bot
-	 *
-	 * @param string $host
-	 * @return bool True on success, false on failure
-	 */
-	public function setHost($host) {
-		return $this->setProperty("host", $host, "is_string");
-	}
-
-	/**
-	 * @param string $server The name of the server the bot ended up connecting to
-	 * @return bool True on success, false on failure
-	 */
-	public function setServer($server) {
-		return $this->setProperty("server", $server, "is_string");
-	}
-
-	/**
-	 * Save the irc server port for this bot
-	 *
-	 * @param int $port
-	 * @return bool True on success, false on failure
-	 */
-	public function setPort($port) {
-		$validPort = function ($port) {
-			return is_numeric($port) && $port > 0;
-		};
-		return $this->setProperty("port", $port, $validPort);
-	}
-
-	/**
-	 * Save the main nickname for this bot
-	 * Note: This does not change the bot's nickname on the server
-	 *
 	 * @param string $nickname
-	 * @return bool True on success, false on failure
 	 */
-	public function setNickname($nickname) {
-		return $this->setProperty("nickname", $nickname, "is_string");
-	}
-
-	/**
-	 * Save the alternate nickname for this bot. This will be used if the main nickname is taken
-	 * Note: This does not change the bot's nickname on the server
-	 *
-	 * @param string $alternateNickname
-	 * @return bool True on success, false on failure
-	 */
-	public function setAlternateNickname($alternateNickname) {
-		return $this->setProperty("alternateNickname", $alternateNickname, "is_string");
-	}
+    public function setNickname(string $nickname) {
+        $this->nickname = $nickname;
+    }
 
 	/**
 	 * Save this bot's address on the irc server
 	 *
 	 * @param string $address
-	 * @return bool True on success, false on failure
 	 */
-	public function setAddress($address) {
-		return $this->setProperty("address", $address, "is_string");
+	public function setAddress(string $address) {
+		$this->address = $address;
 	}
 
 	/**
-	 * Set the list of channels this bot autojoins on connect
-	 * Note: This will not immediately join any new channels
-	 *
-	 * @param array $channels An array of channel names
-	 * @return bool True on success, false on failure
+	 * @param string $host
 	 */
-	public function setDefaultChannels($channels) {
-		return $this->setPropertyArray("defaultChannels", $channels, "is_string");
-	}
+    public function setHost(string $host) {
+		$this->host = $host;
+    }
 
-	/**
-	 * Set the list of commands this bot sends to the server upon connecting
-	 * Note: This will not immediately execute any commands
-	 *
-	 * @param array $onConnect An array of command strings
-	 * @return bool True on success, false on failure
+	/**	 *
+	 * @return IRCNetwork The network name set for this bot
 	 */
-	public function setOnConnect($onConnect) {
-		return $this->setPropertyArray("onConnect", $onConnect, "is_string");
-	}
-
-	/**
-	 * Set the list of command prefixes this bot responds to, e.g. "!" in "!command"
-	 *
-	 * @param array $commandPrefix An array of prefixes
-	 * @return bool True on success, false on failure
-	 */
-	public function setCommandPrefix($commandPrefix) {
-		return $this->setPropertyArray("commandPrefix", $commandPrefix, "is_string");
-	}
-
-	/**
-	 *
-	 * @return string The network name set for this bot
-	 */
-	public function getNetwork() {
-		return $this->network;
-	}
-
-	/**
-	 * @return string The server address this bot is set to connect to
-	 */
-	public function getHost() {
-		return $this->host;
+	public function getIRCNetwork(): IRCNetwork {
+		return $this->IRCNetwork;
 	}
 
 	/**
 	 * @return string The server address the bot connected to
 	 */
-	public function getServer() {
-		return $this->server;
-	}
-
-	/**
-	 * @return int The port to connect to with $this->host
-	 */
-	public function getPort() {
-		return $this->port;
+	public function getHost() {
+		return $this->host;
 	}
 
 	/**
@@ -306,38 +200,10 @@ class IRCBot {
 	}
 
 	/**
-	 * @return string The bot's alternate nickname, to be used if the main nickname is taken
-	 */
-	public function getAlternateNickname() {
-		return $this->alternateNickname;
-	}
-
-	/**
 	 * @return string This bot's address on the irc server
 	 */
 	public function getAddress() {
 		return $this->address;
-	}
-
-	/**
-	 * @return array An array of channels this bot joins upon connecting
-	 */
-	public function getDefaultChannels() {
-		return $this->defaultChannels;
-	}
-
-	/**
-	 * @return array An array of irc commands this bot executes upon connecting
-	 */
-	public function getOnConnect() {
-		return $this->onConnect;
-	}
-
-	/**
-	 * @return string An array of command prefixes that this bot responds to
-	 */
-	public function getCommandPrefix() {
-		return $this->commandPrefix;
 	}
 
 	/**
@@ -460,7 +326,7 @@ class IRCBot {
 	public function restart($message = "") {
 		$this->raw("QUIT :$message");
 		sleep(1);
-		pclose(popen("start php -f Utsubot.php $this->network", "r"));
+		pclose(popen("start php -f Utsubot.php ". $this->IRCNetwork->getName(), "r"));
 		exit;
 	}
 
@@ -480,6 +346,7 @@ class IRCBot {
 			return;
 		}
 
+        $text = (string) $text;
 		//	Empty line
 		if (strlen(trim(self::stripControlCodes($text))) == 0)
 			return;
@@ -522,7 +389,7 @@ class IRCBot {
 				}
 
 				//	Start next line with control codes continued
-				$builtString = $this->getNextLinePrefix($sendString);
+				$builtString = self::getNextLinePrefix($sendString);
 			}
 		}
 
@@ -556,7 +423,7 @@ class IRCBot {
 	 * @param string $message The IRC message
 	 * @return string The set of control codes that represent the state of the message at the end of the string
 	 */
-	private function getNextLinePrefix($message) {
+	private static function getNextLinePrefix($message) {
 		//	Bold, reverse, italic, underline respectively
 		$controlCodes = array(2 => false, 22 => false, 29 => false, 31 => false);
 		//	Denotes colored text

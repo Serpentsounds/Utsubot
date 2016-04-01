@@ -7,10 +7,9 @@
 
 namespace Pokemon;
 
-class Pokemon {
-	use PokemonCommon {
-		PokemonCommon::search as PCSearch;
-	}
+class Pokemon extends PokemonBase implements \Manageable {
+
+	use \Conversion;
 
 	/*****************************
 	 * * * * * Constants * * * * *
@@ -222,12 +221,11 @@ class Pokemon {
 	 * Test if a search term matches this pokemon
 	 *
 	 * @param int|string $search Term to search against (id number or any name)
-	 * @param bool $strict False to allow wildcard searches
 	 * @return bool Search result
 	 */
-	public function search($search, $strict = false) {
-		//	Test base search function in PokemonCommon
-		if ($this->PCSearch($search, $strict))
+	public function search($search): bool {
+		//	Test base search function in PokemonBase
+		if (parent::search($search))
 			return true;
 
 		//	If no match, attempt to match this pokemon's regular expression search
@@ -575,12 +573,13 @@ class Pokemon {
 	 * Get a pokemon's height
 	 *
 	 * @param string $unit (Optional) Unit of length, default meters
-	 * @return bool|float Height value, or false on conversion failure
+	 * @return float Height value, or false on conversion failure
+	 * @throws \ConversionException
 	 */
 	public function getHeight($unit = "meter") {
 		if (in_array($unit, array("meter", "metre", "m")))
 			return $this->height;
-		elseif (($height = \Conversion::convert("distance", $this->height, "meter", $unit)) !== false)
+		elseif (($height = self::convert("distance", $this->height, "meter", $unit)) !== false)
 			return $height;
 
 		return false;
@@ -590,12 +589,13 @@ class Pokemon {
 	 * Get a pokemon's weight
 	 *
 	 * @param string $unit (Optional) Unit of weight/mass, default kilograms
-	 * @return bool|float Weight value, or false on conversion failure
+	 * @return float Weight value, or false on conversion failure
+	 * @throws \ConversionException
 	 */
 	public function getWeight($unit = "kilogram") {
 		if (in_array($unit, array("kilogram", "kg")))
 			return $this->weight;
-		elseif (($weight = \Conversion::convert("mass", $this->weight, "kilogram", $unit)) !== false)
+		elseif (($weight = self::convert("mass", $this->weight, "kilogram", $unit)) !== false)
 			return $weight;
 
 		return false;
@@ -1014,6 +1014,7 @@ class Pokemon {
 	 * @param float $height Height value
 	 * @param string $unit (Optional) Unit of length, default meters
 	 * @return bool True on success, false on failure
+	 * @throws \ConversionException
 	 */
 	public function setHeight($height, $unit = "meter") {
 		if (!is_numeric($height))
@@ -1021,7 +1022,7 @@ class Pokemon {
 
 		if (in_array($unit, array("meter", "metre", "m")))
 			$this->height = $height;
-		elseif (($newHeight = \Conversion::convert("distance", $height, "meter", $unit)) !== false)
+		elseif (($newHeight = self::convert("distance", $height, "meter", $unit)) !== false)
 			$this->height = $newHeight;
 		else
 			return false;
@@ -1035,6 +1036,7 @@ class Pokemon {
 	 * @param float $weight Weight value
 	 * @param string $unit (Optional) Unit of weight/mass, default kilograms
 	 * @return bool True on success, false on failure
+	 * @throws \ConversionException
 	 */
 	public function setWeight($weight, $unit = "kilogram") {
 		if (!is_numeric($weight))
@@ -1042,7 +1044,7 @@ class Pokemon {
 
 		if (in_array($unit, array("kilogram", "kg")))
 			$this->weight = $weight;
-		elseif (($newWeight = \Conversion::convert("mass", $weight, "kilogram", $unit)) !== false)
+		elseif (($newWeight = self::convert("mass", $weight, "kilogram", $unit)) !== false)
 			$this->weight = $newWeight;
 		else
 			return false;

@@ -7,9 +7,9 @@
 
 namespace Pokemon;
 
-class Move {
-	use PokemonCommon, \EasySetters;
+class MoveException extends PokemonBaseException {}
 
+class Move extends PokemonBase implements \Manageable {
 	private $power = 0;
 	private $PP = 0;
 	private $accuracy = 0;
@@ -73,183 +73,251 @@ class Move {
 
 	}
 
-	private static function nonNegative($test) {
-		return self::intRange($test, 0);
-	}
-
 	/**
 	 * @return int
 	 */
-	public function getPower() {
+	public function getPower(): int {
 		return $this->power;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getPP() {
+	public function getPP(): int {
 		return $this->PP;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getAccuracy() {
+	public function getAccuracy(): int {
 		return $this->accuracy;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getContestAppeal() {
+	public function getContestAppeal(): int {
 		return $this->contestAppeal;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getContestEffect() {
+	public function getContestEffect(): string {
 		return $this->contestEffect;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getContestFlavorText() {
+	public function getContestFlavorText(): string {
 		return $this->contestFlavorText;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getContestType() {
+	public function getContestType(): string {
 		return $this->contestType;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getContestJam() {
+	public function getContestJam(): int {
 		return $this->contestJam;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getDamageType() {
+	public function getDamageType(): string {
 		return $this->damageType;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getEffect() {
+	public function getEffect(): string {
 		return $this->effect;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getPriority() {
+	public function getPriority(): int {
 		return $this->priority;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getShortEffect() {
+	public function getShortEffect(): string {
 		return $this->shortEffect;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getSuperContestAppeal() {
+	public function getSuperContestAppeal(): int {
 		return $this->superContestAppeal;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getSuperContestFlavorText() {
+	public function getSuperContestFlavorText(): string {
 		return $this->superContestFlavorText;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getTarget() {
+	public function getTarget(): string {
 		return $this->target;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getType() {
+	public function getType(): string {
 		return $this->type;
 	}
 
-	public function setPower($power) {
-		return $this->setProperty("power", $power, "self::nonNegative");
+    /**
+     * @param int $power
+     * @throws MoveException
+     */
+	public function setPower(int $power) {
+		if ($power < 0)
+			throw new MoveException("Base power must be a non-negative integer.");
+
+		$this->power = $power;
 	}
 
-	public function setPP($PP) {
-		return $this->setProperty("PP", $PP, "self::nonNegative");
+    /**
+     * @param int $PP
+     * @throws MoveException
+     */
+	public function setPP(int $PP) {
+        if ($PP < 0)
+            throw new MoveException("PP must be a non-negative integer.");
+
+        $this->PP = $PP;
 	}
 
-	public function setAccuracy($accuracy) {
-		return $this->setProperty("accuracy", $accuracy, "self::nonNegative");
+    /**
+     * @param int $accuracy
+     * @throws MoveException
+     */
+	public function setAccuracy(int $accuracy) {
+        if ($accuracy < 0)
+            throw new MoveException("Accuracy must be a non-negative integer.");
+
+        $this->accuracy = $accuracy;
 	}
 
-	public function setPriority($priority) {
-		return $this->setProperty("priority", $priority, "is_int");
+    /**
+     * @param int $priority
+     */
+	public function setPriority(int $priority) {
+		$this->priority = $priority;
 	}
 
-	public function setType($type) {
-		return $this->setProperty("type", $type, "is_string");
+    /**
+     * @param string $type
+     */
+	public function setType(string $type) {
+		$this->type = $type;
 	}
 
-	public function setDamageType($damageType) {
-		return $this->setProperty("damageType", $damageType, "is_string");
+    /**
+     * @param string $damageType
+     */
+	public function setDamageType(string $damageType) {
+		$this->damageType = $damageType;
 	}
 
-	public function setTarget($target) {
-		return $this->setProperty("target", $target, "is_string");
+    /**
+     * @param string $target
+     */
+	public function setTarget(string $target) {
+		$this->target = $target;
 	}
 
-	public function setEffect($effect) {
-		return $this->setProperty("effect", $effect, "is_string");
+    /**
+     * @param string $effect
+     */
+	public function setEffect(string $effect) {
+		$this->effect = $effect;
 	}
 
-	public function setShortEffect($shortEffect) {
-		return $this->setProperty("shortEffect", $shortEffect, "is_string");
+    /**
+     * @param string $shortEffect
+     */
+	public function setShortEffect(string $shortEffect) {
+		$this->shortEffect = $shortEffect;
 	}
 
-	public function setContestType($contestType) {
-		return $this->setProperty("contestType", $contestType, "is_string");
+    /**
+     * @param string $contestType
+     */
+	public function setContestType(string $contestType) {
+		$this->contestType = $contestType;
 	}
 
-	public function setContestAppeal($contestAppeal) {
-		return $this->setProperty("contestAppeal", $contestAppeal, "self::nonNegative");
+    /**
+     * @param int $contestAppeal
+     * @throws MoveException
+     */
+	public function setContestAppeal(int $contestAppeal) {
+        if ($contestAppeal < 0)
+            throw new MoveException("Contest appeal must be a non-negative integer.");
+
+        $this->contestAppeal = $contestAppeal;
 	}
 
-	public function setContestJam($contestJam) {
-		return $this->setProperty("contestJam", $contestJam, "self::nonNegative");
+    /**
+     * @param int $contestJam
+     * @throws MoveException
+     */
+	public function setContestJam(int $contestJam) {
+        if ($contestJam < 0)
+            throw new MoveException("Contest jam must be a non-negative integer.");
+
+		$this->contestJam = $contestJam;
 	}
 
-	public function setContestEffect($contestEffect) {
-		return $this->setProperty("contestEffect", $contestEffect, "is_string");
+    /**
+     * @param string $contestEffect
+     */
+	public function setContestEffect(string $contestEffect) {
+		$this->contestEffect = $contestEffect;
 	}
 
-	public function setSuperContestAppeal($superContestAppeal) {
-		return $this->setProperty("superContestAppeal", $superContestAppeal, "self::nonNegative");
+    /**
+     * @param int $superContestAppeal
+     * @throws MoveException
+     */
+	public function setSuperContestAppeal(int $superContestAppeal) {
+		if ($superContestAppeal < 0)
+            throw new MoveException("Super contest appeal must be a non-negative integer.");
+
+        $this->superContestAppeal = $superContestAppeal;
 	}
 
-	public function setContestFlavorText($contestFlavorText) {
-		return $this->setProperty("contestFlavorText", $contestFlavorText, "is_string");
+    /**
+     * @param string $contestFlavorText
+     */
+	public function setContestFlavorText(string $contestFlavorText) {
+		$this->contestFlavorText = $contestFlavorText;
 	}
 
-	public function setSuperContestFlavorText($superContestFlavorText) {
-		return $this->setProperty("superContestFlavorText", $superContestFlavorText, "is_string");
+    /**
+     * @param string $superContestFlavorText
+     */
+	public function setSuperContestFlavorText(string $superContestFlavorText) {
+		$this->superContestFlavorText = $superContestFlavorText;
 	}
 } 

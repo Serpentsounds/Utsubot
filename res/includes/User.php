@@ -5,7 +5,7 @@
  * Date: 19/11/14
  */
 
-class User {
+class User implements Manageable {
 	private $id;
 	private $nick = "";
 	private $address = "";
@@ -113,7 +113,7 @@ class User {
 		return $this->nick;
 	}
 
-	public function search($term) {
+	public function search($term): bool {
 		return (strtolower($term) == strtolower($this->nick));
 	}
 }

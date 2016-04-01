@@ -11,8 +11,12 @@ class CommandCreator extends ModuleWithPermission {
 	private $customTriggers = array();
 
 	public function __construct(IRCBot $irc) {
+		$this->_require("DatabaseInterface");
+		$this->_require("MySQLDatabaseCredentials");
+
 		parent::__construct($irc);
-		$this->interface = new DatabaseInterface("utsubot");
+
+		$this->interface = new DatabaseInterface(\MySQLDatabaseCredentials::createFromConfig("utsubot"));
 		$this->updateCustomTriggerCache();
 
 		$this->triggers = array(
