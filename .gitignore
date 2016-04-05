@@ -1,12 +1,6 @@
 .idea/
-res/config.ini
-res/dbconfig.ini
-res/settings.ini
-Channel.php
+conf/*
+run/*
+metagame/*
 *.sql
-*.bat
-*.jpg
-*.db
-*.json
-*.txt
-.gitignore
+TriviaCheat.php
