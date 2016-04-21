@@ -7,8 +7,23 @@
 declare(strict_types = 1);
 
 namespace Utsubot;
+use Exception;
 
 
+/**
+ * Class CycleException
+ *
+ * @package Utsubot
+ */
+class CycleException extends Exception {}
+
+/**
+ * Class Cycle
+ * Holds an array of values and cycles to the next each time a value is retrieved
+ * Used for nicknames and server addresses to retry with a different one on error
+ * 
+ * @package Utsubot
+ */
 class Cycle {
 
     /** @var $InfiniteIterator \InfiniteIterator */
@@ -102,25 +117,4 @@ class Cycle {
 
     }
 
-
 }
-
-class CycleException extends \Exception {}
-
-class NonEmptyCycle extends Cycle {
-
-    /**
-     * NonEmptyCycle constructor.
-     *
-     * @param array $items
-     * @throws NonEmptyCycleException Empty $items
-     */
-    public function __construct(array $items) {
-        if (empty($items))
-            throw new NonEmptyCycleException("NonEmptyCycle must have starting items.");
-
-        parent::__construct($items);
-    }
-}
-
-class NonEmptyCycleException extends CycleException {}

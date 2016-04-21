@@ -289,7 +289,7 @@ class Permission extends ModuleWithPermission {
 		$inChannel = $msg->inChannel();
 		$channel = $msg->getResponseTarget();
 		$nick = $msg->getNick();
-		$address = "$nick!". $msg->getIdent(). "@". $msg->getFullHost();
+		$address = "$nick!{$msg->getIdent()}@{$msg->getFullHost()}";
 		$parameters = $msg->getParameterString();
 
 		//	Attempt to grab user ID for comparison

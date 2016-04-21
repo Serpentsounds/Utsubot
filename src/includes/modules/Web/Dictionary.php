@@ -24,7 +24,7 @@ class Dictionary implements WebSearch {
 	 * @param array $options Unavailable
 	 * @return string Definition and examples
 	 */
-	public static function search($search, $options = array()) {
+	public static function search(string $search, array $options = array()): string {
 		//	Make sure API Key is set
 		if (!strlen(self::$APIKey))
 			self::$APIKey = Module::loadAPIKey("dictionary");

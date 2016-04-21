@@ -40,7 +40,7 @@ abstract class ModuleWithAccounts extends Module {
                 return $settings[0]['value'];
         }
 
-        return false;
+        return null;
     }
 
     /**

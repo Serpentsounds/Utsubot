@@ -7,8 +7,17 @@
 
 namespace Utsubot\Web;
 use Utsubot\Permission\ModuleWithPermission;
-use Utsubot\{IRCBot, IRCMessage, Module, ModuleException};
-use function Utsubot\{bold, color};
+use Utsubot\{
+	IRCBot,
+    IRCMessage,
+    Module,
+    ModuleException,
+    Color
+};
+use function Utsubot\{
+    bold,
+    colorText
+};
 
 
 class Web extends ModuleWithPermission {
@@ -23,7 +32,7 @@ class Web extends ModuleWithPermission {
 		parent::__construct($irc);
 
         //  Set formatting separator
-        self::$separator = " ". bold(color("¦", "red")). " ";
+        self::$separator = " ". bold(colorText("¦", new Color(Color::Red)))." ";
 
         $this->loadAPIKeys();
 
@@ -63,7 +72,7 @@ class Web extends ModuleWithPermission {
 		parent::privmsg($msg);
 
 		//	Not a command, parse URLs if applicable
-		if (!$msg->isCommand() && class_exists("URLParser")) {
+		if (!$msg->isCommand() && class_exists("Utsubot\\Web\\URLParser")) {
 
             if (!$this->hasPermission($msg, "urlparser"))
                 return;
@@ -80,7 +89,7 @@ class Web extends ModuleWithPermission {
 					}
 				}
 
-				$this->respond($msg, $return);
+				$this->respond($msg, implode("\n", $return));
 			}
 
 			//	The message wasn't a command, so no need to continue parsing
@@ -211,9 +220,13 @@ class Web extends ModuleWithPermission {
 
 	public function dictionary(IRCMessage $msg) {
 		$dictionaries = array(
-			"UrbanDictionary" 	=> array("ud", "urban", "urbandictionary"),
-			"Dictionary"		=> array("d", "def", "define", "dic", "dictionary")
+			"Utsubot\\Web\\UrbanDictionary"
+			    => array("ud", "urban", "urbandictionary"),
+            
+			"Utsubot\\Web\\Dictionary"
+                => array("d", "def", "define", "dic", "dictionary")
 		);
+        
 		$command = strtolower($msg->getCommand());
 		$dictionary = null;
 		foreach ($dictionaries as $name => $triggers) {
@@ -226,13 +239,13 @@ class Web extends ModuleWithPermission {
 		if ($dictionary === null)
 			throw new ModuleException("Invalid dictionary.");
 
-		$this->_require("Utsubot\\Web\\$dictionary");
+		$this->_require($dictionary);
 
-		if (!is_subclass_of($dictionary, "WebSearch"))
+		if (!is_subclass_of($dictionary, "Utsubot\\Web\\WebSearch"))
 			throw new ModuleException("$dictionary does not implement WebSearch.");
 
 		$parameters = $msg->getCommandParameters();
-		if (!$parameters && $dictionary != "UrbanDictionary")
+		if (!$parameters && $dictionary != "Utsubot\\Web\\UrbanDictionary")
 			throw new ModuleException("No search given.");
 
 		$number = 1;
@@ -328,7 +341,7 @@ class Web extends ModuleWithPermission {
 			$parameterString = implode(" ", $parameters);
 		}
 
-		$json = resourceBody("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key=". $this->getAPIKey("youtube"). "&q=". urlencode($parameterString));
+		$json = resourceBody("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&key={$this->getAPIKey('youtube')}&q=". urlencode($parameterString));
 		$items = json_decode($json, true)['items'];
 
 		$count = count($items);

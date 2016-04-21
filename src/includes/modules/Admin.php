@@ -30,7 +30,7 @@ class Admin extends ModuleWithPermission {
      */
     public function _eval(IRCMessage $msg) {
         $this->requireLevel($msg, 100);
-        $this->respond($msg, eval($msg->getCommandParameterString().";"));
+        $this->respond($msg, (string)eval("{$msg->getCommandParameterString()};"));
     }
 
     /**
@@ -41,7 +41,7 @@ class Admin extends ModuleWithPermission {
      */
     public function _return(IRCMessage $msg) {
         $this->requireLevel($msg, 100);
-        $this->respond($msg, eval("return ". $msg->getCommandParameterString(). ";"));
+        $this->respond($msg, (string)eval("return {$msg->getCommandParameterString()};"));
     }
 
 

@@ -2,17 +2,16 @@
 /**
  * Utsubot - Japanese.php
  * Date: 04/03/2016
+ * 
+ * Function for converting Japanese kana to roman characters
  */
 
 declare(strict_types = 1);
 
 namespace Utsubot\Japanese;
 
-/**
- * Functions for working with the Japanese language
- */
 
-define("HIRAGANA", array(
+define("Hiragana", array(
     'きゃ', 'きゅ', 'きょ',
     'しゃ', 'しゅ', 'しょ',
     'ちゃ', 'ちゅ', 'ちょ',
@@ -44,7 +43,7 @@ define("HIRAGANA", array(
 ));
 
 
-define("KATAKANA", array(
+define("Katakana", array(
     'キャ', 'キュ', 'キョ',
     'シャ', 'シュ', 'ショ',
     'チャ', 'チュ', 'チョ',
@@ -75,7 +74,7 @@ define("KATAKANA", array(
     'ァ', 'ィ', 'ゥ', 'ェ', 'ォ'
 ));
 
-define("EXTRAKATAKANA", array(
+define("Extra_Katakana", array(
     'ヴァ', 'ヴィ', 'ヴ', 'ヴェ', 'ヴォ',
     'ウィ', 'ウェ', 'ウォ',
     'ファ', 'フィ', 'フェ', 'フォ',
@@ -85,7 +84,7 @@ define("EXTRAKATAKANA", array(
     'シェ'
 ));
 
-define("ROMANIZATION", array(
+define("Romanization", array(
     'kya', 'kyu', 'kyo',
     'sha', 'shu', 'sho',
     'cha', 'chu', 'cho',
@@ -116,7 +115,7 @@ define("ROMANIZATION", array(
     'a', 'i', 'u', 'e', 'o'
 ));
 
-define("EXTRAKATAKANAROMANIZATION", array(
+define("Extra_Katakana_Romanization", array(
     'va', 'vi', 'vu', 've', 'vo',
     'wi', 'we', 'wo',
     'fa', 'fi', 'fe', 'fo',
@@ -138,13 +137,13 @@ function romanizeKana(string $kana): string {
     $kana = preg_replace('/([\\x{30F3}\\x{3093}])([\\x{30A1}-\\x{30AA}\\x{3041}-\\x{304A}])/u', '$1\'$2', $kana);
 
     //	Replace extra katakana sounds first with romaji
-    $kana = str_replace(EXTRAKATAKANA, EXTRAKATAKANAROMANIZATION, $kana);
+    $kana = str_replace(Extra_Katakana, Extra_Katakana_Romanization, $kana);
 
     //	Replace katakana with romaji
-    $kana = str_replace(KATAKANA, ROMANIZATION, $kana);
+    $kana = str_replace(Katakana, Romanization, $kana);
 
     //	Replace hiragana with romaji
-    $kana = str_replace(HIRAGANA, ROMANIZATION, $kana);
+    $kana = str_replace(Hiragana, Romanization, $kana);
 
     //	Double up long katakana vowels (aー to aa, etc)
     $kana = preg_replace('/([aeiou])\\x{30FC}/u', '$1$1', $kana);

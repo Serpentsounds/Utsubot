@@ -2,17 +2,14 @@
 /**
 * Utsubot - Jaro.php
 * Date: 04/03/2016
+*
+* Functions for calculating the Jaro-Winkler distance to determine the similary between 2 strings
 */
 
 declare(strict_types = 1);
 
 namespace Utsubot\Jaro;
 
-
-/**
-*
-* Functions for calculating the Jaro-Winkler distance to determine the similary between 2 strings
-*/
 
 /**
  * Utility function used in calculating the Jaro distance between two strings
@@ -47,9 +44,9 @@ function getMatchingCharacters(string $base, string $comparison): string {
 /**
  * Calculate the Jaro distance between 2 strings. 1 = exact match, 0 = no match, similarities are somewhere in between
  *
- * @param string $base The first string
- * @param string $comparison The second string
- * @return float The Jaro distance
+ * @param string $base
+ * @param string $comparison
+ * @return float
  */
 function jaroDistance(string $base, string $comparison): float {
     $lengths = array(strlen($base), strlen($comparison));
@@ -78,11 +75,11 @@ function jaroDistance(string $base, string $comparison): float {
 /**
  * Use the Winkler prefix weight in conjunction with the Jaro distance to calculate the Jaro-Winkler distance
  *
- * @param string $base The first string
- * @param string $comparison The second string
+ * @param string $base
+ * @param string $comparison
  * @param int $prefixLength How many exactly matching characters to check for at the beginning of the strings. These characters have more weight in the metric. Max of 4, default 4
- * @param float $prefixScale The weight to give to the matching prefix characters. Max of 0.25, default 0.1
- * @return float The combined Jaro-Winkler distance
+ * @param float $prefixScale The weight to give to the matching prefix characters. Algorithm is defined for a max of 0.25, default 0.1
+ * @return float
  */
 function jaroWinklerDistance(string $base, string $comparison, int $prefixLength = 4, float $prefixScale = 0.1): float {
     $base = strtolower($base);

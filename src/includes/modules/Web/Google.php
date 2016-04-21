@@ -24,7 +24,7 @@ class Google implements WebSearch {
 	 * @param array $options Options include result count and safe search
 	 * @return string All results separated by linebreaks
 	 */
-	public static function search($search, $options = array()) {
+	public static function search(string $search, array $options = array()): string {
 		$results = self::DEFAULT_RESULTS;
 		if (isset($options['results']) && is_int($options['results']) && $options['results'] <= self::MAX_RESULTS && $options['results'] >= 1)
 			$results = $options['results'];

@@ -107,7 +107,7 @@ class Accounts extends Module {
 	public function user(User $user) {
 		try {
 			//	Account ID to be logged in to
-			$accountID = $this->interface->getAutoLogin($user->getNick(). "!". $user->getAddress());
+			$accountID = $this->interface->getAutoLogin("{$user->getNick()}!{$user->getAddress()}");
 			$this->loginUser($user, $accountID);
 
 			if (!($this->interface->getSettings($accountID, "disablenotify"))) {
@@ -203,7 +203,7 @@ class Accounts extends Module {
 		$this->respond($msg,"Registration successful. Please remember your username and password for later use: '$username', '$password'. You will now be automatically logged in.");
 
 		//	Add autologin host
-		$autoLogin =  "*!*". $msg->getIdent(). "@". $msg->getFullHost();
+		$autoLogin =  "*!*{$msg->getIdent()}@{$msg->getFullHost()}";
 		$accountID = $this->interface->getAccountID($username);
 		$this->interface->setSettings($accountID, "autologin", $autoLogin);
 		//	Automatically login upon registration
@@ -326,7 +326,7 @@ class Accounts extends Module {
 		$response = $responseString = array();
 		//	List each setting under name of setting
 		foreach ($settings as $setting) {
-			$key = $setting['name']. " (". $setting['display']. ")";
+			$key = "{$setting['name']} ({$setting['display']})";
 			$response[$key][] = (strlen($setting['value'])) ? $setting['value'] : "enabled";
 		}
 		//	Convert name => settings[] entries into readable format
@@ -375,12 +375,12 @@ class Accounts extends Module {
 					//	Make sure target user is logged in to an account
 					$accountID = $this->getAccountIDByUser($targetUser);
 					if (!is_int($accountID))
-						throw new AccountsException("User '". $targetUser->getNick(). "' is not logged in.");
+						throw new AccountsException("User '{$targetUser->getNick()}' is not logged in.");
 
 					//	Prevent modifying somebody with higher access than you
 					$targetUserLevel = $this->interface->getAccessByID($accountID);
 					if ($targetUserLevel >= $userLevel)
-						throw new AccountsException("You do not have permission to modify settings for user '". $targetUser->getNick(). "'.");
+						throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
 
 					if ($level >= $userLevel)
 						throw new AccountsException("You do not have permission to grant level $level.");
@@ -388,7 +388,7 @@ class Accounts extends Module {
 					//	Attempt to set level. A malformed $level will thrown an exception
 					$this->interface->setAccess($accountID, intval($level));
 
-					$this->respond($msg, "Access has been updated for '". $targetUser->getNick(). "'.");
+					$this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
 				break;
 
 				/**
@@ -410,17 +410,17 @@ class Accounts extends Module {
 					//	Make sure target user is logged in to an account
 					$accountID = $this->getAccountIDByUser($targetUser);
 					if (!is_int($accountID))
-						throw new AccountsException("User '". $targetUser->getNick(). "' is not logged in.");
+						throw new AccountsException("User '{$targetUser->getNick()}' is not logged in.");
 
 					//	Prevent modifying somebody with higher access than you
 					$targetUserLevel = $this->interface->getAccessByID($accountID);
 					if ($targetUserLevel >= $userLevel)
-						throw new AccountsException("You do not have permission to modify settings for user '". $targetUser->getNick(). "'.");
+						throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
 
 					//	Attempt to set level. A malformed $level will thrown an exception
 					$this->interface->setAccess($accountID, 0);
 
-					$this->respond($msg, "Access has been updated for '". $targetUser->getNick(). "'.");
+					$this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
 				break;
 
 				/**
@@ -440,11 +440,11 @@ class Accounts extends Module {
 					//	Make sure target user is logged in to an account
 					$accountID = $this->getAccountIDByUser($targetUser);
 					if (!is_int($accountID))
-						throw new AccountsException("User '". $targetUser->getNick(). "' is not logged in.");
+						throw new AccountsException("User '{$targetUser->getNick()}' is not logged in.");
 
 					$targetUserLevel = $this->interface->getAccessByID($accountID);
 
-					$this->respond($msg, "Access level for '". $targetUser->getNick(). "' is $targetUserLevel.");
+					$this->respond($msg, "Access level for '{$targetUser->getNick()}' is $targetUserLevel.");
 				break;
 
 				/**

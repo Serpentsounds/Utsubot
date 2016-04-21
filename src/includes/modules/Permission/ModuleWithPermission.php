@@ -8,8 +8,11 @@ declare(strict_types = 1);
 
 namespace Utsubot\Permission;
 
-use Utsubot\{ModuleException, IRCMessage};
-use Utsubot\Accounts\{ModuleWithAccounts};
+use Utsubot\{
+    ModuleException,
+    IRCMessage
+};
+use Utsubot\Accounts\ModuleWithAccounts;
 
 /**
  * Class ModuleWithPermission

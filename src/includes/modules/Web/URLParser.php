@@ -186,7 +186,7 @@ class URLParser {
 			return "";
 
 		//	Access API and validate existence
-		$json = resourceBody("https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=$video&key=". $this->web->getAPIKey("youtube"));
+		$json = resourceBody("https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=$video&key={$this->web->getAPIKey('youtube')}");
 		$data = json_decode($json, true);
 
 		//	Invalid video
@@ -217,7 +217,7 @@ class URLParser {
 
 		//	Special info for live broadcasts
 		if ($info['snippet']['liveBroadcastContent'] == "live") {
-			$json = resourceBody("https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=$video&key=". $this->web->getAPIKey("youtube"));
+			$json = resourceBody("https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=$video&key={$this->web->getAPIKey('youtube')}");
 			$data = json_decode($json, true);
 			if ($data['pageInfo']['totalResults'] < 1)
 				throw new URLParserException("Error getting live streaming info for '$video'.");
@@ -313,7 +313,7 @@ class URLParser {
      */
 	public function soundcloud($search, $match, $channel) {
 
-		$data = resourceBody("http://api.soundcloud.com/resolve?url=$search&client_id=". $this->web->getAPIKey("soundcloud"));
+		$data = resourceBody("http://api.soundcloud.com/resolve?url=$search&client_id={$this->web->getAPIKey('soundcloud')}");
 		$json = json_decode($data, true);
 
 		if (!isset($json['title']) || !$json['title'])

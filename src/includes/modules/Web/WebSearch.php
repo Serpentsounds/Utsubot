@@ -12,6 +12,6 @@ class WebSearchException extends \Exception {}
 
 interface WebSearch {
 
-	public static function search($search, $options = array());
+	public static function search(string $search, array $options = array()): string;
 
 }

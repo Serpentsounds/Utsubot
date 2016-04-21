@@ -83,7 +83,7 @@ abstract class Module {
 
 		//	If the error occured in a public channel, address the user directly for clarity
 		if (!$msg->inQuery())
-			$response = $msg->getNick(). ": ". $response;
+			$response = "{$msg->getNick()}: $response";
 
 		return $response;
 	}

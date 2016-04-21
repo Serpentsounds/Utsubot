@@ -15,7 +15,7 @@ class Core extends Module {
 	public function connect() {
 		$this->IRCBot->raw("PROTOCTL NAMESX");
 		$this->IRCBot->raw("PROTOCTL UHNAMES");
-		$this->IRCBot->raw("MODE ". $this->IRCBot->getNickname(). " +B");
+		$this->IRCBot->raw("MODE {$this->IRCBot->getNickname()} +B");
 
 		if (!empty($commands = $this->IRCBot->getIRCNetwork()->getOnConnect()))
 		foreach ($commands as $command)
@@ -32,7 +32,7 @@ class Core extends Module {
 	}
 
 	public function ping(IRCMessage $msg) {
-		$this->IRCBot->raw("PONG :". $msg->getParameterString());
+		$this->IRCBot->raw("PONG :{$msg->getParameterString()}");
 	}
 
     public function ctcp(IRCMessage $msg) {
@@ -155,7 +155,7 @@ class Core extends Module {
 					//	Update channel status on User object
 					foreach ($modes as $mode) {
 						if (isset($modeLetters[$mode]))
-							$user->mode($channelName, "+". $modeLetters[$mode]);
+							$user->mode($channelName, "+{$modeLetters[$mode]}");
 					}
 				}
 			break;
@@ -192,7 +192,7 @@ class Core extends Module {
 						//	Update channel status on User object
 						foreach ($modes as $mode) {
 							if (isset($modeLetters[$mode]))
-								$user->mode($channelName, "+". $modeLetters[$mode]);
+								$user->mode($channelName, "+{$modeLetters[$mode]}");
 						}
 					}
 				}
@@ -200,7 +200,7 @@ class Core extends Module {
 
 			case "433":
 				$this->IRCBot->getIRCNetwork()->getNicknameCycle()->cycle();
-				$this->IRCBot->raw("NICK :". $this->IRCBot->getIRCNetwork()->getNicknameCycle()->get());
+				$this->IRCBot->raw("NICK :{$this->IRCBot->getIRCNetwork()->getNicknameCycle()->get()}");
 			break;
 
 

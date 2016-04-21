@@ -96,7 +96,7 @@ $ircBot = new Utsubot\IRCBot($network);
 //	Load all the good stuff
 if (isset($config['modules'])) {
 	foreach ($config['modules'] as $key => $module) {
-		$ircBot->loadModule("Utsubot\\". $module);
+		$ircBot->loadModule("Utsubot\\$module");
 	}
 }
 //	First basic module event

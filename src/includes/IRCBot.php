@@ -271,7 +271,7 @@ class IRCBot {
 			}
 		}
 		catch (IRCBotException $e) {
-			$this->console("Processing force halted: ". $e->getMessage());
+			$this->console("Processing force halted: {$e->getMessage()}");
 		}
 
 	}
@@ -323,7 +323,7 @@ class IRCBot {
 	public function restart($message = "") {
 		$this->raw("QUIT :$message");
 		sleep(1);
-		pclose(popen("start php -f Utsubot.php ". $this->IRCNetwork->getName(), "r"));
+		pclose(popen("start php -f Utsubot.php {$this->IRCNetwork->getName()}", "r"));
 		exit;
 	}
 

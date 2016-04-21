@@ -20,7 +20,7 @@ class UrbanDictionary implements WebSearch {
 	 * @param array $options Unavailable
 	 * @return string Definition and examples
 	 */
-	public static function search($search, $options = array()) {
+	public static function search(string $search, array $options = array()): string {
 		$number = 1;
 		if (isset($options['number']) && is_int($options['number']) && $options['number'] > 0)
 			$number = $options['number'];

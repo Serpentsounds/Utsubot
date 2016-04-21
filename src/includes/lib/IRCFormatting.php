@@ -1,22 +1,18 @@
 <?php
-
+/**
+ * IRCFormatting
+ * A collection of functions for dealing with text formatting over IRC
+ */
 declare(strict_types = 1);
 
 namespace Utsubot;
 
-class IRCFormattingException extends \Exception {}
-
-/**
- * Trait IRCFormatting
- *
- * A collection of functions for dealing with IRC text formatting
- */
 
 /**
  * Returns text bolded
  *
- * @param string $text Text to be bolded
- * @return string Text bolded
+ * @param string $text
+ * @return string
  */
 function bold(string $text): string {
     return "\x02$text\x02";
@@ -25,8 +21,8 @@ function bold(string $text): string {
 /**
  * Returns text italicized
  *
- * @param string $text Text to be italicized
- * @return string Text italicized
+ * @param string $text
+ * @return string
  */
 function italic(string $text): string {
     return "\x1D$text\x1D";
@@ -81,36 +77,22 @@ function stripControlCodes(string $text): string {
 /**
  * Returns text with given IRC color
  *
- * @param string $text The text to be colored
- * @param int|string $color The foreground color, as an index or color name
- * @param int|string $background (Optional) The background color, as an index or color name. Default none
- * @param bool $close True to close the color, so subsequent text isn't colored. Default true
+ * @param string $text
+ * @param Color $color
+ * @param Color $background
+ * @param bool $close True to close the color code, so subsequent text isn't colored
  * @return string
- * @throws IRCFormattingException If mistyped parameters are passed, or if an invalid color is passed
  */
-function color(string $text, $color, $background = null, bool $close = true): string {
-    //	Set appended text to close the color
-    $close = ($close) ? "\x03" : "";
-
-    //	Valid colors
-    $colorNames = array("white", "black", "navy", "green", "red", "maroon", "purple", "orange", "yellow", "lime", "teal", "aqua", "blue", "fuchsia", "light gray", "gray");
-
-    $color = strtolower($color);
-    //	Invalid color passed
-    if (!isset($colorNames[$color])) {
-        if (($color = array_search($color, $colorNames)) === false)
-            throw new IRCFormattingException("'$color' is not a valid IRC color.");
-    }
-    //	Repeat for background, if applicable
-    if ($background !== null && !isset($colorNames[$background])) {
-        $background = strtolower($background);
-        if (($background = array_search($background, $colorNames)) === false)
-            throw new IRCFormattingException("'$background' is not a valid IRC color.");
-    }
-
-    //	Use background color
-    if (is_numeric($background))
-        $background = sprintf(",%02d", $background);
-
-    return sprintf("\x03%02d$background$text$close", $color);
+function colorText(string $text, Color $color, Color $background = null, bool $close = true): string {
+    return sprintf(
+           "\x03%02d%s%s%s",
+           $color->getValue(),
+           ($background instanceof Color && $background->getValue() != Color::Clear) ?
+               sprintf(",%02d", $background->getValue()) :
+               "",
+            $text,
+           ($close) ? 
+               "\x03" : 
+               ""
+    );
 }

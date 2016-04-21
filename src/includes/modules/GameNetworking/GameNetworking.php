@@ -178,7 +178,7 @@ class GameNetworking extends ModuleWithPermission {
 		//	No results
 		if (!$codes) {
 			if (is_int($input['codeID']))
-				throw new GameNetworkingException("There are no codes for '$nick' for '". $this->validCodes[$input['codeID']]->getTitle(). "'.");
+				throw new GameNetworkingException("There are no codes for '$nick' for '{$this->validCodes[$input['codeID']]->getTitle()}'.");
 			throw new GameNetworkingException("There are no codes for '$nick'.");
 		}
 
@@ -247,9 +247,9 @@ class GameNetworking extends ModuleWithPermission {
 					$nickname = $this->interface->getNicknameFor($row['user_id']);
 
 				if (strlen($nickname))
-					throw new GameNetworkingException("'{$input['code']}' already exists as a(n) ". $this->validCodes[$input['codeID']]->getTitle(). " code for '$nickname'.");
+					throw new GameNetworkingException("'{$input['code']}' already exists as a(n) {$this->validCodes[$input['codeID']]->getTitle()} code for '$nickname'.");
 				//	Offline user account with no default nick
-				throw new GameNetworkingException("'{$input['code']}' already exists as a(n) ". $this->validCodes[$input['codeID']]->getTitle(). " code under a user account.");
+				throw new GameNetworkingException("'{$input['code']}' already exists as a(n) {$this->validCodes[$input['codeID']]->getTitle()} code under a user account.");
 			}
 
 			//	No existing entry, unknown error
