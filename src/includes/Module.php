@@ -54,6 +54,18 @@ abstract class Module {
             throw new ModuleException("This action requires $class to be loaded.");
 	}
 
+    /**
+     * Shorthand function to require a certain number of parameters before proceeding with command processing
+     *
+     * @param IRCMessage $msg
+     * @param int        $count
+     * @throws ModuleException
+     */
+    protected function requireParameters(IRCMessage $msg, int $count = 1) {
+        if (count($msg->getCommandParameters()) < $count)
+            throw new ModuleException("This command requires at least $count parameter(s).");
+    }
+
 	/**
 	 * Return a reference to another Module object also loaded into the bot
 	 *
@@ -175,6 +187,7 @@ abstract class Module {
 	public function ctcpResponse(IRCMessage $msg){}
 
 	public function mode(IRCMessage $msg){}
+	public function topic(IRCMessage $msg){}
 	public function join(IRCMessage $msg){}
 	public function part(IRCMessage $msg){}
 	public function quit(IRCMessage $msg){}

@@ -31,10 +31,13 @@ abstract class Enum {
     /**
      * Enum constructor.
      *
-     * @param int $value
+     * @param mixed $value
+     * @throws EnumException
      */
     public function __construct($value) {
-        $this->findName($value);
+        if (!static::isValidValue($value))
+            throw new EnumException("Unable to create ". get_called_class(). " with value '$value'.");
+        
         $this->value = $value;
     }
 
@@ -86,9 +89,21 @@ abstract class Enum {
      * @return int
      */
     public static function count(): int {
-        self::loadConstants();
+        static::loadConstants();
 
         return count(static::$constants);
+    }
+
+    /**
+     * Check if a value can be validly used as an instance
+     * 
+     * @param mixed $value
+     * @return bool
+     */
+    public static function isValidValue($value): bool {
+        static::loadConstants();
+
+        return array_search($value, static::$constants[get_called_class()], true) !== false;
     }
 
     /**
@@ -99,7 +114,7 @@ abstract class Enum {
      * @throws EnumException
      */
     public static function findValue(string $name) {
-        self::loadConstants();
+        static::loadConstants();
 
         //  Anonymous function to apply to searches for a loose comparison
         $normalize = function($item) {
@@ -128,7 +143,7 @@ abstract class Enum {
      * @throws EnumException
      */
     public static function findName($value): string {
-        self::loadConstants();
+        static::loadConstants();
 
         if (($key = array_search($value, static::$constants[get_called_class()], true)) !== false)
             return str_replace("_", " ", $key);

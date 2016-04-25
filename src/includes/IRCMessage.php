@@ -30,6 +30,8 @@ class IRCMessage {
 	private $inQuery = false;
 
 	private $isAction = false;
+    private $isOpNotice = false;
+    private $opNoticeTarget = "";
 
 	//	Used by modules to determine if this is a command issued to the bot
 	private $isCommand = false;
@@ -71,9 +73,12 @@ class IRCMessage {
 			switch ($words[1]) {
 				case "PRIVMSG":
 					//	A PRIVMSG of this form is either a /me command or a CTCP request, adjust accordingly
-					if (preg_match('/:\x01(\S+) ?(.*)\x01$/', $raw, $match)) {
-						if ($match[1] == "ACTION")
-							$this->isAction = true;
+					if (preg_match('/^\x01(\S+) ?(.*?)\x01?$/', $this->parameterString, $match)) {
+						if ($match[1] == "ACTION") {
+                            $this->isAction = true;
+                            $this->setParameters($match[2]);
+                        }
+                        
 						else {
 							$this->type = "ctcp";
 							//	Separate first word of params as the CTCP request
@@ -85,12 +90,20 @@ class IRCMessage {
 
 				case "NOTICE":
                     //	A NOTICE of this form is responding to a CTCP request
-					if (preg_match('/:\x01(\S+) ?(.*)\x01$/', $raw, $match)) {
+					if (preg_match('/^\x01(\S+) ?(.*?)\x01?$/', $this->parameterString, $match)) {
 						$this->type = "ctcpResponse";
 						//	Separate just like with a CTCP request
 						$this->ctcp = $match[1];
 						$this->setParameters($match[2]);
 					}
+                    
+                    //  A NOTICE of this form targets only users with matching modes on a channel
+                    elseif (preg_match('/^([~&@%+]+)(#.+)/', $words[2], $match)) {
+                        $this->parseTarget($match[2]);
+                        $this->isOpNotice = true;
+                        $this->opNoticeTarget = $match[1];
+                    }
+                        
 				break;
 
 				case "QUIT":
@@ -106,6 +119,8 @@ class IRCMessage {
 						$this->type = "raw";
 						$this->raw = intval($words[1]);
 					}
+					
+					//	No additional processing needed for MODE, TOPIC, etc.
 				break;
 
 			}
@@ -341,6 +356,20 @@ class IRCMessage {
 	public function isAction(): bool {
 		return $this->isAction;
 	}
+
+    /**
+     * @return bool
+     */
+    public function isOpNotice(): bool {
+        return $this->isOpNotice;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOpNoticeTarget(): string {
+        return $this->opNoticeTarget;
+    }
 
     /**
      * @return bool
