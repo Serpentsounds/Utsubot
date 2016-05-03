@@ -7,13 +7,7 @@
 
 namespace Utsubot\Permission;
 use Utsubot\{
-    ModuleException,
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    DatabaseInterface,
-    MySQLDatabaseCredentials,
-    User
+    Accounts\AccountsException, ModuleException, IRCBot, IRCMessage, Trigger, DatabaseInterface, MySQLDatabaseCredentials, User
 };
 
 
@@ -302,7 +296,13 @@ class Permission extends ModuleWithPermission {
 		//	Attempt to grab user ID for comparison
         $users = $this->IRCBot->getUsers();
         $user = $users->createIfAbsent($address);
-        $id = $this->getAccountIDByUser($user);
+        try {
+            $id = $this->getAccountIDByUser($user);
+        }
+        catch (AccountsException $e) {
+            $id = null;
+        }
+
 
 		//	Apply rows 1 by 1
 		foreach ($results as $row) {

@@ -225,16 +225,18 @@ class IRCMessage {
             if (strlen($this->parameterString) > strlen($prefix) && substr($this->parameterString, 0, strlen($prefix)) == $prefix) {
                 $this->isCommand = true;
                 $parameters = explode(" ", substr($this->parameterString, strlen($prefix)));
-                $this->command = strtolower(array_shift($parameters));
+                if ($parameters)
+                    $this->command = strtolower(array_shift($parameters));
                 $this->setParameters(implode(" ", $parameters), true);
             }
         }
 
         //	All query commands should be evaluated as a command. No need to strip the prefix, the loop would have caught it already if it had one
-        if ($this->inQuery) {
+        if ($this->inQuery && !$this->isCommand) {
             $this->isCommand = true;
             $parameters = $this->parameters;
-            $this->command = strtolower(array_shift($parameters));
+            if ($parameters)
+                $this->command = strtolower(array_shift($parameters));
             $this->setParameters(implode(" ", $parameters), true);
         }
 		

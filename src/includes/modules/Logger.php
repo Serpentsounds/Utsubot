@@ -10,14 +10,7 @@ declare(strict_types = 1);
 namespace Utsubot\Logger;
 use Utsubot\Accounts\ModuleWithAccounts;
 use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    Users,
-    User,
-    ModuleException,
-    DatabaseInterface,
-    MySQLDatabaseCredentials
+    Accounts\AccountsException, IRCBot, IRCMessage, Trigger, Users, User, ModuleException, DatabaseInterface, MySQLDatabaseCredentials
 };
 use function Utsubot\bold;
 
@@ -61,9 +54,12 @@ Class Logger extends ModuleWithAccounts {
 
 			//	Get user ID if applicable, to put into database
 			$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-            $userID = $this->getAccountIDByUser($user);
 
-			$this->log(strtolower($msg->responded()), $userID, $channel);
+            try {
+                $userID = $this->getAccountIDByUser($user);
+                $this->log(strtolower($msg->responded()), $userID, $channel);
+            }
+            catch (AccountsException $e) {}
 		}
 	}
 
