@@ -21,6 +21,7 @@ class RelayMode extends FlagsEnum {
     const MODE          = 1 << 7;
     const TOPIC         = 1 << 8;
     const NICK          = 1 << 9;
+    const KICK          = 1 << 10;
     
     const MESSAGE       = self::PRIVMSG
                           | self::NOTICE
@@ -36,6 +37,7 @@ class RelayMode extends FlagsEnum {
                           | self::QUIT
                           | self::MODE
                           | self::TOPIC
-                          | self::NICK;
+                          | self::NICK
+                          | self::KICK;
     
 }

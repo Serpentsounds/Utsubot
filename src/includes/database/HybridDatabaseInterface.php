@@ -7,6 +7,8 @@
 
 namespace Utsubot;
 use Utsubot\Accounts\Accounts;
+use Utsubot\Accounts\AccountsException;
+
 
 class HybridDatabaseInterfaceException extends DatabaseInterfaceException {}
 
@@ -34,12 +36,12 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 			throw new HybridDatabaseInterfaceException("Error getting User object.");
 
 		//	Get account associated with nickname
-		$userList = $this->accounts->getInterface()->searchSettings("nick", $nickname);
+		$userList = $this->accounts->getInterface()->searchSettings($this->accounts->getSettingObject("nick"), $nickname);
 		if (!count($userList))
 			throw new HybridDatabaseInterfaceException("Your nickname is not linked with an account.");
 
 		//	Check accounts against eachother
-		$accountID = $this->accounts->confirmLogin($user);
+		$accountID = $this->accounts->getAccountIDByUser($user);
 		$targetID = $userList[0]['user_id'];
 		if ($accountID != $targetID)
 			throw new HybridDatabaseInterfaceException("You are not logged in to the account your nickname is linked with.");
@@ -69,29 +71,29 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 
 	public function analyze($nickname) {
 		$analysis = new HybridAnalysis();
+        $user = null;
 
-		$user = $this->users->search($nickname);
-		if (!($user instanceof User)) {
-			$analysis->setMode("nickname");
-			$analysis->setNickname($nickname);
-		}
+        //	Look up codes by account
+        try {
+		    $user = $this->users->search($nickname);
+            $accountID = $this->accounts->getAccountIDByUser($user);
 
-		//	Valid User, attempt to get account
-		else {
-			$accountID = $this->accounts->getAccountIDByUser($user);
-			//	Look up codes by account
-			if (is_int($accountID)) {
-				$analysis->setMode("account");
-				$analysis->setAccountID($accountID);
-				$analysis->setNickname($user->getNick());
-			}
+            $analysis->setMode("account");
+            $analysis->setAccountID($accountID);
+            $analysis->setNickname($user->getNick());
+        }
 
-			//	User is not logged in, use nickname
-			else {
-				$analysis->setMode("nickname");
-				$analysis->setNickname($user->getNick());
-			}
-		}
+        //  Not a valid User object, use nickname string
+        catch (ManagerException $e) {
+            $analysis->setMode("nickname");
+            $analysis->setNickname($nickname);
+        }
+
+        //	User is not logged in, use nickname
+        catch (AccountsException $e) {
+            $analysis->setMode("nickname");
+            $analysis->setNickname($user->getNick());
+        }
 
 		//	Attempt to convert nickname to a default nickname
 		if ($analysis->getMode() == "nickname") {
@@ -142,7 +144,7 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 		$user = $this->accounts->getUserByAccountID($accountID);
 
 		if ($user === false) {
-			$settings = $this->accounts->getInterface()->getSettings($accountID, "nick");
+			$settings = $this->accounts->getInterface()->getSetting($accountID, "nick");
 			//	Default nickname exists
 			if (count($settings))
 				$nickname = $settings[0]['value'];

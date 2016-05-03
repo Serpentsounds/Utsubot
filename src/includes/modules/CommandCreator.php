@@ -7,7 +7,14 @@
 
 namespace Utsubot\CommandCreator;
 use Utsubot\Permission\ModuleWithPermission;
-use Utsubot\{IRCBot, IRCMessage, ModuleException, DatabaseInterface, MySQLDatabaseCredentials};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger,
+    ModuleException,
+    DatabaseInterface,
+    MySQLDatabaseCredentials
+};
 
 
 class CommandCreatorException extends ModuleException {}
@@ -26,27 +33,26 @@ class CommandCreator extends ModuleWithPermission {
 		$this->interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
 		$this->updateCustomTriggerCache();
 
-		$this->triggers = array(
-			'addcommand'	=> "addCommand",
-			'acommand'		=> "addCommand",
-			'acmd'			=> "addCommand",
-			'ac'			=> "addCommand",
+		$this->addTrigger(new Trigger("addcommand",     array($this, "addCommand"       )));
+        $this->addTrigger(new Trigger("acommand",       array($this, "addCommand"       )));
+        $this->addTrigger(new Trigger("acmd",           array($this, "addCommand"       )));
+        $this->addTrigger(new Trigger("ac",             array($this, "addCommand"       )));
 
-			'removecommand'	=> "removeCommand",
-			'rcommand'		=> "removeCommand",
-			'rcmd'			=> "removeCommand",
-			'rc'			=> "removeCommand",
+        $this->addTrigger(new Trigger("removecommand",  array($this, "removeCommand"    )));
+        $this->addTrigger(new Trigger("rcommand",       array($this, "removeCommand"    )));
+        $this->addTrigger(new Trigger("rcmd",           array($this, "removeCommand"    )));
+        $this->addTrigger(new Trigger("rc",             array($this, "removeCommand"    )));
 
-			'editcommand'	=> "editCommand",
-			'ecommand'		=> "editCommand",
-			'ecmd'			=> "editCommand",
-			'ec'			=> "editCommand",
+        $this->addTrigger(new Trigger("editcommand",    array($this, "editCommand"      )));
+        $this->addTrigger(new Trigger("ecommand",       array($this, "editCommand"      )));
+        $this->addTrigger(new Trigger("ecmd",           array($this, "editCommand"      )));
+        $this->addTrigger(new Trigger("ec",             array($this, "editCommand"      )));
 
-			'viewcommand'	=> "viewCommand",
-			'vcommand'		=> "viewCommand",
-			'vcmd'			=> "viewCommand",
-			'vc'			=> "viewCommand"
-		);
+        $this->addTrigger(new Trigger("viewcommand",    array($this, "viewCommand"      )));
+        $this->addTrigger(new Trigger("vcommand",       array($this, "viewCommand"      )));
+        $this->addTrigger(new Trigger("vcmd",           array($this, "viewCommand"      )));
+        $this->addTrigger(new Trigger("vc",             array($this, "viewCommand"      )));
+
 	}
 
 	public function privmsg(IRCMessage $msg) {
@@ -116,7 +122,7 @@ class CommandCreator extends ModuleWithPermission {
 			break;
 			case "trigger":
 			case "triggers":
-				$triggers = $this->getTriggers($command);
+				$triggers = $this->getCustomTriggers($command);
 				$this->respond($msg, "Trigger(s) for '$command': ". implode(", ", $triggers));
 			break;
 			case "list":
@@ -178,15 +184,15 @@ class CommandCreator extends ModuleWithPermission {
 				$trigger = array_shift($parameters);
 				switch ($mode) {
 					case "add":
-						$this->addTrigger($command, $trigger);
+						$this->addCustomTrigger($command, $trigger);
 						$this->respond($msg, "Trigger '$trigger' has been added for command '$command'.");
 					break;
 					case "remove":
-						$this->removeTrigger($command, $trigger);
+						$this->removeCustomTrigger($command, $trigger);
 						$this->respond($msg, "Trigger '$trigger' has been removed from command '$command'.");
 					break;
 					case "clear":
-						$cleared = $this->clearTriggers($command);
+						$cleared = $this->clearCustomTriggers($command);
 						$this->respond($msg, "$cleared trigger(s) were removed from command '$command'.");
 					break;
 					default:
@@ -356,8 +362,8 @@ class CommandCreator extends ModuleWithPermission {
 		return $results['type'];
 	}
 
-	private function addTrigger($command, $trigger) {
-		if (isset($this->triggers[strtolower($trigger)]))
+	private function addCustomTrigger($command, $trigger) {
+		if (isset($this->getTriggers()[strtolower($trigger)]))
 			throw new CommandCreatorException("Trigger '$trigger' is reserved for a CommandCreator command.");
 
 		$id = $this->getCommandId($command);
@@ -375,7 +381,7 @@ class CommandCreator extends ModuleWithPermission {
 		return true;
 	}
 
-	private function removeTrigger($command, $trigger) {
+	private function removeCustomTrigger($command, $trigger) {
 		$id = $this->getCommandId($command);
 		$rowCount = $this->interface->query(
 			"DELETE FROM `custom_commands_triggers` WHERE `custom_commands_id`=? AND `value`=? LIMIT 1",
@@ -388,7 +394,7 @@ class CommandCreator extends ModuleWithPermission {
 		return true;
 	}
 
-	private function clearTriggers($command) {
+	private function clearCustomTriggers($command) {
 		$id = $this->getCommandId($command);
 		$rowCount = $this->interface->query(
 			"DELETE FROM `custom_commands_triggers` WHERE `custom_commands_id`=?",
@@ -401,7 +407,7 @@ class CommandCreator extends ModuleWithPermission {
 		return $rowCount;
 	}
 
-	public function getTriggers($command) {
+	public function getCustomTriggers($command) {
 		$commandID = $this->getCommandId($command);
 		if (isset($this->customTriggers[$commandID]))
 			$return = $this->customTriggers[$commandID];

@@ -32,6 +32,8 @@ class IRCMessage {
 	private $isAction = false;
     private $isOpNotice = false;
     private $opNoticeTarget = "";
+	private $kickTarget = "";
+    private $quitUser = null;
 
 	//	Used by modules to determine if this is a command issued to the bot
 	private $isCommand = false;
@@ -112,6 +114,10 @@ class IRCMessage {
 					$this->setParameters(self::removeColon(self::restOfString($words, 2)));
 				break;
 
+				case "KICK":
+					$this->kickTarget = $words[3];
+					$this->setParameters(self::removeColon(self::restOfString($words, 4)));
+				break;
 
 				default:
 					//	Raw numeric command, save the numeric
@@ -163,39 +169,6 @@ class IRCMessage {
 		}
 	}
 
-
-	/**
-	 * Given valid command prefixes, parse this message to determine if it's an issued command
-	 *
-	 * @param array $prefixes An array of command prefixes/triggers (e.g., ! for !command)
-	 * @return bool True if this message IS a command and properties were updated, false if not
-	 */
-	public function parseCommand(array $prefixes = array("!")) {
-		//	Check each command prefix with the beginning of string
-		foreach ($prefixes as $prefix) {
-			//	Command found, update properties
-			if (strlen($this->parameterString) > strlen($prefix) && substr($this->parameterString, 0, strlen($prefix)) == $prefix) {
-				$this->isCommand = true;
-				$parameters = explode(" ", substr($this->parameterString, strlen($prefix)));
-				$this->command = array_shift($parameters);
-				$this->setParameters(implode(" ", $parameters), true);
-				return true;
-			}
-		}
-
-		//	All query commands should be evaluated as a command. No need to strip the prefix, the loop would have caught it already if it had one
-		if ($this->inQuery) {
-			$this->isCommand = true;
-			$parameters = $this->parameters;
-			$this->command = array_shift($parameters);
-			$this->setParameters(implode(" ", $parameters), true);
-			return true;
-		}
-
-		//	No commands to be evaluated in this message
-		return false;
-	}
-
 	/**
 	 * Internal function to automatically update the parameters string and array at the same time
 	 *
@@ -213,14 +186,78 @@ class IRCMessage {
 		}
 	}
 
+    /**
+     * Given an array of words in a complete irc message, return a string starting at the nth word
+     *
+     * @param array $words The array of words
+     * @param int $position The first word to include
+     * @return string The joined string
+     */
+    private static function restOfString(array $words, int $position): string {
+        if (!isset($words[$position]))
+            return "";
+
+        return implode(" ", array_slice($words, $position));
+    }
+
+    /**
+     * Strip the leading colon from the parameters of an irc message, if present
+     *
+     * @param string $string The irc message
+     * @return string $string with no leading colon
+     */
+    private static function removeColon(string $string): string {
+        if (substr($string, 0, 1) == ":")
+            $string = substr($string, 1);
+
+        return $string;
+    }
+
+    /**
+     * Given valid command prefixes, parse this message to determine if it's an issued command
+     *
+     * @param array $prefixes An array of command prefixes/triggers (e.g., ! for !command)
+	 */
+    public function parseCommand(array $prefixes = array("!")) {
+        //	Check each command prefix with the beginning of string
+        foreach ($prefixes as $prefix) {
+            //	Command found, update properties
+            if (strlen($this->parameterString) > strlen($prefix) && substr($this->parameterString, 0, strlen($prefix)) == $prefix) {
+                $this->isCommand = true;
+                $parameters = explode(" ", substr($this->parameterString, strlen($prefix)));
+                $this->command = strtolower(array_shift($parameters));
+                $this->setParameters(implode(" ", $parameters), true);
+            }
+        }
+
+        //	All query commands should be evaluated as a command. No need to strip the prefix, the loop would have caught it already if it had one
+        if ($this->inQuery) {
+            $this->isCommand = true;
+            $parameters = $this->parameters;
+            $this->command = strtolower(array_shift($parameters));
+            $this->setParameters(implode(" ", $parameters), true);
+        }
+		
+    }
+
+
+    /**
+     * Keep a reference to a User who quit to allow other modules to clean up
+     *
+     * @param User $user
+     */
+    public function setQuitUser(User $user) {
+        $this->quitUser = $user;
+        print_r($user);
+    }
 
     /**
      * Mark this message as having triggered a command
      *
-     * @param string $cmd
+     * @param Trigger $trigger
      */
-    public function respond(string $cmd) {
-        $this->responded = $cmd;
+    public function respond(Trigger $trigger) {
+        $this->responded = $trigger->getTrigger();
     }
 
     /**
@@ -231,33 +268,6 @@ class IRCMessage {
     public function responded(): string {
         return $this->responded;
     }
-
-	/**
-	 * Given an array of words in a complete irc message, return a string starting at the nth word
-	 *
-	 * @param array $words The array of words
-	 * @param int $position The first word to include
-	 * @return string The joined string
-	 */
-	private static function restOfString(array $words, int $position): string {
-		if (!isset($words[$position]))
-			return "";
-
-		return implode(" ", array_slice($words, $position));
-	}
-
-	/**
-	 * Strip the leading colon from the parameters of an irc message, if present
-	 *
-	 * @param string $string The irc message
-	 * @return string $string with no leading colon
-	 */
-	public static function removeColon(string $string): string {
-		if (substr($string, 0, 1) == ":")
-			$string = substr($string, 1);
-
-		return $string;
-	}
 
     /**
      * @return string
@@ -369,6 +379,20 @@ class IRCMessage {
      */
     public function getOpNoticeTarget(): string {
         return $this->opNoticeTarget;
+    }
+
+	/**
+	 * @return string
+	 */
+	public function getKickTarget(): string {
+		return $this->kickTarget;
+	}
+
+    public function getQuitUser(): User {
+        if ($this->quitUser instanceof User)
+            return $this->quitUser;
+
+        throw new IRCMessageException("No clone of a quit User has been saved.");
     }
 
     /**

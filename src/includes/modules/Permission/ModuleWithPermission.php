@@ -10,14 +10,15 @@ namespace Utsubot\Permission;
 
 use Utsubot\{
     ModuleException,
-    IRCMessage
+    IRCMessage,
+    Trigger
 };
 use Utsubot\Accounts\ModuleWithAccounts;
 
 /**
  * Class ModuleWithPermission
  *
- * Extends Module functionality further on top of accounts levels to allow individual command blocking based on any
+ * Extends Module functionality further on top of Accounts levels to allow individual command blocking based on any
  * combination of nickname (wildcard), channel, address (wildcard), account id, or specific parameter string (wildcard)
  */
 abstract class ModuleWithPermission extends ModuleWithAccounts {
@@ -49,7 +50,7 @@ abstract class ModuleWithPermission extends ModuleWithAccounts {
     }
 
     /**
-     * Check permission before calling default parseTriggers
+     * Check permission before parsing triggers
      *
      * @param IRCMessage $msg
      */
@@ -57,11 +58,21 @@ abstract class ModuleWithPermission extends ModuleWithAccounts {
         if (!$msg->isCommand())
             return;
 
-        $triggers = $this->triggers;
-        $cmd = strtolower($msg->getCommand());
-        //	Triggered a command
-        if (isset($triggers[$cmd]) && method_exists($this, $triggers[$cmd]) && $this->hasPermission($msg, $triggers[$cmd]))
-            parent::parseTriggers($msg);
+        /** @var Trigger[] $triggers */
+        $triggers = $this->getTriggers();
+        foreach ($triggers as $trigger) {
+            if (!$this->hasPermission($msg, $trigger->getTrigger()))
+                continue;
+
+            //  Attempt to output command
+            try {
+                $trigger->trigger($msg);
+            }
+                //  Error in triggered command, output to user
+            catch (\Exception $e) {
+                $this->respond($msg, $this->parseException($e, $msg));
+            }
+        }
     }
 
 }

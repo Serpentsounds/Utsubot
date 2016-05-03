@@ -10,6 +10,7 @@ namespace Utsubot\Pokemon\Nature;
 use Utsubot\{
     IRCBot,
     IRCMessage,
+    Trigger,
     ManagerSearchCriterion
 };
 use Utsubot\Pokemon\{
@@ -47,10 +48,8 @@ class NatureModule extends ModuleWithPokemon {
         $natureManager->load();
         $this->registerManager("Nature", $natureManager);
 
-        $this->triggers = array(
-            'pnature'   => "nature",
-            'pnat'      => "nature"
-        );
+        $this->addTrigger(new Trigger("pnature",    array($this, "nature")));
+        $this->addTrigger(new Trigger("pnat",       array($this, "nature")));
     }
 
     /**

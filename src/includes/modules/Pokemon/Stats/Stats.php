@@ -10,6 +10,7 @@ namespace Utsubot\Pokemon\Stats;
 use Utsubot\{
     IRCBot,
     IRCMessage,
+    Trigger,
     Color
 };
 use Utsubot\Pokemon\{
@@ -28,28 +29,26 @@ class Stats extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
-        $this->triggers = array(
-            'phiddenpower'	=> "hiddenPower",
-            'php'			=> "hiddenPower",
+        $this->addTrigger(new Trigger("phiddenpower",   array($this, "hiddenPower"  )));
+        $this->addTrigger(new Trigger("php",            array($this, "hiddenPower"  )));
 
-            'piv'			=> "calculateIVs",
+        $this->addTrigger(new Trigger("piv",            array($this, "calculateIVs" )));
 
-            'maxtobase'		=> "baseMax",
-            'm2b'			=> "baseMax",
-            'mtob'			=> "baseMax",
-            'basetomax'		=> "baseMax",
-            'b2m'			=> "baseMax",
-            'btom'			=> "baseMax",
-            'maxtobase50'	=> "baseMax",
-            'm2b50'			=> "baseMax",
-            'mtob50'		=> "baseMax",
-            'basetomax50'	=> "baseMax",
-            'b2m50'			=> "baseMax",
-            'btom50'		=> "baseMax",
+        $this->addTrigger(new Trigger("maxtobase",      array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("m2b",            array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("mtob",           array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("basetomax",      array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("b2m",            array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("btom",           array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("maxtobase50",    array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("m2b50",          array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("mtob50",         array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("basetomax50",    array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("b2m50",          array($this, "baseMax"      )));
+        $this->addTrigger(new Trigger("btom50",         array($this, "baseMax"      )));
 
-            'pstat'			=> "baseStat",
-            'pstats'		=> "baseStat"
-        );
+        $this->addTrigger(new Trigger("pstat",          array($this, "baseStat"     )));
+        $this->addTrigger(new Trigger("pstats",         array($this, "baseStat"     )));
     }
 
     public function baseMax(IRCMessage $msg) {

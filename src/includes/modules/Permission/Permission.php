@@ -6,7 +6,15 @@
  */
 
 namespace Utsubot\Permission;
-use Utsubot\{ModuleException, IRCBot, IRCMessage, DatabaseInterface, MySQLDatabaseCredentials, User};
+use Utsubot\{
+    ModuleException,
+    IRCBot,
+    IRCMessage,
+    Trigger,
+    DatabaseInterface,
+    MySQLDatabaseCredentials,
+    User
+};
 
 
 class PermissionException extends ModuleException {}
@@ -30,12 +38,11 @@ class Permission extends ModuleWithPermission {
 		parent::__construct($irc);
 
 		$this->interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
-		$this->triggers = array(
-			'allow'		=> "allow",
-			'deny'		=> "deny",
-			'unallow'	=> "unallow",
-			'undeny'	=> "undeny",
-		);
+		
+		$this->addTrigger(new Trigger("allow",      array($this, "allow"    )));
+		$this->addTrigger(new Trigger("deny",       array($this, "deny"     )));
+		$this->addTrigger(new Trigger("unallow",    array($this, "unallow"  )));
+		$this->addTrigger(new Trigger("undeny",     array($this, "undeny"   )));
 	}
 
 	/**

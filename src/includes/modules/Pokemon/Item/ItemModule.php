@@ -8,10 +8,14 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Item;
 use Utsubot\{
-    IRCBot, IRCMessage, ManagerSearchCriterion
+    IRCBot,
+    IRCMessage,
+    Trigger
 };
 use Utsubot\Pokemon\{
-    ModuleWithPokemon, ModuleWithPokemonException, VeekunDatabaseInterface
+    ModuleWithPokemon,
+    ModuleWithPokemonException,
+    VeekunDatabaseInterface
 };
 use function Utsubot\bold;
 
@@ -42,9 +46,7 @@ class ItemModule extends ModuleWithPokemon {
         $itemManager->load();
         $this->registerManager("Item", $itemManager);
 
-        $this->triggers = array(
-            'pitem' => "item"
-        );
+        $this->addTrigger(new Trigger("pitem", array($this, "item")));
     }
 
     /**

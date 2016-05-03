@@ -10,6 +10,7 @@ namespace Utsubot\Pokemon\Ability;
 use Utsubot\{
     IRCBot,
     IRCMessage,
+    Trigger,
     ManagerSearchCriterion
 };
 use Utsubot\Pokemon\{
@@ -46,11 +47,10 @@ class AbilityModule extends ModuleWithPokemon {
         $abilityManager = new AbilityManager(new VeekunDatabaseInterface());
         $abilityManager->load();
         $this->registerManager("Ability", $abilityManager);
-        
-        $this->triggers = array(
-            'pability'  => "ability",
-            'pabl'      => "ability"
-        );
+
+
+        $this->addTrigger(new Trigger("pability",   array($this, "ability")));
+        $this->addTrigger(new Trigger("pabl",       array($this, "ability")));
     }
 
     /**

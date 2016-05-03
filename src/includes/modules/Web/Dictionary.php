@@ -6,38 +6,85 @@
  */
 
 namespace Utsubot\Web;
-use Utsubot\Module;
-use function Utsubot\{bold, italic};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger
+};
+use function Utsubot\{
+    bold,
+    italic
+};
 
-class DictionaryException extends WebSearchException {}
 
-class Dictionary implements WebSearch {
+/**
+ * Class DictionaryException
+ *
+ * @package Utsubot\Web
+ */
+class DictionaryException extends WebModuleException {}
 
-	const NUMBER_OF_SUGGESTIONS = 5;
+/**
+ * Class Dictionary
+ *
+ * @package Utsubot\Web
+ */
+class Dictionary extends WebModule {
 
-	private static $APIKey = "";
+	const NumberOfSuggestions = 5;
 
-	/**
-	 * Look up a word via Merriam-Webster API
-	 *
-	 * @param string $search
-	 * @param array $options Unavailable
-	 * @return string Definition and examples
-	 */
-	public static function search(string $search, array $options = array()): string {
-		//	Make sure API Key is set
-		if (!strlen(self::$APIKey))
-			self::$APIKey = Module::loadAPIKey("dictionary");
+    /**
+     * Dictionary constructor.
+     *
+     * @param IRCBot $IRCBot
+     */
+    public function __construct(IRCBot $IRCBot) {
+        parent::__construct($IRCBot);
 
-		$number = 1;
-		if (isset($options['number']) && is_int($options['number']) && $options['number'] > 0)
-			$number = $options['number'];
+        $this->addTrigger(new Trigger("d",              array($this, "dictionary")));
+        $this->addTrigger(new Trigger("def",            array($this, "dictionary")));
+        $this->addTrigger(new Trigger("define",         array($this, "dictionary")));
+        $this->addTrigger(new Trigger("dic",            array($this, "dictionary")));
+        $this->addTrigger(new Trigger("dictionary",     array($this, "dictionary")));
+    }
 
-		return self::dictionarySearch($search, $number);
-	}
+    /**
+     * Output results of a dictionary search to the user
+     *
+     * @param IRCMessage $msg
+     * @throws DictionaryException
+     *
+     * @usage !define <term>
+     */
+    public function dictionary(IRCMessage $msg) {
+        $this->requireParameters($msg, 1);
+        $parameters = $msg->getCommandParameters();
 
-	public static function dictionarySearch($term, $number = 1) {
-		$xml = resourceBody("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/". urlencode($term). "?key=". self::$APIKey);
+        $number = 1;
+        $copy = $parameters;
+        $last = array_pop($copy);
+        //  Match a trailing integer to ordinally cycle through definitions
+        if (!preg_match("/\\D+/", $last) && intval($last) > 0) {
+            $number = intval($last);
+            $parameters = $copy;
+        }
+
+        $this->respond($msg, $this->dictionarySearch(implode(" ", $parameters), $number));
+    }
+
+    /**
+     * Perform a dictionary search
+     *
+     * @param string $term
+     * @param int    $number
+     * @return string
+     * @throws APIKeysException
+     * @throws DictionaryException
+     */
+	public function dictionarySearch(string $term, int $number = 1): string {
+        $APIKey = $this->getAPIKeys()->getAPIKey("dictionary");
+
+		$xml = resourceBody("http://www.dictionaryapi.com/api/v1/references/collegiate/xml/". urlencode($term). "?key=$APIKey");
 		$parser = xml_parser_create("UTF-8");
 		xml_parse_into_struct($parser, $xml, $values, $indices);
 
@@ -59,7 +106,7 @@ class Dictionary implements WebSearch {
 					$count++;
 
 					//	Too many suggestions, stop early
-					if ($count >= self::NUMBER_OF_SUGGESTIONS)
+					if ($count >= self::NumberOfSuggestions)
 						break;
 				}
 
@@ -74,17 +121,16 @@ class Dictionary implements WebSearch {
 				throw new DictionaryException("No definition found for '$term'.");
 		}
 
-
 		//	Indexes of the start and close ENTRY tags, all definition info will be somewhere between these
 		$lowerIndex = $indices['ENTRY'][$lowerIndexIndex];
 		$upperIndex = $indices['ENTRY'][$upperIndexIndex];
 
 		//	Grab part of speech index and value
-		$partOfSpeechIndex = self::valuesBetween($indices['FL'], $lowerIndex, $upperIndex)[0];
+		$partOfSpeechIndex = array_slice($indices['FL'], $lowerIndex, $upperIndex - $lowerIndex)[0];
 		$partOfSpeech = $values[$partOfSpeechIndex]['value'];
 
 		//	Search for definitions within range
-		$definitionIndices = self::valuesBetween($indices['DT'], $lowerIndex, $upperIndex);
+		$definitionIndices = array_slice($indices['DT'], $lowerIndex, $upperIndex - $lowerIndex);
 		$return = array();
 
 		foreach ($definitionIndices as $key => $index) {
@@ -128,28 +174,22 @@ class Dictionary implements WebSearch {
 			//	Continuing from an "open" definition from interruption of some other tag
 			elseif ($definitionInfo['type'] == "cdata") {
 				$lastIndex = count($return) - 1;
-				$return[$lastIndex] = trim($return[$lastIndex]). trim($definition);
+                if (isset($return[$lastIndex]))
+				    $return[$lastIndex] = trim($return[$lastIndex]). trim($definition);
 			}
 		}
 
+        //  No data was extracted from definition, check the next one
 		if (!$return)
 			return self::dictionarySearch($term, $number + 1);
 
-		return sprintf("%s (%s): %s", bold($term), italic($partOfSpeech), implode("; ", $return));
+		return sprintf(
+            "%s (%s): %s",
+            bold($term),
+            italic($partOfSpeech),
+            implode("; ", array_filter($return))
+        );
 
 	}
 
-	private static function valuesBetween($array, $lowerIndex, $upperIndex) {
-		$return = array();
-		foreach ($array as $val) {
-			if ($val < $lowerIndex)
-				continue;
-			elseif ($val > $upperIndex)
-				break;
-
-			$return[] = $val;
-		}
-
-		return $return;
-	}
 }

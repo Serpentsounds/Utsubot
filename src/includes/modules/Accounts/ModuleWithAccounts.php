@@ -7,40 +7,83 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Accounts;
-use Utsubot\{Module, ModuleException, IRCMessage, User};
+use Utsubot\{
+    Module,
+    ModuleException,
+    IRCBot,
+    IRCMessage,
+    User
+};
 
+
+/**
+ * Class ModuleWithAccountsException
+ *
+ * @package Utsubot\Accounts
+ */
+class ModuleWithAccountsException extends ModuleException {}
+
+/**
+ * Class ModuleWithAccounts
+ *
+ * @package Utsubot\Accounts
+ */
 abstract class ModuleWithAccounts extends Module {
+    
+    /**
+     * Register an account settings field to this module and insert it into the database, if necessary
+     *
+     * @param Setting $setting
+     * @throws AccountsDatabaseInterfaceException
+     */
+    protected function registerSetting(Setting $setting) {
+        $this->getAccounts()->registerSetting($setting);
+    }
+
+    /**
+     * This function will be called when a user attempts to set a setting on his or her account
+     * If the parameters are deemed invalid, an exception should be thrown
+     * 
+     * @param Setting $setting
+     * @param string  $value
+     */
+    public function validateSetting(Setting $setting, string $value) {}
 
     /**
      * Internal function to verify and return the Accounts class and object
      *
      * @return Accounts
-     * @throws \Exception
+     * @throws \Utsubot\ModuleException
      */
     protected function getAccounts(): Accounts {
         return $this->externalModule("Utsubot\\Accounts\\Accounts");
     }
 
     /**
-     * Get settings regarding another command
-     * Custom settings are optional, so exceptions here are caught and ignored
+     * Get a registered setting object by matching the name field
      *
-     * @param string $nick User nickname
-     * @param string $setting The name of the single setting as a string
-     * @return string|bool The setting value or false if it isn't set
+     * @param string $name
+     * @return Setting
+     * @throws ModuleWithAccountsException
      */
-    protected function getSetting($nick, $setting) {
-        $accounts = $this->getAccounts();
+    public function getSettingObject(string $name): Setting {
+        return $this->getAccounts()->getSettingObject($name);
+    }
 
-        $users = $this->IRCBot->getUsers();
-        if (($user = $users->search($nick)) && $user instanceof User) {
-            $accountID = $accounts->getAccountIDByUser($user);
+    /**
+     * Get settings regarding another command
+     *
+     * @param string $nick
+     * @param Setting $setting
+     * @return string
+     * @throws AccountsDatabaseInterfaceException
+     */
+    protected function getSetting(string $nick, Setting $setting) {
+        $accountID = $this->getAccountIDByNickname($nick);
 
-            if ($accountID !== false && ($settings = $accounts->getInterface()->getSettings($accountID, $setting)))
-                return $settings[0]['value'];
-        }
-
-        return null;
+        $settings = $this->getAccounts()->getInterface()->getSetting($accountID, $setting);
+        return $settings[0]['value'];
+        
     }
 
     /**
@@ -50,24 +93,44 @@ abstract class ModuleWithAccounts extends Module {
      * @param int $level
      * @throws ModuleException Accounts not loaded or user does not have permission
      */
-    protected function requireLevel(IRCMessage $msg, $level) {
+    protected function requireLevel(IRCMessage $msg, int $level) {
         $accounts = $this->getAccounts();
 
         $users = $this->IRCBot->getUsers();
         $user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-        $accounts->requireLevel($user, $level);
+
+        //	Confirm login and get level. May throw exception
+        $userLevel = $accounts->getAccessByUser($user);
+
+        if ($userLevel < $level)
+            throw new ModuleWithAccountsException("You need level $level to access that command. Your current access level is $userLevel.");
     }
 
     /**
      * Get the account ID of a user if they are logged in
      *
      * @param User $user
-     * @return bool|int ID or false if not logged in
+     * @return int
      * @throws ModuleException Accounts not loaded
+     * @throws AccountsException User is not logged in
      */
-    protected function getAccountIDByUser(User $user) {
+    protected function getAccountIDByUser(User $user): int {
         $accounts = $this->getAccounts();
 
         return $accounts->getAccountIDByUser($user);
+    }
+
+    /**
+     * Fetch the account ID of a nickname
+     *
+     * @param string $nickname
+     * @return int
+     * @throws AccountsException
+     * @throws \Utsubot\ManagerException
+     */
+    protected function getAccountIDByNickname(string $nickname): int {
+        $users = $this->IRCBot->getUsers();
+        $user = $users->search($nickname);
+        return $this->getAccountIDByUser($user);
     }
 }

@@ -7,7 +7,14 @@
 
 namespace Utsubot\GameNetworking;
 use Utsubot\Permission\ModuleWithPermission;
-use Utsubot\{IRCBot, IRCMessage, ModuleException, MySQLDatabaseCredentials, DatabaseInterfaceException};
+use Utsubot\{
+	IRCBot,
+    IRCMessage,
+    Trigger,
+    ModuleException,
+    MySQLDatabaseCredentials,
+    DatabaseInterfaceException
+};
 use function Utsubot\bold;
 
 
@@ -38,12 +45,10 @@ class GameNetworking extends ModuleWithPermission {
 		);
 
 		$this->updateValidCodeCache();
-
-		$this->triggers = array(
-			'code'       => "code",
-			'fc'         => "code",
-			'friendcode' => "code"
-		);
+		
+		$this->addTrigger(new Trigger("code", 		array($this, "code")));
+		$this->addTrigger(new Trigger("fc", 		array($this, "code")));
+		$this->addTrigger(new Trigger("friendcode",	array($this, "code")));
 	}
 
 	/**

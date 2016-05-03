@@ -6,573 +6,613 @@
  */
 
 namespace Utsubot\Accounts;
-use Utsubot\{Module, ModuleException, IRCBot, IRCMessage, User};
+use Utsubot\{
+    ModuleException,
+    IRCBot,
+    Trigger,
+    IRCMessage,
+    User
+};
 use function Utsubot\bold;
 
-class AccountsException extends ModuleException {}
-
-class Accounts extends Module {
-
-	private $interface;
-	private $defaultNickCheck = array();
-	private $loggedIn = array();
-
-	public function __construct(IRCBot $IRCBot) {
-		$this->_require("Utsubot\\Accounts\\AccountsDatabaseInterface");
-		$this->_require("Utsubot\\MySQLDatabaseCredentials");
-
-		parent::__construct($IRCBot);
-		$this->interface = new AccountsDatabaseInterface();
-
-		$this->triggers = array(
-			'login'		=> "login",
-			'logout'	=> "logout",
-			'register'	=> "register",
-			'set'		=> "set",
-			'unset'		=> "_unset",
-			'settings'	=> "settings",
-			'access'	=> "access"
-		);
-	}
-
-	public function getInterface() {
-		return $this->interface;
-	}
-
-	/**
-	 * Given an IRCMessage and command triggers, call the necessary methods and process errors
-	 *
-	 * @param IRCMessage $msg
-	 */
-	protected function parseTriggers(IRCMessage $msg) {
-		//	Account modification should only be done in private message
-		if (!$msg->inQuery())
-			return;
-
-		parent::parseTriggers($msg);
-	}
-
-	public function raw(IRCMessage $msg) {
-		switch ($msg->getRaw()) {
-
-			/*
-			 *	Logged into NickServ, used when verifying default nickname
-			 */
-			case 307:
-			case 330:
-				$parameters = $msg->getParameters();
-				//	Adjust to format for different raws
-				$nick = ($msg->getRaw() == 307) ? $parameters[0] : $parameters[1];
-
-				//	Make sure user is in the verification process
-				if (isset($this->defaultNickCheck[$nick])) {
-					//	Remove user from list of pending verifications
-					$info = $this->defaultNickCheck[$nick];
-					unset($this->defaultNickCheck[$nick]);
-
-					//	Make sure that this response corresponds to the recent request, but allow 5 seconds for server latency
-					if (time() - $info['time'] <= 5) {
-						try {
-							$this->interface->setSettings($info['accountID'], "nick", $nick);
-							$this->IRCBot->message($nick, "Your default nickname has been saved as ". bold($nick). ".");
-						}
-						catch (\Exception $e) {
-							$this->IRCBot->message($nick, "Unable to save your default nickname in the database. Is it already set?");
-						}
-
-					}
-				}
-			break;
-
-			/*
-			 *	End of /WHOIS, report default nickname verification failure
-			 */
-			case 318:
-				$nick = $msg->getParameters()[0];
-				//	Make sure user is in the verification process
-				if (isset($this->defaultNickCheck[$nick])) {
-					unset($this->defaultNickCheck[$nick]);
-					$this->IRCBot->message($nick, "Unable to save your default nickname because you are not identified with NickServ.");
-				}
-			break;
-		}
-	}
-
-	/**
-	 * Search for auto-login entries that can be applied to a User when one is created, and attempt to log them in
-	 *
-	 * @param User $user
-	 * @throws AccountsException
-	 */
-	public function user(User $user) {
-		try {
-			//	Account ID to be logged in to
-			$accountID = $this->interface->getAutoLogin("{$user->getNick()}!{$user->getAddress()}");
-			$this->loginUser($user, $accountID);
-
-			if (!($this->interface->getSettings($accountID, "disablenotify"))) {
-				$level = $this->interface->getAccessByID($accountID);
-				$username = $this->interface->getUsername($accountID);
-
-				$this->IRCBot->message($user->getNick(), "You have automatically been logged into your account '$username'. Your access level is $level. To disable these notifications, use the command 'set disablenotify'.");
-			}
-		}
-		catch (AccountsException $e) {}
-	}
-
-	/**
-	 * Attempt to log user in with given credentials
-	 *
-	 * @param IRCMessage $msg
-	 * @throws AccountsException
-	 */
-	public function login(IRCMessage $msg) {
-		$users = $this->IRCBot->getUsers();
-		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-		$parameters = $msg->getCommandParameters();
-
-		//	Not enough parameters
-		if (count($parameters) < 2)
-			throw new AccountsException("Syntax: LOGIN <username> <password>");
-		list($username, $password) = $parameters;
-
-		//	Attempt login, exception thrown if unsuccessful
-		$this->interface->verifyPassword($username, $password);
-		$accountID = $this->interface->getAccountID($username);
-		$this->loginUser($user, $accountID);
-
-		$level = $this->interface->getAccessByID($accountID);
-		$this->respond($msg, "Login successful. Your access level is $level.");
-	}
-
-	/**
-	 * Log out of current account
-	 *
-	 * @param IRCMessage $msg
-	 * @throws AccountsException
-	 */
-	public function logout(IRCMessage $msg) {
-		$users = $this->IRCBot->getUsers();
-		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-
-		//	Exception if user is not logged in to begin with
-		$this->confirmLogin($user);
-
-		if (!$this->logoutUser($user))
-			throw new AccountsException("An error occured while logging you out. Please try again.");
-
-		$this->respond($msg, "You have logged out of your account.");
-	}
-
-	/**
-	 * Register a new account
-	 *
-	 * @param IRCMessage $msg
-	 * @throws AccountsException
-	 */
-	public function register(IRCMessage $msg) {
-		$users = $this->IRCBot->getUsers();
-		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-		$parameters = $msg->getCommandParameters();
-
-		//	Cannot be logged in
-		if (is_int($this->getAccountIDByUser($user)))
-			throw new AccountsException("You are already registered!");
-
-		//	Not enough parameters
-		if (count($parameters) < 2)
-			throw new AccountsException("Syntax: REGISTER <username> <password>");
-		list($username, $password) = $parameters;
-
-		//	Validate credentials
-		if (!is_string($username) || preg_match('/\s/', $username))
-			throw new AccountsException("Invalid username format. Pass a string with no whitespace.");
-		if (!is_string($password) || preg_match('/\s/', $password))
-			throw new AccountsException("Invalid password format. Pass a string with no whitespace.");
-
-		//	Attempt registration
-		try {
-			$this->interface->register($username, $password);
-		}
-			//	Insert failed, duplicate username
-		catch (\PDOException $e) {
-			throw new AccountsException("Username '$username' already exists!");
-		}
-
-		//	Success
-		$this->respond($msg,"Registration successful. Please remember your username and password for later use: '$username', '$password'. You will now be automatically logged in.");
-
-		//	Add autologin host
-		$autoLogin =  "*!*{$msg->getIdent()}@{$msg->getFullHost()}";
-		$accountID = $this->interface->getAccountID($username);
-		$this->interface->setSettings($accountID, "autologin", $autoLogin);
-		//	Automatically login upon registration
-		$this->loginUser($user, $accountID);
-		$this->respond($msg, "$autoLogin has been added as an autologin host for this account. You will automatically be logged in when connecting from this host. To remove this, please use 'unset autologin'.");
-
-
-		//	Attempt to automatically set nickname, if it's not already set
-		$settings = $this->interface->searchSettings("nick", $msg->getNick());
-		if (count($settings))
-			$this->respond($msg, "Your nickname could not be linked to your account because it is already linked to another account.");
-		else
-			$this->setDefaultNick($accountID, $msg->getNick());
-	}
-
-	/**
-	 * Update account settings
-	 *
-	 * @param IRCMessage $msg
-	 * @throws AccountsException
-	 */
-	public function set(IRCMessage $msg) {
-		$users = $this->IRCBot->getUsers();
-		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-
-		//	Must be logged in
-		$accountID = $this->confirmLogin($user);
-		$parameters = $msg->getCommandParameters();
-
-		//	Not enough parameters
-		if (!count($parameters))
-			throw new AccountsException("Syntax: SET <option> [<value>]");
-		$option = $parameters[0];
-
-		//	Setting default nickname
-		if ($option == "nick")
-			$this->setDefaultNick($accountID, $msg->getNick());
-
-		//	Changing password
-		elseif ($option == "password") {
-			//	Not enough parameters
-			if (!(count($parameters) >= 3))
-				throw new AccountsException("Syntax: SET PASSWORD <old password> <new password>");
-			list(, $password, $newPassword) = $parameters;
-
-			if (!is_string($newPassword) || preg_match('/\s/', $newPassword))
-				throw new AccountsException("Invalid password format. Pass a string with no whitespace.");
-
-			$username = $this->interface->getUsername($accountID);
-			$this->interface->verifyPassword($username, $password);
-			$this->interface->setPassword($username, $newPassword);
-			$this->respond($msg, "Your password has been saved.");
-		}
-
-		//	Change another account setting
-		else {
-			//	Parse <value>
-			$value = (count($parameters) > 1) ? implode(" ", array_slice($parameters, 1)) : "";
-
-			//	Exception thrown if settings are invalid or unsuccessful
-			$this->interface->setSettings($accountID, $parameters[0], $value);
-
-			$this->respond($msg, "Settings have been saved.");
-		}
-	}
-
-	/**
-	 * Remove account settings
-	 *
-	 * @param IRCMessage $msg
-	 * @throws AccountsException
-	 */
-	public function _unset(IRCMessage $msg) {
-		$users = $this->IRCBot->getUsers();
-		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-
-		//	Must be logged in
-		$accountID = $this->confirmLogin($user);
-		$parameters = $msg->getCommandParameters();
-
-		//	Not enough parameters. <value> is an optional parameter, for an exact removal match
-		if (!count($parameters))
-			throw new AccountsException("Syntax: UNSET <option> [<value>]");
-
-		//	Parse <value>
-		$entry = (count($parameters) > 1) ? implode(" ", array_slice($parameters, 1)) : "";
-
-		//	Exception thrown if settings are invalid or unsuccessful
-		$this->interface->removeSettings($accountID, $parameters[0], $entry);
-
-		$this->respond($msg, "Settings have been removed.");
-	}
-
-	/**
-	 * View current account settings
-	 *
-	 * @param IRCMessage $msg
-	 * @throws AccountsException
-	 */
-	public function settings(IRCMessage $msg) {
-		$users = $this->IRCBot->getUsers();
-		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-
-		//	Must be logged in
-		$login = $this->confirmLogin($user);
-		$parameters = $msg->getCommandParameters();
-
-		//	Exception thrown if all settings are invalid
-		$settings = $this->interface->getSettings($login, $parameters);
-
-		//	Empty set of settings
-		if (!$settings) {
-			if (!count($parameters))
-				throw new AccountsException("You have no account settings saved.");
-
-			throw new AccountsException("You have no account settings saved under those categories.");
-		}
-
-		//	Construct reply
-		$response = $responseString = array();
-		//	List each setting under name of setting
-		foreach ($settings as $setting) {
-			$key = "{$setting['name']} ({$setting['display']})";
-			$response[$key][] = (strlen($setting['value'])) ? $setting['value'] : "enabled";
-		}
-		//	Convert name => settings[] entries into readable format
-		foreach ($response as $setting => $values)
-			$responseString[] = "$setting: ". implode(", ", $values);
-
-		$this->respond($msg, implode("; ", $responseString));
-	}
-
-	/**
-	 * Manage or view account access
-	 *
-	 * @param IRCMessage $msg
-	 * @throws AccountsException
-	 */
-	public function access(IRCMessage $msg) {
-		$users = $this->IRCBot->getUsers();
-		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-		$parameters = $msg->getCommandParameters();
-
-		//	No parameters, return user's access level
-		if (empty($parameters)) {
-			$level = $this->getAccessByUser($user);
-			$this->respond($msg, "Your current level is $level.");
-		}
-		else {
-
-			switch (strtolower($parameters[0])) {
-
-				/**
-				 * 	Give a new account access
-				 */
-				case "add":
-					$userLevel = $this->requireLevel($user, 90);
-
-					//	Require a 3rd parameter as level for add
-					if (count($parameters) < 3)
-						throw new AccountsException("Syntax: ACCESS ADD <user> <value>");
-
-					list(, $nickname, $level) = $parameters;
-
-					//	Make sure target user is online. Access can only be modified through nickname, not account name.
-					if (!(($targetUser = $users->search($nickname)) && $targetUser instanceof User))
-						throw new AccountsException("Unable to find user '$nickname'.");
-
-					//	Make sure target user is logged in to an account
-					$accountID = $this->getAccountIDByUser($targetUser);
-					if (!is_int($accountID))
-						throw new AccountsException("User '{$targetUser->getNick()}' is not logged in.");
-
-					//	Prevent modifying somebody with higher access than you
-					$targetUserLevel = $this->interface->getAccessByID($accountID);
-					if ($targetUserLevel >= $userLevel)
-						throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
-
-					if ($level >= $userLevel)
-						throw new AccountsException("You do not have permission to grant level $level.");
-
-					//	Attempt to set level. A malformed $level will thrown an exception
-					$this->interface->setAccess($accountID, intval($level));
-
-					$this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
-				break;
-
-				/**
-				 * 	Remove access from an account (reset to level 0)
-				 */
-				case "remove":
-					$userLevel = $this->requireLevel($user, 90);
-
-					//	Not enough parameters
-					if (count($parameters) < 2)
-						throw new AccountsException("Syntax: ACCESS REMOVE <user>");
-
-					$nickname = $parameters[1];
-
-					//	Make sure target user is online. Access can only be modified through nickname, not account name.
-					if (!(($targetUser = $users->search($nickname)) && $targetUser instanceof User))
-						throw new AccountsException("Unable to find user '$nickname'.");
-
-					//	Make sure target user is logged in to an account
-					$accountID = $this->getAccountIDByUser($targetUser);
-					if (!is_int($accountID))
-						throw new AccountsException("User '{$targetUser->getNick()}' is not logged in.");
-
-					//	Prevent modifying somebody with higher access than you
-					$targetUserLevel = $this->interface->getAccessByID($accountID);
-					if ($targetUserLevel >= $userLevel)
-						throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
-
-					//	Attempt to set level. A malformed $level will thrown an exception
-					$this->interface->setAccess($accountID, 0);
-
-					$this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
-				break;
-
-				/**
-				 * 	Get the access of an online user
-				 */
-				case "list":
-					//	Not enough parameters, default to user
-					if (count($parameters) < 2)
-						$nickname = $msg->getNick();
-					else
-						$nickname = $parameters[1];
-
-					//	Make sure target user is online. Access can only be modified through nickname, not account name.
-					if (!(($targetUser = $users->search($nickname)) && $targetUser instanceof User))
-						throw new AccountsException("Unable to find user '$nickname'.");
-
-					//	Make sure target user is logged in to an account
-					$accountID = $this->getAccountIDByUser($targetUser);
-					if (!is_int($accountID))
-						throw new AccountsException("User '{$targetUser->getNick()}' is not logged in.");
-
-					$targetUserLevel = $this->interface->getAccessByID($accountID);
-
-					$this->respond($msg, "Access level for '{$targetUser->getNick()}' is $targetUserLevel.");
-				break;
-
-				/**
-				 * 	Malformed query
-				 */
-				default:
-					//	Not enough parameters
-					if (count($parameters) < 2)
-						throw new AccountsException("Syntax: ACCESS [ADD|REMOVE|LIST] [<user>] [<value>]");
-				break;
-			}
-
-		}
-	}
-
-	/**
-	 * Helper function to begin the default nickname verification upon registration or manual setting
-	 *
-	 * @param $accountID
-	 * @param $nick
-	 */
-	public function setDefaultNick($accountID, $nick) {
-		$this->defaultNickCheck[$nick] = array('time' => time(), 'accountID' => $accountID);
-		$this->IRCBot->raw("WHOIS $nick");
-	}
-
-	/**
-	 * Confirm that a User meets an access level requirement, or abort via exception
-	 *
-	 * @param User $user
-	 * @param int $level Minimum level
-	 * @return int The User's level
-	 * @throws AccountsException If the level does not meet the minimum, or if the user is not logged in
-	 */
-	public function requireLevel(User $user, $level) {
-		//	Confirm login and get level. May throw exception
-		$userLevel = $this->getAccessByUser($user);
-
-		if ($userLevel < $level)
-			throw new AccountsException("You need level $level to access that command. Your current access level is $userLevel.");
-
-		return $userLevel;
-	}
-
-	/**
-	 * Get the access level for a User object. Default 0, unregistered has a level of -1
-	 *
-	 * @param User $user
-	 * @return int -1 if account ID doesn't exist, or their access level otherwise
-	 */
-	public function getAccessByUser(User $user) {
-		$accountID = $this->getAccountIDByUser($user);
-		if ($accountID === false)
-			return -1;
-
-		return $this->interface->getAccessByID($accountID);
-	}
-
-	/**
-	 * Fetch the account ID of a User
-	 *
-	 * @param User $user
-	 * @return int|null Account ID, or null if they're not logged in
-	 */
-	public function getAccountIDByUser(User $user) {
-		$id = $user->getId();
-		if (isset($this->loggedIn[$id]))
-			return $this->loggedIn[$id];
-
-		return null;
-	}
-
-	/**
-	 * Fetch the nickname of the user current logged in to an account
-	 *
-	 * @param string $accountID
-	 * @return User|bool Nickname or false on failure
-	 */
-	public function getUserByAccountID($accountID) {
-		$index = array_search($accountID, $this->loggedIn);
-		if ($index !== false) {
-			$users = $this->IRCBot->getUsers();
-			return $users->get($index);
-		}
-
-		return false;
-	}
-
-	/**
-	 * Mark a User as being logged in to an account
-	 *
-	 * @param User $user
-	 * @param int $accountID
-	 */
-	public function loginUser(User $user, $accountID) {
-		$this->loggedIn[$user->getId()] = $accountID;
-	}
-
-	/**
-	 * Logs a User out of their account
-	 *
-	 * @param User $user
-	 * @return bool True on success, false if they're not logged in
-	 */
-	public function logoutUser(User $user) {
-		$id = $user->getId();
-		if (isset($this->loggedIn[$id])) {
-			unset($this->loggedIn[$id]);
-			return true;
-		}
-
-		return false;
-	}
-
-
-	/**
-	 * Confirm that a User is logged in
-	 *
-	 * @param User $user
-	 * @return int The User's account ID
-	 * @throws AccountsException If the User is not logged in
-	 */
-	public function confirmLogin(User $user) {
-		$id = $this->getAccountIDByUser($user);
-		if (!is_int($id))
-			throw new AccountsException("You are not logged in.");
-
-		return $id;
-	}
+
+class AccountsException extends ModuleException {
+}
+
+class Accounts extends ModuleWithAccounts {
+
+    private $interface;
+
+    /** @var Setting[] $settings */
+    private $settings;
+
+    private $autoLoginCache   = array();
+    private $loggedIn         = array();
+    private $defaultNickCheck = array();
+
+    public function __construct(IRCBot $IRCBot) {
+        parent::__construct($IRCBot);
+        $this->interface = new AccountsDatabaseInterface();
+
+        $this->registerSetting(new Setting($this, "nick", "Default Nickname", 1));
+        $this->registerSetting(new Setting($this, "disablenotify", "Disable Auto Login Notification", 1));
+        $this->registerSetting(new Setting($this, "autologin", "Auto Login Host", 5));
+
+        $this->addTrigger(new Trigger("login",      array($this, "login"    )));
+        $this->addTrigger(new Trigger("logout",     array($this, "logout"   )));
+        $this->addTrigger(new Trigger("register",   array($this, "register" )));
+        $this->addTrigger(new Trigger("set",        array($this, "set"      )));
+        $this->addTrigger(new Trigger("unset",      array($this, "_unset"   )));
+        $this->addTrigger(new Trigger("settings",   array($this, "settings" )));
+        $this->addTrigger(new Trigger("access",     array($this, "access"   )));
+
+        $this->updateAutoLoginCache();
+    }
+
+    /**
+     * Register a setting upon module initialization for use with the 'set' command
+     *
+     * @param Setting $setting
+     * @throws AccountsDatabaseInterfaceException
+     */
+    public function registerSetting(Setting $setting) {
+        $this->settings[] = $setting;
+        $this->interface->registerSetting($setting);
+    }
+
+    /**
+     * Cache auto login information from the database
+     *
+     * @throws AccountsException
+     */
+    private function updateAutoLoginCache() {
+        $autoLogin = $this->interface->getGlobalSettings($this->getSettingObject("autologin"));
+
+        foreach ($autoLogin as $row)
+            $this->autoLoginCache[ intval($row['id']) ][] = $row['value'];
+    }
+
+    /**
+     * Get a registered setting object by matching the name field
+     *
+     * @param string $name
+     * @return Setting
+     * @throws AccountsException
+     */
+    public function getSettingObject(string $name): Setting {
+        foreach ($this->settings as $setting)
+            if ($setting->getName() == $name)
+                return $setting;
+
+        throw new AccountsException("No setting has been registered with name '$name'.");
+    }
+
+    /**
+     * @param Setting $setting
+     * @param string  $value
+     * @throws AccountsException
+     */
+    public function validateSetting(Setting $setting, string $value) {
+        switch ($setting->getName()) {
+            case "disablenotify":
+                if (strlen($value))
+                    throw new AccountsException("The setting 'disablenotify' does not take any parameters.");
+                break;
+            case "autologin":
+                if (!fnmatch("*!*@*", $value))
+                    throw new AccountsException("Invalid hostname format. Please use nickname!ident@host (wildcards are OK).");
+                break;
+        }
+    }
+
+    /**
+     * @return AccountsDatabaseInterface
+     */
+    public function getInterface() {
+        return $this->interface;
+    }
+
+    /**
+     * Fetch the User object currently logged in to an account
+     *
+     * @param int $accountID
+     * @return User
+     * @throws AccountsException
+     */
+    public function getUserByAccountID(int $accountID): User {
+        $index = array_search($accountID, $this->loggedIn);
+        if ($index === false)
+            throw new AccountsException("Account '$accountID' is not currently logged in.");
+
+        $users = $this->IRCBot->getUsers();
+
+        //  Users sets id on User object to match the internal key
+        return $users->get($index);
+    }
+
+    /**
+     * React to raw messages by verifying NickServ logins for user settings
+     *
+     * @param IRCMessage $msg
+     */
+    public function raw(IRCMessage $msg) {
+        switch ($msg->getRaw()) {
+
+            //  Logged into NickServ, used when verifying default nickname
+            case 307:
+            case 330:
+                $parameters = $msg->getParameters();
+                //	Adjust to format for different raws
+                $nick = ($msg->getRaw() == 307) ? $parameters[0] : $parameters[1];
+
+                //	Make sure user is in the verification process
+                if (isset($this->defaultNickCheck[ $nick ])) {
+                    //	Remove user from list of pending verifications
+                    $info = $this->defaultNickCheck[ $nick ];
+                    unset($this->defaultNickCheck[ $nick ]);
+
+                    //	Make sure that this response corresponds to the recent request, but allow 5 seconds for server latency
+                    if (time() - $info['time'] <= 5) {
+                        try {
+                            $this->interface->setSetting($info['accountID'], $this->getSettingObject("nick"), $nick);
+                            $this->IRCBot->message($nick, "Your default nickname has been saved as ".bold($nick).".");
+                        }
+                        catch (\Exception $e) {
+                            $this->IRCBot->message($nick, "Unable to save your default nickname in the database. Is it already set?");
+                        }
+
+                    }
+                }
+                break;
+
+            /*
+             *	End of /WHOIS, report default nickname verification failure
+             */
+            case 318:
+                $nick = $msg->getParameters()[0];
+                //	Make sure user is in the verification process
+                if (isset($this->defaultNickCheck[ $nick ])) {
+                    unset($this->defaultNickCheck[ $nick ]);
+                    $this->IRCBot->message($nick, "Unable to save your default nickname because you are not identified with NickServ.");
+                }
+                break;
+        }
+    }
+
+    /**
+     * Search for auto-login entries that can be applied to a User when one is created, and attempt to log them in
+     *
+     * @param User $user
+     * @throws AccountsException
+     */
+    public function user(User $user) {
+
+        try {
+            //	Account ID to be logged in to
+            $accountID = $this->getAutoLogin("{$user->getNick()}!{$user->getAddress()}");
+            $this->loginUser($user, $accountID);
+            $this->status("{$user->getNick()} has automatically logged in to account ID $accountID.");
+
+            $this->interface->getSetting($accountID, $this->getSettingObject("disablenotify"));
+        }
+
+            //  No matching auto login entries, do nothing
+        catch (AccountsException $e) {
+        }
+
+            //  User doesn't not have disablenotify set, given them a notification
+        catch (AccountsDatabaseInterfaceException $e) {
+            /** @var int $accountID */
+            $level    = $this->interface->getAccessByID($accountID);
+            $username = $this->interface->getUsernameByID($accountID);
+
+            $this->IRCBot->message(
+                $user->getNick(),
+                "You have automatically been logged into your account '$username'. Your access level is $level. To disable these notifications, use the command 'set disablenotify'."
+            );
+        }
+    }
+
+    /**
+     * Given a hostname, return an account which permits autologins on that host
+     *
+     * @param string $host The hostname to match
+     * @return int Account id
+     * @throws AccountsException If no entries exist
+     */
+    private function getAutoLogin(string $host) {
+        $results = array();
+
+        //	Test wildcard match vs every host
+        foreach ($this->autoLoginCache as $id => $wildcardHosts) {
+            foreach ($wildcardHosts as $wildcardHost) {
+                if (fnmatch($wildcardHost, $host)) {
+                    /*	Associate the account with the number of non-wildcard characters in a host. In the event that more than 1 host matches, the account with the highest value is logged in to
+                        This is to help prevent a user from accidentally being logged into someone else's account, if that person has an ambiguous auto-login mask	*/
+                    $significantCharacters = strlen(str_replace(array("*", "?", "[", "]"), "", $wildcardHost));
+
+                    //	Only overwrite the same account's entry with a higher value
+                    if (!isset($results[ $id ]) || $results[ $id ] < $significantCharacters)
+                        $results[ $id ] = $significantCharacters;
+                }
+            }
+        }
+
+        if (!$results)
+            throw new AccountsException("No auto-login entries found matching '$host'.");
+
+        //	Place the highest value of significant characters at the front of the array
+        arsort($results);
+
+        return (int)(array_keys($results)[0]);
+    }
+
+    /**
+     * Mark a User as being logged in to an account
+     *
+     * @param User $user
+     * @param int  $accountID
+     */
+    private function loginUser(User $user, $accountID) {
+        $this->loggedIn[ $user->getId() ] = $accountID;
+    }
+
+    /**
+     * Update account settings
+     *
+     * @param IRCMessage $msg
+     * @throws AccountsException
+     */
+    public function set(IRCMessage $msg) {
+        $this->requireParameters($msg, 1, "Syntax: SET <option> [<value>]");
+
+        $accountID = $this->getAccountIDByNickname($msg->getNick());
+
+        $parameters  = $msg->getCommandParameters();
+        $settingName = array_shift($parameters);
+
+        switch ($settingName) {
+            //  Setting default nickname
+            case "nick":
+                $this->setDefaultNick($accountID, $msg->getNick());
+                break;
+
+            //  Changing account password
+            case "password":
+                $this->requireParameters($msg, 3, "Syntax: SET PASSWORD <old password> <new password>");
+                list($password, $newPassword) = $parameters;
+
+                if (preg_match('/\s/', $newPassword))
+                    throw new AccountsException("Invalid password format. Pass a string with no whitespace.");
+
+                $username = $this->interface->getUsernameByID($accountID);
+                $this->interface->verifyPassword($username, $password);
+                $this->interface->setPassword($username, $newPassword);
+                $this->respond($msg, "Your password has been saved.");
+                break;
+
+            default:
+                $settingObject = $this->getSettingObject($settingName);
+                $value         = implode(" ", $parameters);
+                $settingObject->validate($value);
+
+                $this->interface->setSetting($accountID, $settingObject, $value);
+                $value = (strlen($value)) ? $value : "enabled";
+                $this->respond($msg, "'{$settingObject->getDisplay()}' has been set to '$value'.");
+                break;
+        }
+    }
+
+    /**
+     * Helper function to begin the default nickname verification upon registration or manual setting
+     *
+     * @param $accountID
+     * @param $nick
+     */
+    public function setDefaultNick(int $accountID, string $nick) {
+        $this->defaultNickCheck[ $nick ] = array('time' => time(), 'accountID' => $accountID);
+        $this->IRCBot->raw("WHOIS $nick");
+    }
+
+    /**
+     * Remove account settings
+     *
+     * @param IRCMessage $msg
+     * @throws AccountsException
+     */
+    public function _unset(IRCMessage $msg) {
+        $this->requireParameters($msg, 1, "Syntax: UNSET <option> [<value>]");
+
+        $accountID = $this->getAccountIDByNickname($msg->getNick());
+
+        $parameters    = $msg->getCommandParameters();
+        $option        = array_shift($parameters);
+        $settingObject = $this->getSettingObject($option);
+        $value         = implode(" ", $parameters);
+
+        //	Exception thrown if settings are invalid or unsuccessful
+        $this->interface->removeSetting($accountID, $settingObject, $value);
+
+        $this->respond($msg, "'{$settingObject->getDisplay()}' settings have been removed.");
+    }
+
+    /**
+     * View current account settings
+     *
+     * @param IRCMessage $msg
+     * @throws AccountsException
+     */
+    public function settings(IRCMessage $msg) {
+        $users = $this->IRCBot->getUsers();
+        $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
+
+        //	Must be logged in
+        $accountID = $this->getAccountIDByUser($user);
+
+        $parameters = $msg->getCommandParameters();
+
+        if (count($parameters)) {
+            $settingName = strtolower(array_shift($parameters));
+
+            //	Exception thrown if all settings are invalid
+            $settingObject = $this->getSettingObject($settingName);
+            $settings      = $this->interface->getSetting($accountID, $settingObject);
+        }
+        else
+            $settings = $this->interface->getAllSettings($accountID);
+
+        //	Construct reply
+        $response = $responseString = array();
+        //	List each setting under name of setting
+        foreach ($settings as $setting) {
+            $key                = "{$setting['name']} ({$setting['display']})";
+            $response[ $key ][] = (strlen($setting['value'])) ? $setting['value'] : "enabled";
+        }
+        //	Convert name => settings[] entries into readable format
+        foreach ($response as $setting => $values)
+            $responseString[] = "$setting: ".implode(", ", $values);
+
+        $this->respond($msg, implode("\n", $responseString));
+    }
+
+    /**
+     * Fetch the account ID of a User
+     *
+     * @param User $user
+     * @return int Account ID
+     * @throws AccountsException
+     */
+    public function getAccountIDByUser(User $user): int {
+        $id = $user->getId();
+        if (!isset($this->loggedIn[ $id ]))
+            throw new AccountsException("User '$user' is not logged in.");
+
+        return $this->loggedIn[ $id ];
+    }
+
+    /**
+     * Attempt to log user in with given credentials
+     *
+     * @param IRCMessage $msg
+     * @throws AccountsException
+     */
+    public function login(IRCMessage $msg) {
+        $this->requireParameters($msg, 2, "Syntax: LOGIN <username> <password>");
+
+        $users      = $this->IRCBot->getUsers();
+        $user       = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
+        $parameters = $msg->getCommandParameters();
+
+        list($username, $password) = $parameters;
+
+        //	Attempt login, exception thrown if unsuccessful
+        $this->interface->verifyPassword($username, $password);
+        $accountID = $this->interface->getAccountIDByUsername($username);
+        $this->loginUser($user, $accountID);
+
+        $level = $this->interface->getAccessByID($accountID);
+        $this->respond($msg, "Login successful. Your access level is $level.");
+    }
+
+    /**
+     * Log out of current account
+     *
+     * @param IRCMessage $msg
+     * @throws AccountsException
+     */
+    public function logout(IRCMessage $msg) {
+        $users = $this->IRCBot->getUsers();
+        $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
+
+        $this->logoutUser($user);
+        $this->respond($msg, "You have logged out of your account.");
+    }
+
+    /**
+     * Logs a User out of their account
+     *
+     * @param User $user
+     * @throws AccountsException
+     */
+    public function logoutUser(User $user) {
+        $id = $user->getId();
+        if (!isset($this->loggedIn[ $id ]))
+            throw new AccountsException("User '$user' is not logged in to an account.");
+
+        unset($this->loggedIn[ $id ]);
+    }
+
+    /**
+     * Register a new account
+     *
+     * @param IRCMessage $msg
+     * @throws AccountsException
+     */
+    public function register(IRCMessage $msg) {
+        $users      = $this->IRCBot->getUsers();
+        $user       = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
+        $parameters = $msg->getCommandParameters();
+
+        //	Cannot be logged in
+        if (is_int($this->getAccountIDByUser($user)))
+            throw new AccountsException("You are already registered!");
+
+        //	Not enough parameters
+        if (count($parameters) < 2)
+            throw new AccountsException("Syntax: REGISTER <username> <password>");
+        list($username, $password) = $parameters;
+
+        //	Validate credentials
+        if (!is_string($username) || preg_match('/\s/', $username))
+            throw new AccountsException("Invalid username format. Pass a string with no whitespace.");
+        if (!is_string($password) || preg_match('/\s/', $password))
+            throw new AccountsException("Invalid password format. Pass a string with no whitespace.");
+
+        //	Attempt registration, will throw exception on existing username
+        $this->interface->registerUser($username, $password);
+
+        //	Success
+        $this->respond($msg, "Registration successful. Please remember your username and password for later use: '$username', '$password'. You will now be automatically logged in.");
+
+        //	Add autologin host
+        $autoLogin = "*!*{$msg->getIdent()}@{$msg->getFullHost()}";
+        $accountID = $this->interface->getAccountIDByUsername($username);
+        $this->interface->setSetting($accountID, $this->getSettingObject("autologin"), $autoLogin);
+        //	Automatically login upon registration
+        $this->loginUser($user, $accountID);
+        $this->respond($msg, "$autoLogin has been added as an autologin host for this account. You will automatically be logged in when connecting from this host. To remove this, please use 'unset autologin'.");
+
+
+        //	Attempt to automatically set nickname, if it's not already set
+        $settings = $this->interface->searchSettings($this->getSettingObject("nick"), $msg->getNick());
+        if ($settings)
+            $this->respond($msg, "Your nickname could not be linked to your account because it is already linked to another account.");
+        else
+            $this->setDefaultNick($accountID, $msg->getNick());
+    }
+
+    /**
+     * Manage or view account access
+     *
+     * @param IRCMessage $msg
+     * @throws AccountsException
+     */
+    public function access(IRCMessage $msg) {
+        $users      = $this->IRCBot->getUsers();
+        $user       = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
+        $parameters = $msg->getCommandParameters();
+        $userLevel  = $this->getAccessByUser($user);
+
+        //	No parameters, return user's access level
+        if (empty($parameters))
+            $this->respond($msg, "Your current level is $userLevel.");
+
+        else {
+
+            $mode = strtolower(array_shift($parameters));
+            switch ($mode) {
+
+                //  Add or update access for a user
+                case "add":
+                    $this->requireLevel($msg, 90);
+
+                    //	Require a 3rd parameter as level for add
+                    $this->requireParameters($msg, 3, "Syntax: ACCESS ADD <user> <value>");
+                    list($nickname, $level) = $parameters;
+
+                    //  Users can only grant access below their level
+                    if ($level >= $userLevel)
+                        throw new AccountsException("You do not have permission to grant level $level.");
+
+                    //	Make sure target user is online. Access can only be modified through nickname, not account name.
+                    $targetUser = $users->search($nickname);
+                    $accountID  = $this->getAccountIDByUser($targetUser);
+
+                    //	Prevent modifying somebody with higher access than you
+                    $targetUserLevel = $this->interface->getAccessByID($accountID);
+                    if ($targetUserLevel >= $userLevel)
+                        throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
+
+                    $intLevel = intval($level);
+                    if ($intLevel != $level)
+                        throw new AccountsException("Level must be an integer.");
+
+                    //	Attempt to set level. A malformed $level will thrown an exception
+                    $this->interface->setAccess($accountID, $intLevel);
+
+                    $this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
+                    break;
+
+                //  Remove access for a user (set to level 0)
+                case "remove":
+                    $this->requireLevel($msg, 90);
+
+                    $this->requireParameters($msg, 2, "Syntax: ACCESS REMOVE <user>");
+                    $nickname = array_shift($parameters);
+
+                    //	Make sure target user is online. Access can only be modified through nickname, not account name.
+                    $targetUser = $users->search($nickname);
+                    $accountID  = $this->getAccountIDByUser($targetUser);
+
+                    //	Prevent modifying somebody with higher access than you
+                    $targetUserLevel = $this->interface->getAccessByID($accountID);
+                    if ($targetUserLevel >= $userLevel)
+                        throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
+
+                    //	Attempt to set level
+                    $this->interface->setAccess($accountID, 0);
+
+                    $this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
+                    break;
+
+                // Get the access of an online user
+                case "list":
+                    //	Not enough parameters, default to user
+                    if ($parameters)
+                        $nickname = array_shift($parameters);
+                    else
+                        $nickname = $msg->getNick();
+
+                    $targetUser      = $users->search($nickname);
+                    $targetUserLevel = $this->getAccessByUser($targetUser);
+
+                    $this->respond($msg, "Access level for '{$targetUser->getNick()}' is $targetUserLevel.");
+                    break;
+
+                //  Invalid parameters
+                default:
+                    throw new AccountsException("Syntax: ACCESS [ADD|REMOVE|LIST] [<user>] [<value>]");
+                    break;
+            }
+
+        }
+    }
+
+    /**
+     * Get the access level for a User object. Default 0, unregistered has a level of -1
+     *
+     * @param User $user
+     * @return int -1 if account ID doesn't exist, or their access level otherwise
+     */
+    public function getAccessByUser(User $user) {
+        $accountID = $this->getAccountIDByUser($user);
+        if ($accountID === false)
+            return -1;
+
+        return $this->interface->getAccessByID($accountID);
+    }
+
+    /**
+     * Given an IRCMessage and command triggers, call the necessary methods and process errors
+     *
+     * @param IRCMessage $msg
+     */
+    protected function parseTriggers(IRCMessage $msg) {
+        //	Account modification should only be done in private message
+        if (!$msg->inQuery())
+            return;
+
+        parent::parseTriggers($msg);
+    }
 
 }

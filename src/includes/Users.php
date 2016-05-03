@@ -7,6 +7,12 @@
 
 namespace Utsubot;
 
+/**
+ * Class Users
+ *
+ * @package Utsubot
+ * @method User search($terms)
+ */
 class Users extends Manager {
 
 	protected static $manages = "Utsubot\\User";
@@ -39,8 +45,6 @@ class Users extends Manager {
 		return $key;
 	}
 
-    public function search($terms): Manageable { return parent::search($terms); }
-
 	/**
 	 * Ensure a User object exists, and get that object. If necessary, creates it and performs initialization.
 	 * This method should be used in all cases when a new User may need to be created.
@@ -72,7 +76,7 @@ class Users extends Manager {
 			if ($nick == $this->IRCBot->getNickname() && $address)
 				$this->IRCBot->setAddress($address);
 
-			//	Attempt to auto-login to relevant account
+			//	Send user creation information to modules for processing
 			$this->IRCBot->sendToModules("user", clone $user);
 		}
 

@@ -10,7 +10,12 @@ namespace Utsubot\Pokemon\Pokemon;
 use Utsubot\{
     IRCBot,
     IRCMessage,
+    Trigger,
     Color
+};
+use Utsubot\Accounts\{
+    Setting,
+    AccountsDatabaseInterfaceException
 };
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
@@ -39,25 +44,30 @@ class PokemonModuleException extends ModuleWithPokemonException {}
  */
 class PokemonModule extends ModuleWithPokemon {
 
+    /**
+     * PokemonModule constructor.
+     *
+     * @param IRCBot $IRCBot
+     */
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
+        $this->registerSetting(new Setting($this, "pinfo", "Pokemon Info Format", 1));
+        
         $pokemonManager = new PokemonManager(new VeekunDatabaseInterface());
         $pokemonManager->load();
         $this->registerManager("Pokemon", $pokemonManager);
 
-        $this->triggers = array(
-            'poke'			=> "pokemon",
-            'pinfo'			=> "pokemon",
-            'sinfo'			=> "pokemon",
-            'names'			=> "pokemon",
-            'dexes'			=> "pokemon",
+        $this->addTrigger(new Trigger("poke",       array($this, "pokemon"  )));
+        $this->addTrigger(new Trigger("pinfo",      array($this, "pokemon"  )));
+        $this->addTrigger(new Trigger("sinfo",      array($this, "pokemon"  )));
+        $this->addTrigger(new Trigger("names",      array($this, "pokemon"  )));
+        $this->addTrigger(new Trigger("dexes",      array($this, "pokemon"  )));
 
-            'dex'           => "dex",
+        $this->addTrigger(new Trigger("dex",        array($this, "dex"      )));
 
-            'pcompare'      => "compare",
-            'pcomp'         => "compare"
-        );
+        $this->addTrigger(new Trigger("pcompare",   array($this, "compare"  )));
+        $this->addTrigger(new Trigger("pcomp",      array($this, "compare"  )));
     }
 
     /**
@@ -77,34 +87,59 @@ class PokemonModule extends ModuleWithPokemon {
         $format = null;
         //	Try to replace default format with user-defined format, if possible
         switch ($msg->getCommand()) {
+            
             case "pinfo":
-                $format = $this->getSetting($msg->getNick(), "pinfo");
+            case "poke":
+                try {
+                    $format = $this->getSetting($msg->getNick(), $this->getSettingObject("pinfo"));
+                }                
+                catch (AccountsDatabaseInterfaceException $e) {
+                    $format = PokemonInfoFormat::getDefaultFormat();
+                }                
                 break;
+            
             case "sinfo":
                 $format = PokemonInfoFormat::getSemanticFormat();
                 break;
+            
             case "names":
                 $format = PokemonInfoFormat::getNamesFormat();
                 break;
+            
             case "dexes":
                 $format = PokemonInfoFormat::getDexesFormat();
                 break;
+            
+            default:
+                throw new PokemonModuleException("Unsupported command '{$msg->getCommand()}'.");
+                break;
+            
         }
-        if (!$format)
-            $format = "";
 
         //  Use user-saved units if available
-        $units = $this->getSetting($msg->getNick(), "units");
-        switch ($units) {
-            case "imperial":
-                $info->setUnits(PokemonInfoFormat::UNITS_IMPERIAL);
-                break;
-            case "metric":
-                $info->setUnits(PokemonInfoFormat::UNITS_METRIC);
-                break;
-            case "both":
-                $info->setUnits(PokemonInfoFormat::UNITS_BOTH);
-                break;
+        try {
+            $units = $this->getSetting($msg->getNick(), $this->getSettingObject("units"));
+            
+            switch ($units) {
+                
+                case "imperial":
+                    $info->setUnits(PokemonInfoFormat::UNITS_IMPERIAL);
+                    break;
+                
+                case "metric":
+                    $info->setUnits(PokemonInfoFormat::UNITS_METRIC);
+                    break;
+                
+                case "both":
+                    $info->setUnits(PokemonInfoFormat::UNITS_BOTH);
+                    break;
+                
+            }
+            
+        }        
+        //  Default to imperial
+        catch (AccountsDatabaseInterfaceException $e) {
+            $info->setUnits(PokemonInfoFormat::UNITS_IMPERIAL);
         }
 
         //	Pass format into info function for results

@@ -6,7 +6,9 @@ namespace Utsubot\Relay;
 use Utsubot\{
     IRCBot,
     IRCMessage,
-    ModuleException
+    Trigger,
+    ModuleException,
+    User
 };
 use Utsubot\Permission\ModuleWithPermission;
 
@@ -39,11 +41,9 @@ class Relay extends ModuleWithPermission {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
-        $this->triggers = array(
-            'relay'     => "newRelay",
-            'unrelay'   => "removeRelay",
-            'relays'    => "listRelays"
-        );
+        $this->addTrigger(new Trigger("relay",      array($this, "newRelay"     )));
+        $this->addTrigger(new Trigger("unrelay",    array($this, "removeRelay"  )));
+        $this->addTrigger(new Trigger("relays",     array($this, "listRelays"   )));
     }
 
     /**
@@ -183,7 +183,7 @@ class Relay extends ModuleWithPermission {
 
         $this->relay(
             new RelayMode(RelayMode::QUIT),
-            $msg->getResponseTarget(),
+            $msg->getQuitUser(),
             sprintf(
                 "* %s has quit IRC%s",
                 $msg->getNick(),
@@ -241,24 +241,37 @@ class Relay extends ModuleWithPermission {
     public function nick(IRCMessage $msg) {
         parent::nick($msg);
 
+        //  Additionally relay sources configured for this nickname
         $this->relay(
             new RelayMode(RelayMode::NICK),
-            $msg->getResponseTarget(),
+            $msg->getParameterString(), //  Check new nick, because the User object will have already updated
             sprintf(
                 "* %s is now known as %s",
                 $msg->getNick(),
                 $msg->getParameterString()
             )
         );
+    }
 
-        //  Additionally relay sources configured for this nickname
+    /**
+     * Forward KICK relays
+     *
+     * @param IRCMessage $msg
+     */
+    public function kick(IRCMessage $msg) {
+        parent::kick($msg);
+
         $this->relay(
-            new RelayMode(RelayMode::NICK),
-            $msg->getNick(),
+            new RelayMode(RelayMode::KICK),
+            $msg->getResponseTarget(),
             sprintf(
-                "* %s is now known as %s",
+                "* %s was kicked by %s%s",
+                $msg->getKickTarget(),
                 $msg->getNick(),
-                $msg->getParameterString()
+                //  Optionally add part message
+                ($msg->getParameterString()) ?
+                    " (". $msg->getParameterString(). ")" :
+                    ""
             )
         );
     }
@@ -268,14 +281,38 @@ class Relay extends ModuleWithPermission {
      * Internal function to activate relays
      *
      * @param RelayMode $event
+     * @param mixed     $source
      * @param string    $text
-     * @param string    $source
      */
-    protected function relay(RelayMode $event, string $source, string $text) {
+    protected function relay(RelayMode $event, $source, string $text) {
         foreach ($this->relays as $relay) {
 
-            //  A relay is configured to forward this event
-            if ((string)$relay->getFrom() == $source && $relay->getMode()->hasFlag($event->getValue()))
+            $doRelay = false;
+            //  This relay is configured to forward this type of event
+            if ($relay->getMode()->hasFlag($event->getValue())) {
+                
+                //  If the event is NICK, there won't be a channel target, so check if they're on the relayed channel instead
+                if ($event->getValue() == RelayMode::NICK) {
+                    if ($this->IRCBot->getUsers()->search((string)$source)->isOn((string)$relay->getTo()))
+                        $doRelay = true;
+                }
+
+                //  If the event is QUIT, there won't be a channel target, and a cloned User will be passed (as the original has been destroyed)
+                elseif  ($event->getValue() == RelayMode::QUIT) {
+                    if ($source instanceof User &&
+                        ($source->isOn((string)$relay->getFrom()) ||
+                         $source->getNick() == $relay->getFrom()))
+                        $doRelay = true;
+                }
+                
+                //  Other event, just match the targets
+                elseif (strtolower((string)$relay->getFrom()) == strtolower((string)$source))
+                    $doRelay = true;
+                
+            }
+
+            
+            if ($doRelay)
                 $this->IRCBot->message(
                     (string)$relay->getTo(),
                     sprintf(
@@ -285,6 +322,7 @@ class Relay extends ModuleWithPermission {
                     )
                 );
         }
+
     }
 
     /**

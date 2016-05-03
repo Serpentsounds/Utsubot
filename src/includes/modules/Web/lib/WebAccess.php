@@ -109,9 +109,27 @@ function cURLResource(string $url) {
  */
 function stripHTML(string $html): string {
     //	Convert basic text formatting (bold, italic, underline)
-    $html = preg_replace_callback("/<b>(.*?)<\/b>/i", function ($match) { return bold($match[1]); }, $html);
-    $html = preg_replace_callback("/<i>(.*?)<\/i>/i", function ($match) { return italic($match[1]); }, $html);
-    $html = preg_replace_callback("/<u>(.*?)<\/u>/i", function ($match) { return underline($match[1]); }, $html);
+    $html = preg_replace_callback(
+        "/<b>(.*?)<\/b>/i",
+        function ($match) {
+            return bold($match[1]);
+        },
+        $html
+    );
+    $html = preg_replace_callback(
+        "/<i>(.*?)<\/i>/i",
+        function ($match) {
+            return italic($match[1]); 
+        },
+        $html
+    );
+    $html = preg_replace_callback(
+        "/<u>(.*?)<\/u>/i",
+        function ($match) {
+            return underline($match[1]);
+        },
+        $html
+    );
 
     //	Convert superscript (exponents?)
     //$html = preg_replace("/<sup>([^<]+)<\/sup>/i", " ^ $1", $html);

@@ -10,7 +10,7 @@ namespace Utsubot;
 
 class Core extends Module {
     
-    const VERSION_RESPONSE = "Utsubot by Serpentsounds: https://github.com/Serpentsounds/Utsubot";
+    const VersionResponse = "Utsubot by Serpentsounds: https://github.com/Serpentsounds/Utsubot";
     
 	public function connect() {
 		$this->IRCBot->raw("PROTOCTL NAMESX");
@@ -38,7 +38,7 @@ class Core extends Module {
     public function ctcp(IRCMessage $msg) {
         switch (strtolower($msg->getCTCP())) {
             case "version":
-                $this->IRCBot->ctcpReply($msg->getResponseTarget(), $msg->getCTCP(), self::VERSION_RESPONSE);
+                $this->IRCBot->ctcpReply($msg->getResponseTarget(), $msg->getCTCP(), self::VersionResponse);
             break;
             case "time":
                 $this->IRCBot->ctcpReply($msg->getResponseTarget(), $msg->getCTCP(), date("D M j H:i:s Y"));
@@ -89,16 +89,20 @@ class Core extends Module {
 	 * @param IRCMessage $msg
 	 */
 	public function quit(IRCMessage $msg) {
+		//	Destroy user object
 		$users = $this->IRCBot->getUsers();
 		$user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
+        $msg->setQuitUser(clone $user);
 		$users->removeItem($user);
 
+		//	Remove user from channels userlist
 		$channels = $this->IRCBot->getChannels();
 		/** @var $allChannels Channel[] */
 		$allChannels = $channels->collection();
 		foreach ($allChannels as $channel)
 			$channel->part($user);
 
+		//	Reclaim main bot nick if ghost quit
         if ($msg->getNick() == $this->IRCBot->getIRCNetwork()->getNicknameCycle()->getPrimary())
             $this->IRCBot->nick($msg->getNick());
 	}

@@ -9,6 +9,7 @@ namespace Utsubot\Pokemon;
 use Utsubot\{
     IRCBot,
     IRCMessage,
+	Trigger,
     ModuleException,
     DatabaseInterface,
     MySQLDatabaseCredentials,
@@ -19,8 +20,8 @@ use Utsubot\{
 use function Utsubot\{
     bold,
     italic,
-    colorText
-, stripControlCodes
+    colorText,
+	stripControlCodes
 };
 use function Utsubot\Web\resourceBody;
 use function Utsubot\Pokemon\Types\{
@@ -32,26 +33,38 @@ use function Utsubot\Pokemon\Types\{
 };
 
 
+/**
+ * Class PokemonSuiteException
+ *
+ * @package Utsubot\Pokemon
+ */
 class PokemonSuiteException extends ModuleException {}
 
+/**
+ * Class PokemonSuite
+ *
+ * @package Utsubot\Pokemon
+ */
 class PokemonSuite extends ModuleWithPokemon {
+    
+    const Modules = array("Pokemon", "Ability", "Item", "Nature", "Move", "Types");
 
+    /**
+     * PokemonSuite constructor.
+     *
+     * @param IRCBot $IRCBot
+     */
     public function __construct(IRCBot $IRCBot) {
         $this->_require("Utsubot\\Pokemon\\VeekunDatabaseInterface");
 		$this->_require("Utsubot\\Pokemon\\MetaPokemonDatabaseInterface");
 
 		parent::__construct($IRCBot);
-
-        $modules = array("Pokemon", "Ability", "Item", "Nature", "Move", "Types");
-        foreach ($modules as $module)
+        
+        foreach (self::Modules as $module)
             $this->IRCBot->loadModule(__NAMESPACE__. "\\$module\\{$module}Module");
 
-		$this->triggers = array(
-			'psearch'		=> "search",
-
-			'mgdb'			=> "updateMetagameDatabase"
-
-		);
+		$this->addTrigger(new Trigger("psearch", 	array($this, "search"					)));
+		$this->addTrigger(new Trigger("mgdb", 		array($this, "updateMetagameDatabase"	)));
 	}
 
 

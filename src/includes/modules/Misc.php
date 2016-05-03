@@ -24,14 +24,12 @@ class Misc extends ModuleWithPermission {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->triggers = array(
-            'hug' => "hug",
+        $this->addTrigger(new Trigger("hug",            array($this, "hug"          )));
 
-            'nowplaying' => "nowPlaying",
-            'np'         => "nowPlaying",
+        $this->addTrigger(new Trigger("nowplaying",     array($this, "nowPlaying"   )));
+        $this->addTrigger(new Trigger("np",             array($this, "nowPlaying"   )));
 
-            'countdown' => "countdown",
-        );
+        $this->addTrigger(new Trigger("countdown",      array($this, "countdown"    )));
     }
 
     /**
@@ -121,26 +119,26 @@ class Misc extends ModuleWithPermission {
                 case "from":
                     if (preg_match("/\D/", $value) || $value == 0)
                         throw new ModuleException("'from' must be a positive integer.");
-                    $countdownFrom = $value;
+                    $countdownFrom = (int)$value;
                     break;
 
                 case "delay":
                     if (!is_numeric($value) || $value < 0)
                         throw new ModuleException("'delay' must be a non-negative number.");
-                    $countdownDelay = $value;
+                    $countdownDelay = (float)$value;
                     break;
 
                 case "interval":
                     if (preg_match("/\D/", $value) || $value == 0)
                         throw new ModuleException("'interval' must be a positive integer.");
-                    $countdownInterval = $value;
+                    $countdownInterval = (int)$value;
                     break;
 
                 case "ready":
                     $readyMessage = $value;
                     break;
 
-                case "message":
+                case "end":
                     $endingMessage = $value;
                     break;
             }

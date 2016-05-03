@@ -9,7 +9,8 @@ declare(strict_types = 1);
 namespace Utsubot\Pokemon\Move;
 use Utsubot\{
     IRCBot,
-    IRCMessage
+    IRCMessage,
+    Trigger
 };
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
@@ -44,11 +45,9 @@ class MoveModule extends ModuleWithPokemon {
         $moveManager->load();
         $this->registerManager("Move", $moveManager);
 
-        $this->triggers = array(
-            'pmove'			=> "move",
-            'pattack'		=> "move",
-            'patk'			=> "move",
-        );
+        $this->addTrigger(new Trigger("pmove",      array($this, "move")));
+        $this->addTrigger(new Trigger("pattack",    array($this, "move")));
+        $this->addTrigger(new Trigger("patk",       array($this, "move")));
     }
 
     /**

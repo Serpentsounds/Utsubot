@@ -9,7 +9,16 @@ declare(strict_types = 1);
 
 namespace Utsubot\Logger;
 use Utsubot\Accounts\ModuleWithAccounts;
-use Utsubot\{IRCBot, IRCMessage, Users, User, ModuleException, DatabaseInterface, MySQLDatabaseCredentials};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger,
+    Users,
+    User,
+    ModuleException,
+    DatabaseInterface,
+    MySQLDatabaseCredentials
+};
 use function Utsubot\bold;
 
 Class LoggerException extends ModuleException {}
@@ -30,9 +39,8 @@ Class Logger extends ModuleWithAccounts {
 		parent::__construct($irc);
 
 		$this->interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
-		$this->triggers = array(
-			'logs' => "logs"
-		);
+		
+		$this->addTrigger(new Trigger("logs", array($this, "logs")));
 	}
 
 	/**
@@ -46,6 +54,7 @@ Class Logger extends ModuleWithAccounts {
 
 		//	Log command
 		if ($msg->isCommand() && $msg->responded()) {
+
 			$channel = ($msg->inChannel()) ? $msg->getResponseTarget() : "";
 
 			$users = $this->IRCBot->getUsers();

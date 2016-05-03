@@ -10,6 +10,7 @@ namespace Utsubot\Pokemon\Types;
 use Utsubot\{
     IRCBot,
     IRCMessage,
+    Trigger,
     ManagerException,
     ManagerSearchCriterion
 };
@@ -42,12 +43,9 @@ class TypesModule extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
-        $this->triggers = array(
-            'ptype'			=> "type",
-
-            'pcoverage'		=> "coverage",
-            'pcov'			=> "coverage",
-        );
+        $this->addTrigger(new Trigger("ptype",      array($this, "type"     )));
+        $this->addTrigger(new Trigger("pcoverage",  array($this, "coverage" )));
+        $this->addTrigger(new Trigger("pcov",       array($this, "coverage" )));
     }
 
 

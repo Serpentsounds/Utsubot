@@ -6,37 +6,63 @@
  */
 
 namespace Utsubot\Web;
+use Utsubot\{
+	IRCBot,
+	IRCMessage,
+	Trigger
+};
 use function Utsubot\bold;
 
 
-class UrbanDictionaryException extends WebSearchException {}
+class UrbanDictionaryException extends WebModuleException {}
 
-class UrbanDictionary implements WebSearch {
+class UrbanDictionary extends WebModule {
 
-	/**
-	 * Look up a word on Urban Dictionary
-	 *
-	 * @param string $search
-	 * @param array $options Unavailable
-	 * @return string Definition and examples
-	 */
-	public static function search(string $search, array $options = array()): string {
-		$number = 1;
-		if (isset($options['number']) && is_int($options['number']) && $options['number'] > 0)
-			$number = $options['number'];
+    /**
+     * UrbanDictionary constructor.
+     *
+     * @param IRCBot $IRCBot
+     */
+    public function __construct(IRCBot $IRCBot) {
+        parent::__construct($IRCBot);
 
-		return self::urbanDictionarySearch($search, $number);
-	}
+        $this->addTrigger(new Trigger("ud",                 array($this, "define")));
+        $this->addTrigger(new Trigger("urban",              array($this, "define")));
+        $this->addTrigger(new Trigger("urbandictionary",    array($this, "define")));
+    }
 
-	/**
+    /**
+     * Output results of an  Urban Dictionary search to the user
+     *
+     * @param IRCMessage $msg
+     * @throws DictionaryException
+     *
+     * @usage !ud <term>
+     */
+    public function define(IRCMessage $msg) {
+        $parameters = $msg->getCommandParameters();
+
+        $number = 1;
+        $copy = $parameters;
+        $last = array_pop($copy);
+        //  Match a trailing integer to ordinally cycle through definitions
+        if (!preg_match("/\\D+/", $last) && intval($last) > 0) {
+            $number = intval($last);
+            $parameters = $copy;
+        }
+
+        $this->respond($msg, $this->urbanDictionarySearch(implode(" ", $parameters), $number));
+    }
+
+    /**
 	 * Get a definition from Urban Dictionary
 	 *
-	 * @param string $term URL encoded search term
-     * @param int number Ordinal definition number to obtain
-	 * @return string Definition and examples
+	 * @param string $term
+     * @param int number
+	 * @return string
 	 * @throws UrbanDictionaryException If term is not found
 	 */
-	public static function urbanDictionarySearch($term, $number = 1) {
+	public function urbanDictionarySearch(string $term, int $number = 1): string {
 		if (!$term)
 			$content = resourceBody("http://www.urbandictionary.com/random.php");
 		else

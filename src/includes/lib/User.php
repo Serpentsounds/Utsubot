@@ -21,18 +21,21 @@ class User implements Manageable {
 	}
 
 	public function join($channel) {
+		$channel = strtolower($channel);
 		//	Adds a common channel (one shared with the bot) to the list.
 		if (!isset($this->channels[$channel]))
 			$this->channels[$channel] = array();
 	}
 
 	public function part($channel) {
+        $channel = strtolower($channel);
 		//	Removes a common channel from the list.
 		if (isset($this->channels[$channel]))
 			unset($this->channels[$channel]);
 	}
 
 	public function mode($channel, $mode) {
+        $channel = strtolower($channel);
 		//	Updates the information for the user's status on the given channel (e.g., op, voice, etc).
 		if (preg_match_all('/([+-])([qaohv]+)/i', $mode, $match, PREG_PATTERN_ORDER)) {
 
@@ -62,11 +65,12 @@ class User implements Manageable {
 
 	//	Returns true if this user is on the given channel.
 	public function isOn($channel) {
-		return array_key_exists($channel, $this->channels);
+		return array_key_exists(strtolower($channel), $this->channels);
 	}
 
 	//	Returns the user's modes on the given channel.
 	public function status($channel, $str = false) {
+        $channel = strtolower($channel);
 		if (!$this->isOn($channel))
 			return false;
 

@@ -37,6 +37,13 @@ abstract class InfoFormat {
 	protected static $headerColor = Color::Teal;
 	protected static $headerBackgroundColor = Color::Clear;
 
+	/**
+	 * @return string
+	 */
+	public static function getDefaultFormat(): string {
+		return static::$defaultFormat;
+	}
+	
     /**
      * InfoFormat constructor.
      *

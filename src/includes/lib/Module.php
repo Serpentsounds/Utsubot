@@ -14,12 +14,17 @@ class ModuleException extends \Exception {}
 abstract class Module {
 
 	protected $IRCBot;
-	protected $triggers = array();
+    
+    /** @var Trigger[] $triggers */
+	private $triggers = array();
+    
 	protected $timerQueue = array();
-	protected $path = "";
 
-	protected static $settingsFile = "../conf/settings.ini";
-
+    /**
+     * Module constructor.
+     *
+     * @param IRCBot $IRCBot
+     */
 	public function __construct(IRCBot $IRCBot) {		
 		$this->IRCBot = $IRCBot;
 	}
@@ -59,11 +64,15 @@ abstract class Module {
      *
      * @param IRCMessage $msg
      * @param int        $count
+     * @param string     $errorMessage
      * @throws ModuleException
      */
-    protected function requireParameters(IRCMessage $msg, int $count = 1) {
+    protected function requireParameters(IRCMessage $msg, int $count = 1, string $errorMessage = "") {
+        if ($errorMessage === "")
+            $errorMessage = "This command requires at least $count parameter(s).";
+        
         if (count($msg->getCommandParameters()) < $count)
-            throw new ModuleException("This command requires at least $count parameter(s).");
+            throw new ModuleException($errorMessage);
     }
 
 	/**
@@ -88,10 +97,13 @@ abstract class Module {
 	 * @return string The formatted response
 	 */
 	protected function parseException(\Exception $e, IRCMessage $msg): string {
-		#$response = sprintf("A %s error occured (%s).", get_class($e), $e->getMessage());
-        $response = $e->getMessage();
-        if (preg_match("/(.*?)Exception$/", get_class($e), $match))
-            $response = "({$match[1]}) $response";
+		$response = $e->getMessage();
+
+        //  Prepend Exception class name to error output
+        if (preg_match("/(.*?)Exception$/", get_class($e), $match)) {
+            $nameParts = explode("\\", $match[1]);
+            $response = underline(italic(end($nameParts)). " error:"). " $response";
+        }
 
 		//	If the error occured in a public channel, address the user directly for clarity
 		if (!$msg->inQuery())
@@ -109,43 +121,34 @@ abstract class Module {
 		if (!$msg->isCommand())
 			return;
 
-		$triggers = $this->triggers;
-		$cmd = strtolower($msg->getCommand());
-		//	Triggered a command
-		if (isset($triggers[$cmd]) && method_exists($this, $triggers[$cmd])) {
-			try {
-				//	Call command
-				call_user_func(array($this, $triggers[$cmd]), $msg);
-				$msg->respond($triggers[$cmd]);
-			}
-			//	Output error
-			catch (\Exception $e) {
-				$response = $this->parseException($e, $msg);
-				$this->respond($msg, $response);
-			}
-		}
+        foreach ($this->triggers as $trigger) {
+            //  Attempt to output command
+            try {
+                $trigger->trigger($msg);
+            }
+            //  Error in triggered command, output to user
+            catch (\Exception $e) {
+                $this->respond($msg, $this->parseException($e, $msg));
+            }
+        }
 	}
 
-	/**
-	 * (Re)load an API key from file
-	 *
-	 * @param string $type
-	 * @return string
-	 * @throws ModuleException
-	 */
-	public static function loadAPIKey(string $type): string {
-		if (!file_exists(static::$settingsFile))
-			throw new ModuleException("Unable to retrieve $type API Key because ". static::$settingsFile. " does not exist.");
+    /**
+     * Add a new command trigger
+     *
+     * @param Trigger $trigger
+     * @throws ModuleException
+     */
+    protected function addTrigger(Trigger $trigger) {
+        $this->triggers[] = $trigger;
+    }
 
-		$settings = parse_ini_file(static::$settingsFile, true);
-		if (!isset($settings['APIKeys']))
-			throw new ModuleException("Unable to retrieve $type API Key because there are no API Keys saved.");
-
-		if (!isset($settings['APIKeys'][$type]))
-			throw new ModuleException("There is no API Key entry for $type.");
-
-		return $settings['APIKeys'][$type];
-	}
+    /**
+     * @return array
+     */
+    public function getTriggers(): array {
+        return $this->triggers;
+    }
 
     /**
      * Triggered when module is loaded, but before connecting
@@ -192,6 +195,7 @@ abstract class Module {
 	public function part(IRCMessage $msg){}
 	public function quit(IRCMessage $msg){}
 	public function nick(IRCMessage $msg){}
+	public function kick(IRCMessage $msg){}
 
 	public function raw(IRCMessage $msg){}
 

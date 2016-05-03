@@ -26,9 +26,6 @@ class TriviaCheat extends Module {
         self::$answerRegex = str_replace("BOTNICK", self::$botnick, self::$answerRegex);
 
         $this->cacheLog();
-
-        $this->triggers = array(
-        );
     }
 
     public function privmsg(IRCMessage $msg) {

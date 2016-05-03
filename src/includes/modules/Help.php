@@ -13,19 +13,18 @@ class HelpException extends ModuleException {}
 
 class Help extends ModuleWithPermission {
 
-	private static $helpDirectory = "help";
+	const Help_Directory = "../help";
 	private $help = array();
 
 	public function __construct(IRCBot $irc) {
 		parent::__construct($irc);
 		$this->updateHelpCache();
 
-		$this->triggers = array(
-			'help'		    => "help",
-			'phelp'		    => "help",
-			'showhelp'	    => "help",
-            'updateHelp'    => "updateHelp"
-		);
+		$this->addTrigger(new Trigger("help",       array($this, "help"         )));
+        $this->addTrigger(new Trigger("phelp",      array($this, "help"         )));
+        $this->addTrigger(new Trigger("showhelp",   array($this, "help"         )));
+
+        $this->addTrigger(new Trigger("updatehelp", array($this, "updateHelp"   )));
 	}
 
 	/**
@@ -108,6 +107,11 @@ class Help extends ModuleWithPermission {
 
 	}
 
+	/**
+     * Reload help information from file
+     *
+	 * @param IRCMessage $msg
+	 */
     public function updateHelp(IRCMessage $msg) {
         $this->requireLevel($msg, 100);
         $this->updateHelpCache();
@@ -141,7 +145,7 @@ class Help extends ModuleWithPermission {
 	public function updateHelpCache() {
 		$this->help = array();
 
-		$directory = self::$helpDirectory;
+		$directory = self::Help_Directory;
 		$files = scandir($directory);
 
 		foreach ($files as $file) {

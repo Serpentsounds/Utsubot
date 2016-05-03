@@ -15,11 +15,9 @@ class Admin extends ModuleWithPermission {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->triggers = array(
-            'eval'			=> "_eval",
-            'return'		=> "_return",
-            'restart'		=> "restart",
-        );
+        $this->addTrigger(new Trigger("eval",       array($this, "_eval"    )));
+        $this->addTrigger(new Trigger("return",     array($this, "_return"  )));
+        $this->addTrigger(new Trigger("restart",    array($this, "restart"  )));        
     }
 
     /**

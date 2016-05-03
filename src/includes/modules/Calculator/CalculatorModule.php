@@ -9,7 +9,7 @@ declare(strict_types = 1);
 
 namespace Utsubot\Calculator;
 use Utsubot\{
-    Module, IRCBot, IRCMessage
+    Module, IRCBot, IRCMessage, Trigger
 };
 
 
@@ -28,11 +28,9 @@ class CalculatorModule extends Module {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->triggers = array(
-            'calculate'		=> "calculate",
-            'calc'			=> "calculate",
-            'c'				=> "calculate"
-        );
+        $this->addTrigger(new Trigger("calculate",  array($this, "calculate")));
+        $this->addTrigger(new Trigger("calc",       array($this, "calculate")));
+        $this->addTrigger(new Trigger("c",          array($this, "calculate")));
     }
 
     /**

@@ -9,7 +9,11 @@ declare(strict_types = 1);
 
 namespace Utsubot\Includes;
 use Utsubot\{
-    Module, IRCBot, IRCMessage, ModuleException
+    Module,
+    IRCBot,
+    IRCMessage,
+    Trigger,
+    ModuleException
 };
 
 
@@ -36,14 +40,13 @@ class Includes extends Module {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->triggers = array(
-            'includes'		=> "includes",
-        );
+        $this->addTrigger(new Trigger("includes", array($this, "includes")));
     }
 
     /**
      * Give information about included files
      *
+     * @usage !includes [class|interface|trait|file]
      * @param IRCMessage $msg
      * @throws IncludesException
      */

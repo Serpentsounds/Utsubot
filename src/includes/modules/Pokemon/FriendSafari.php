@@ -7,7 +7,13 @@
 
 namespace Utsubot\Pokemon;
 use Utsubot\Permission\ModuleWithPermission;
-use Utsubot\{IRCBot, IRCMessage, MySQLDatabaseCredentials, ModuleException};
+use Utsubot\{
+	IRCBot,
+    IRCMessage,
+    Trigger,
+    MySQLDatabaseCredentials,
+    ModuleException
+};
 use function Utsubot\bold;
 use function Utsubot\Pokemon\Types\colorType;
 
@@ -24,10 +30,8 @@ class FriendSafari extends ModuleWithPermission {
 		$this->interface = new FriendSafariDatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"), $users = $this->IRCBot->getUsers(), $accounts = $this->getAccounts());
 		$this->updateValidPokemonCache();
 
-		$this->triggers = array(
-			"fs"			=> "friendSafari",
-			"friendsafari"	=> "friendSafari"
-		);
+		$this->addTrigger(new Trigger("fs", 			array($this, "friendSafari")));
+		$this->addTrigger(new Trigger("friendsafari", 	array($this, "friendSafari")));
 	}
 
 	public function updateValidPokemonCache() {
