@@ -37,7 +37,7 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
 
 		//	Get account associated with nickname
 		$userList = $this->accounts->getInterface()->searchSettings($this->accounts->getSettingObject("nick"), $nickname);
-		if (!count($userList))
+		if ($userList)
 			throw new HybridDatabaseInterfaceException("Your nickname is not linked with an account.");
 
 		//	Check accounts against eachother

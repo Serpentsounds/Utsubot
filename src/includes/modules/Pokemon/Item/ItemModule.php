@@ -54,11 +54,10 @@ class ItemModule extends ModuleWithPokemon {
      * @throws ItemModuleException
      */
     public function item(IRCMessage $msg) {
-        $parameters = $msg->getCommandParameters();
-        if (!count($parameters))
-            throw new ItemModuleException("No item given.");
+        $this->requireParameters($msg, 1);
 
-        $copy = $parameters;
+        //  Check if switches were applied
+        $copy = $parameters = $msg->getCommandParameters();
         $switch = null;
         $firstWord = strtolower(array_shift($copy));
         //  Switch detected, save it and remove from parameters

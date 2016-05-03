@@ -118,7 +118,7 @@ class Core extends Module {
 		$channel->part($user);
 
 		$userChannels = array_keys($user->getChannels());
-		if (!count($userChannels))
+		if (!$userChannels)
 			$users->removeItem($user);
 	}
 

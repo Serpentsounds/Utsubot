@@ -423,7 +423,7 @@ class Relay extends ModuleWithPermission {
      * @throws RelayException
      */
     public function listRelays(IRCMessage $msg) {
-        if (!count($this->relays))
+        if (!$this->relays)
             throw new RelayException("There are no active relays.");
 
         foreach ($this->relays as $key => $relay)

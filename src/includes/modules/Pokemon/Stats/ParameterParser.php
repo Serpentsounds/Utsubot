@@ -166,7 +166,7 @@ class ParameterParser {
      * @throws ParameterParserException Invalid parameters
      */
     public function parseBaseMaxParameters($parameters, $command): baseMaxParameterResult {
-        if (!count($parameters))
+        if (!$parameters)
             throw new ParameterParserException("No base given.");
 
         //	Stat must be a positive integer

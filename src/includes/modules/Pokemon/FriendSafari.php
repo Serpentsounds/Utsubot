@@ -127,7 +127,7 @@ class FriendSafari extends ModuleWithPermission {
 			}
 		}
 
-		if (!count($pokemon))
+		if (!$pokemon)
 			throw new FriendSafariException("Invalid type '$type'.");
 
 		ksort($pokemon);
@@ -156,7 +156,7 @@ class FriendSafari extends ModuleWithPermission {
 			"SELECT `nickname`, `user_id` FROM `users_friendsafari` WHERE `slot_1`=? OR `slot_2`=? OR `slot_3`=?",
 			array($pokemon, $pokemon, $pokemon));
 
-		if (!count($results))
+		if (!$results)
 			throw new FriendSafariException("There is nobody with a '$pokemon' in his or her Friend Safari.");
 
 		$return = array();

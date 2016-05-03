@@ -186,7 +186,7 @@ class TypesModule extends ModuleWithPokemon {
             $pokemon = $PokemonManager->fullSearch($criteria, true, false);
 
             //	No results
-            if (!$pokemon || !count($pokemon))
+            if (!$pokemon)
                 throw new TypesModuleException("There are no ".colorType($searchType, true)."-type pokemon.");
 
             //	Save names of resulting pokemon
@@ -403,7 +403,7 @@ class TypesModule extends ModuleWithPokemon {
 
                     elseif (isset($results['abilities'])) {
                         foreach ($results['abilities'] as $ability => $chart) {
-                            if (!count($abilityNames))
+                            if (!$abilityNames)
                                 $abilityNames[] = $ability;
 
                             if (isset($chart[$type]) && $chart[$type] < 1)

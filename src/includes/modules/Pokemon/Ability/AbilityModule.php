@@ -62,13 +62,10 @@ class AbilityModule extends ModuleWithPokemon {
      * @throws \Utsubot\ManagerException Error creating search criterion
      */
     public function ability(IRCMessage $msg) {
-        //  Empty parameters
-        $parameters = $msg->getCommandParameters();
-        if (!count($parameters))
-            throw new AbilityModuleException("No ability given.");
+        $this->requireParameters($msg, 1);
 
         //  Check if switches were applied
-        $copy = $parameters;
+        $copy = $parameters = $msg->getCommandParameters();
         $switch = null;
         $firstWord = strtolower(array_shift($copy));
         //  Switch detected, save it and remove from parameters

@@ -58,12 +58,10 @@ class MoveModule extends ModuleWithPokemon {
      * @throws MoveModuleException No parameters
      */
     public function move(IRCMessage $msg) {
-        $parameters = $msg->getCommandParameters();
-        if (!count($parameters))
-            throw new MoveModuleException("No move given.");
+        $this->requireParameters($msg, 1);
 
         //  Check if switches were applied
-        $copy = $parameters;
+        $copy = $parameters = $msg->getCommandParameters();
         $switch = null;
         $firstWord = strtolower(array_shift($copy));
         //  Switch detected, save it and remove from parameters

@@ -149,7 +149,7 @@ class Dictionary extends WebModule {
 			if ($definitionInfo['type'] == "open") {
 
 				//	Main definition is empty, check nested tags
-				if (!strlen($definition) && !count($return)) {
+				if (!strlen($definition) && !$return) {
 
 					//	Search through all tags between this and the definition closing tag
 					$nextDefinitionIndex = $definitionIndices[$key+1];

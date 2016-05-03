@@ -147,7 +147,7 @@ class PokemonSuite extends ModuleWithPokemon {
         foreach ($results as $key => $result)
             $results[$key] = $result->getName($language);
 
-        if (!count($results))
+        if (!$results)
             throw new PokemonSuiteException("No results found.");
 
         $this->respond($msg, implode(", ", $results));

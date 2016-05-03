@@ -37,7 +37,7 @@ class UrbanDictionary extends WebModule {
      * @param IRCMessage $msg
      * @throws DictionaryException
      *
-     * @usage !ud <term>
+     * @usage !ud <term> [<ordinal>]
      */
     public function define(IRCMessage $msg) {
         $parameters = $msg->getCommandParameters();
@@ -68,7 +68,15 @@ class UrbanDictionary extends WebModule {
 		else
 			$content = resourceBody("http://www.urbandictionary.com/define.php?term=". urlencode($term));
 
-		$regex = "/<div class='def-header'>\s*<a[^>]+>([^<]+)<\/a>\s*(?:<a class='play-sound'[^>]+>\s*<i[^>]+><\/i>\s*<\/a>\s*)?<\/div>\s*<div class='meaning'>\s*(.+?)<\/div>\s*<div class='example'>\s*(.+?)<\/div>/s";
+		$regex =
+            "!<div class='def-header'>\s*".
+            "<a[^>]+>([^<]+)</a>\s*".
+            "(?:<a class='play-sound'[^>]+>\s*".
+            "<i[^>]+><svg[^>]+><path[^>]+></svg></i>\s*".
+            "</a>\s*)?".
+            "</div>\s*".
+            "<div class='meaning'>\s*(.+?)</div>\s*".
+            "<div class='example'>\s*(.+?)</div>!s";
 		$number -= 1;
 
 		if (!preg_match_all($regex, $content, $match, PREG_SET_ORDER))

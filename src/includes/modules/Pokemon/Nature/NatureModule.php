@@ -60,9 +60,8 @@ class NatureModule extends ModuleWithPokemon {
      * @throws \Utsubot\ManagerException No search results
      */
     public function nature(IRCMessage $msg) {
-        $parameters = $msg->getCommandParameters();
-        if (!count($parameters))
-            throw new NatureModuleException("No nature given.");
+        $this->requireParameters($msg, 1);
+       $parameters = $msg->getCommandParameters();
 
         //	Searching for nature given affected stats, need exactly 2 stats
         if (preg_match_all("/([+\-])([a-z]+)/i", $msg->getCommandParameterString(), $match, PREG_SET_ORDER) == 2) {

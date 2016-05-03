@@ -161,7 +161,7 @@ Class Logger extends ModuleWithAccounts {
 				throw new LoggerException("You must be logged in to show your personal log stats.");
 
 			$logs = $this->getLogs("", $userID, "");
-			if (!count($logs))
+			if (!$logs)
 				throw new LoggerException("You have no logs on record.");
 
 			//	Count each command separately
@@ -205,7 +205,7 @@ Class Logger extends ModuleWithAccounts {
 					throw new LoggerException("Users module not loaded, unable to list usages.");
 
 				$logs = $this->getLogs($cmd, "", "");
-				if (!count($logs))
+				if (!$logs)
 					throw new LoggerException("There are no logs on record for '$cmd'.");
 
 				//	Count each user separately
