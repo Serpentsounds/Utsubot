@@ -85,7 +85,7 @@ class Google extends WebModule {
             $safe = true;
         }
         //  Default value
-        catch (AccountsDatabaseInterfaceException $e) {
+        catch (\Exception $e) {
             $safe = self::SafeSearch;
         }
 
@@ -94,7 +94,7 @@ class Google extends WebModule {
             $results = (int)$this->getSetting($msg->getNick(), $this->getSettingObject("googleresults"));
         }
         //  Default value
-        catch (AccountsDatabaseInterfaceException $e) {
+        catch (\Exception $e) {
             $results = self::DefaultResults;
         }
 

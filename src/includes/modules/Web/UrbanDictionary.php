@@ -95,4 +95,4 @@ class UrbanDictionary extends WebModule {
 
 		return $result;
 	}
-} 
+}

@@ -88,7 +88,7 @@ class YouTube extends WebModule {
             $results = (int)$this->getSetting($msg->getNick(), $this->getSettingObject("youtuberesults"));
         }
         //  Default value
-        catch (AccountsDatabaseInterfaceException $e) {
+        catch (\Exception $e) {
             $results = self::DefaultResults;
         }
         

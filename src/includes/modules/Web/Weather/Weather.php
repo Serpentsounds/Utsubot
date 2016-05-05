@@ -130,7 +130,7 @@ class Weather extends WebModule {
                 $location = $this->getSetting($msg->getNick(), $this->getSettingObject("weather"));
             }
                 //  No default location and no given location
-            catch (AccountsDatabaseInterfaceException $e) {
+            catch (\Exception $e) {
                 throw new WeatherException("Please specify a location or register a default location to your account.");
             }
         }
@@ -140,7 +140,7 @@ class Weather extends WebModule {
             $units = Units::fromName($this->getSetting($msg->getNick(), $this->getSettingObject("units")));
         }
         //  Default to both metric and imperial
-        catch (AccountsDatabaseInterfaceException $e) {
+        catch (\Exception $e) {
             $units = new Units(Units::Both);
         }
 

@@ -93,7 +93,7 @@ class PokemonModule extends ModuleWithPokemon {
                 try {
                     $format = $this->getSetting($msg->getNick(), $this->getSettingObject("pinfo"));
                 }                
-                catch (AccountsDatabaseInterfaceException $e) {
+                catch (\Exception $e) {
                     $format = PokemonInfoFormat::getDefaultFormat();
                 }                
                 break;
@@ -138,7 +138,7 @@ class PokemonModule extends ModuleWithPokemon {
             
         }        
         //  Default to imperial
-        catch (AccountsDatabaseInterfaceException $e) {
+        catch (\Exception $e) {
             $info->setUnits(PokemonInfoFormat::UNITS_IMPERIAL);
         }
 
