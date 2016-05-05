@@ -12,10 +12,7 @@ use Utsubot\{
     ModuleException,
     Trigger
 };
-use Utsubot\Accounts\{
-    Setting,
-    AccountsDatabaseInterfaceException
-};
+use Utsubot\Accounts\Setting;
 use function Utsubot\bold;
 
 
@@ -123,48 +120,46 @@ class Google extends WebModule {
 	 * @throws GoogleException If no results are found
 	 */
 	public function googleSearch(string $search, int $results, bool $safeSearch) {
-        $safe = ($safeSearch) ? "on" : "off";
-		$string = resourceBody("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=". urlencode($search). "&safe=$safe&rsz=$results");
+        $APIKey = $this->getAPIKey("google");
+        $engine = $this->getAPIKey("googlecx");
+
+		$string = resourceBody(
+            "https://www.googleapis.com/customsearch/v1?key=$APIKey&cx=$engine&fields=searchInformation/formattedTotalResults,items%28title,link,snippet%29&q=".
+            urlencode($search)
+        );
 
 		$data = json_decode($string, TRUE);
 		$out = array();
 
-		//	There are some results
-		if (count($data['responseData']['results']) > 0) {
+        //  Empty result set
+        $resultCount = $data['searchInformation']['formattedTotalResults'];
+        if (intval($resultCount) === 0)
+            throw new GoogleException("No results found for search '$search'.");
 
-			//	If we're returning more than 1 result, add a small header to the top
-			if ($results > 1) {
-				$out[] = sprintf(
-                    "Top $results Google result(s) for %s (of %s total):",
-                    bold($search),
-                    number_format($data['responseData']['cursor']['estimatedResultCount'])
-                );
 
-				//	Loop through all results and add them
-				$currentResult = 0;
-				while (isset($data['responseData']['results'][$currentResult]))
-					$out[] = sprintf(
-                        "%d. %s (%s) - %s",
-                        $currentResult + 1,
-                        stripHTML(rawurldecode($data['responseData']['results'][$currentResult]['url'])),
-                        stripHTML($data['responseData']['results'][$currentResult]['titleNoFormatting']),
-                        stripHTML($data['responseData']['results'][$currentResult++]['content'])
-                    );
-			}
+        foreach ($data['items'] as $key => $entry) {
 
-			//	Add only the single result
-			else
-				$out[] = sprintf(
-                    "%s (%s) - %s",
-                     stripHTML(rawurldecode($data['responseData']['results'][0]['url'])),
-                     stripHTML($data['responseData']['results'][0]['titleNoFormatting']),
-                     stripHTML($data['responseData']['results'][0]['content'])
-                );
-		}
+            $out[] = sprintf(
+                "%d. %s (%s) - %s",
+                $key + 1,
+                $entry['link'],
+                $entry['title'],
+                str_replace("\n", "", $entry['snippet'])
+            );
 
-		//	No results
-		else
-			throw new GoogleException("No results found for search '$search'.");
+            //  End loop early if result limit is hit
+            if ($key + 1 >= $results)
+                break;
+        }
+
+        //  If returning more than 1 result, add a small header to the list
+        if (count($out) > 1)
+            array_unshift($out, sprintf(
+                "Top $results Google result(s) for %s (of %s total):",
+                bold($search),
+                $resultCount
+            ));
+
 
 		return implode("\n", $out);
 	}
