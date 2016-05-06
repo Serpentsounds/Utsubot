@@ -16,6 +16,8 @@ class MiscException extends ModuleException {
 
 class Misc extends ModuleWithPermission {
 
+    use Timers;
+
     const NOW_PLAYING_INTERVAL = 60;
     const NOW_PLAYING_FILE = '\\\\GENSOU\drop\nowplaying.txt';
     protected $inCountdown = array();
@@ -101,7 +103,6 @@ class Misc extends ModuleWithPermission {
             throw new ModuleException("A countdown is already in progress.");
 
         $this->inCountdown[$target] = true;
-        $time                       = microtime(true);
 
         $countdownFrom     = 3;
         $countdownDelay    = 5;
@@ -144,28 +145,40 @@ class Misc extends ModuleWithPermission {
             }
         }
 
-        $baseTime = $time + $countdownDelay;
         $counted  = 0;
         while ($countdownFrom > 0) {
-            $this->timerQueue[] = array(
-                'time'    => $baseTime + $counted++ * $countdownInterval,
-                'command' => "\$this->IRCBot->message('$target', '$countdownFrom');"
+            
+            $this->addTimer(
+                new Timer(
+                    $countdownDelay + $counted++ * $countdownInterval,
+                    array($this->IRCBot, "message"),
+                    array($target, $countdownFrom)
+                )
             );
 
             $countdownFrom -= $countdownInterval;
         }
-        /*	$baseTime + $counted * $countdownInterval = time last number was sent
+        
+        /*	$countdownDelay + $counted * $countdownInterval = time last number was sent
          * 	$countdownFrom + $countdownInterval = remaining time	*/
-        $finalTime = $baseTime + --$counted * $countdownInterval + $countdownFrom + $countdownInterval;
+        $finalTime = $countdownDelay + --$counted * $countdownInterval + $countdownFrom + $countdownInterval;
 
-        $this->timerQueue[] = array(
-            'time'    => $finalTime,
-            'command' => "\$this->IRCBot->message('$target', '$endingMessage');"
+        $this->addTimer(
+            new Timer(
+                $finalTime,
+                array($this->IRCBot, "message"),
+                array($target, $endingMessage)
+            )
         );
-
-        $this->timerQueue[] = array(
-            'time'    => $finalTime,
-            'command' => "unset(\$this->inCountdown['$target']);"
+        
+        $this->addTimer(
+            new Timer(
+                $finalTime,
+                function ($target) {
+                    unset($this->inCountdown[$target]);
+                },
+                array($target)
+            )
         );
 
         $this->IRCBot->message($target, $readyMessage);

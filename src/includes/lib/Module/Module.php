@@ -18,7 +18,7 @@ abstract class Module {
     /** @var Trigger[] $triggers */
 	private $triggers = array();
     
-	protected $timerQueue = array();
+	private $timers = array();
 
     /**
      * Module constructor.
@@ -164,14 +164,7 @@ abstract class Module {
      *
      * @param $time
      */
-	public function time(float $time){
-		foreach ($this->timerQueue as $key => $timer) {
-			if ($time >= $timer['time']) {
-				eval($timer['command']);
-				unset($this->timerQueue[$key]);
-			}
-		}
-	}
+	public function time(float $time){}
 
 	public function ping(IRCMessage $msg){}
 	public function error(IRCMessage $msg){}

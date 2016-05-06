@@ -121,7 +121,7 @@ class Google extends WebModule {
 	 */
 	public function googleSearch(string $search, int $results, bool $safeSearch) {
         $APIKey = $this->getAPIKey("google");
-        $engine = $this->getAPIKey("googlecx");
+        $engine = ($safeSearch) ? $this->getAPIKey("googlecxsafe") : $this->getAPIKey("googlecx");
 
 		$string = resourceBody(
             "https://www.googleapis.com/customsearch/v1?key=$APIKey&cx=$engine&fields=searchInformation/formattedTotalResults,items%28title,link,snippet%29&q=".

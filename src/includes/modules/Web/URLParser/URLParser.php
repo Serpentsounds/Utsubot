@@ -5,6 +5,8 @@
  * Date: 08/06/14
  */
 
+declare(strict_types = 1);
+
 namespace Utsubot\Web;
 use Utsubot\{
     IRCBot,
@@ -136,7 +138,7 @@ class URLParser extends WebModule {
 		//	Not a page, but some other resource (image, song, etc)
 		elseif ($this->hasPermission($msg, "remotefile")) {
 			//	Show only file size and type from header
-			$contentLength = (preg_match("/\sContent-Length: ?(\d+)/", $headers, $match)) ? ", ". self::formatBytes($match[1]) : "";
+			$contentLength = (preg_match("/\sContent-Length: ?(\d+)/", $headers, $match)) ? ", ". self::formatBytes((int)$match[1]) : "";
 
             $filteredURL = preg_split("/[#?]/", $url)[0];
             $this->checkCache($filteredURL, "resource", $msg->getResponseTarget());
@@ -147,7 +149,7 @@ class URLParser extends WebModule {
 						$contentLength);
 		}
 
-		return false;
+		return "";
 	}
 
 	/**

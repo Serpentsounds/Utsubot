@@ -274,7 +274,7 @@ class Permission extends ModuleWithPermission {
 			array($trigger));
 
 		//	No rows affecting this command
-		if ($results)
+		if (!$results)
 			return $permission;
 
 		//	Sort results to put allows at the end, so they trump denies
