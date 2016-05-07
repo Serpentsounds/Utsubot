@@ -7,17 +7,18 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Nature;
-use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    ManagerSearchCriterion
-};
+use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
     ModuleWithPokemonException,
     VeekunDatabaseInterface,
     Stat
+};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger,
+    ManagerSearchCriterion
 };
 use function Utsubot\bold;
 
@@ -44,12 +45,21 @@ class NatureModule extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
+        //  Create and register manager with base module
         $natureManager = new NatureManager(new VeekunDatabaseInterface());
         $natureManager->load();
         $this->registerManager("Nature", $natureManager);
 
-        $this->addTrigger(new Trigger("pnature",    array($this, "nature")));
-        $this->addTrigger(new Trigger("pnat",       array($this, "nature")));
+        //  Command triggers
+        $nature = new Trigger("pnature", array($this, "nature"));
+        $nature->addAlias("pnat");
+        $this->addTrigger($nature);
+        
+        //  Help entries
+        $help = new HelpEntry("Pokemon", $nature);
+        $help->addParameterTextPair("NATURE",   "Look up information about the Pokemon nature NATURE.");
+        $help->addParameterTextPair("STATS",    "Search for a nature using STATS, e.g., +atk -def.");
+        $this->addHelp($help);
     }
 
     /**

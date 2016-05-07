@@ -9,17 +9,26 @@ declare(strict_types = 1);
 
 namespace Utsubot\Calculator;
 use Utsubot\{
-    Module, IRCBot, IRCMessage, Trigger
+    Module,
+    IRCBot,
+    IRCMessage,
+    Trigger
 };
-
+use Utsubot\Help\{
+    HelpEntry,
+    IHelp,
+    THelp
+};
 
 /**
  * Class CalculatorModule
  *
  * @package Utsubot\Calculator
  */
-class CalculatorModule extends Module {
+class CalculatorModule extends Module implements IHelp {
 
+    use THelp;
+    
     /**
      * CalculatorModule constructor.
      *
@@ -28,9 +37,14 @@ class CalculatorModule extends Module {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->addTrigger(new Trigger("calculate",  array($this, "calculate")));
-        $this->addTrigger(new Trigger("calc",       array($this, "calculate")));
-        $this->addTrigger(new Trigger("c",          array($this, "calculate")));
+        $calculate = new Trigger("calculate", array($this, "calculate"));
+        $calculate->addAlias("calc");
+        $calculate->addAlias("c");
+        $this->addTrigger($calculate);
+        
+        $help = new HelpEntry("Calculator", $calculate);
+        $help->addParameterTextPair("EXPRESSION", "Attempts to calculate the given mathematical EXPRESSION.");
+        $this->addHelp($help);
     }
 
     /**

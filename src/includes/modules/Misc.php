@@ -8,30 +8,80 @@
 namespace Utsubot;
 
 use Utsubot\Permission\ModuleWithPermission;
+use Utsubot\Help\{
+    HelpEntry,
+    IHelp,
+    THelp
+};
 use function Utsubot\colorText;
 
 
-class MiscException extends ModuleException {
-}
+/**
+ * Class MiscException
+ *
+ * @package Utsubot
+ */
+class MiscException extends ModuleException {}
 
-class Misc extends ModuleWithPermission {
+/**
+ * Class Misc
+ *
+ * @package Utsubot
+ */
+class Misc extends ModuleWithPermission implements IHelp {
 
+    use THelp;
     use Timers;
 
     const NOW_PLAYING_INTERVAL = 60;
     const NOW_PLAYING_FILE = '\\\\GENSOU\drop\nowplaying.txt';
+
     protected $inCountdown = array();
     private $lastNowPlaying = 0;
 
+    /**
+     * Misc constructor.
+     *
+     * @param IRCBot $irc
+     */
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->addTrigger(new Trigger("hug",            array($this, "hug"          )));
 
-        $this->addTrigger(new Trigger("nowplaying",     array($this, "nowPlaying"   )));
-        $this->addTrigger(new Trigger("np",             array($this, "nowPlaying"   )));
+        //  Command triggers
+        $triggers = array();
 
-        $this->addTrigger(new Trigger("countdown",      array($this, "countdown"    )));
+        $triggers['hug']        = new Trigger("hug",        array($this, "hug"          ));
+
+        $triggers['nowplaying'] = new Trigger("nowplaying", array($this, "nowPlaying"   ));
+        $triggers['nowplaying']->addAlias("np");
+
+        $triggers['countdown']  = new Trigger("countdown",   array($this, "countdown"    ));
+
+        foreach ($triggers as $trigger)
+            $this->addTrigger($trigger);
+
+
+        //  Help entries
+        $help = array();
+
+        $help['hug'] = new HelpEntry("Misc", $triggers['hug']);
+        $help['hug']->addParameterTextPair("", "Get a free hug!");
+
+        $help['nowplayiying'] = new HelpEntry("Misc", $triggers['nowplaying']);
+        $help['nowplayiying']->addParameterTextPair("", "See what song I'm currently listening to. You were just dying to know, right?");
+
+        $help['countdown'] = new HelpEntry("Misc", $triggers['countdown']);
+        $help['countdown']->addParameterTextPair("", "Play a countdown to the channel. By default, counts down from 3 to 1 after a 5 second delay.");
+        $help['countdown']->addParameterTextPair(
+            "OPTIONS",
+            "Manually alter countdown options. Multiple options can be specified, in the form field:value for numbers or field:\"value\" for strings."
+        );
+        $help['countdown']->addNotes("Valid options are from, delay, interval (numbers) and ready, end (strings).");
+
+        foreach ($help as $entry)
+            $this->addHelp($entry);
+
     }
 
     /**
@@ -97,6 +147,10 @@ class Misc extends ModuleWithPermission {
         $this->lastNowPlaying = time();
     }
 
+    /**
+     * @param IRCMessage $msg
+     * @throws ModuleException
+     */
     public function countdown(IRCMessage $msg) {
         $target = $msg->getResponseTarget();
         if (isset($this->inCountdown[$target]))
@@ -104,6 +158,7 @@ class Misc extends ModuleWithPermission {
 
         $this->inCountdown[$target] = true;
 
+        //  Default settings
         $countdownFrom     = 3;
         $countdownDelay    = 5;
         $countdownInterval = 1;
@@ -111,40 +166,48 @@ class Misc extends ModuleWithPermission {
         $endingMessage     = "GO!";
 
         preg_match_all("/(\S+?):(?:\"([^\"]*)\"|(\S+))/", $msg->getCommandParameterString(), $match, PREG_SET_ORDER);
+
         foreach ($match as $entry) {
             list(, $option, $value) = $entry;
+            //  Prefer latter capture group
             if (isset($entry[3]))
                 $value = $entry[3];
 
             switch ($option) {
+                //  Number to start counting down from
                 case "from":
                     if (preg_match("/\D/", $value) || $value == 0)
                         throw new ModuleException("'from' must be a positive integer.");
                     $countdownFrom = (int)$value;
                     break;
 
+                //  How long to wait to start countdown
                 case "delay":
                     if (!is_numeric($value) || $value < 0)
                         throw new ModuleException("'delay' must be a non-negative number.");
                     $countdownDelay = (float)$value;
                     break;
 
+                //  Time between intermediate numbers in countdown
                 case "interval":
                     if (preg_match("/\D/", $value) || $value == 0)
                         throw new ModuleException("'interval' must be a positive integer.");
                     $countdownInterval = (int)$value;
                     break;
 
+                //  Ready message displayed to channel
                 case "ready":
                     $readyMessage = $value;
                     break;
 
+                //  Finish message displayed to channel
                 case "end":
                     $endingMessage = $value;
                     break;
             }
         }
 
+        //  Timers for intermediate numbers
         $counted  = 0;
         while ($countdownFrom > 0) {
             
@@ -163,6 +226,7 @@ class Misc extends ModuleWithPermission {
          * 	$countdownFrom + $countdownInterval = remaining time	*/
         $finalTime = $countdownDelay + --$counted * $countdownInterval + $countdownFrom + $countdownInterval;
 
+        //  Timer for finish message
         $this->addTimer(
             new Timer(
                 $finalTime,
@@ -170,7 +234,8 @@ class Misc extends ModuleWithPermission {
                 array($target, $endingMessage)
             )
         );
-        
+
+        //  Timer to clear out the countdown entry when finished
         $this->addTimer(
             new Timer(
                 $finalTime,
@@ -184,5 +249,6 @@ class Misc extends ModuleWithPermission {
         $this->IRCBot->message($target, $readyMessage);
 
     }
+
 }
 

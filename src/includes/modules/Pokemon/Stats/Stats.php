@@ -7,16 +7,17 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Stats;
+use Utsubot\Help\HelpEntry;
+use Utsubot\Pokemon\{
+    ModuleWithPokemon,
+    Stat,
+    Language
+};
 use Utsubot\{
     IRCBot,
     IRCMessage,
     Trigger,
     Color
-};
-use Utsubot\Pokemon\{
-    ModuleWithPokemon,
-    Stat,
-    Language
 };
 use function Utsubot\{
     bold,
@@ -29,26 +30,72 @@ class Stats extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
-        $this->addTrigger(new Trigger("phiddenpower",   array($this, "hiddenPower"  )));
-        $this->addTrigger(new Trigger("php",            array($this, "hiddenPower"  )));
 
-        $this->addTrigger(new Trigger("piv",            array($this, "calculateIVs" )));
+        //  Command triggers
+        $triggers['phiddenpower'] = new Trigger("phiddenpower", array($this, "hiddenPower"));
+        $triggers['phiddenpower']->addAlias("php");
 
-        $this->addTrigger(new Trigger("maxtobase",      array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("m2b",            array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("mtob",           array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("basetomax",      array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("b2m",            array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("btom",           array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("maxtobase50",    array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("m2b50",          array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("mtob50",         array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("basetomax50",    array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("b2m50",          array($this, "baseMax"      )));
-        $this->addTrigger(new Trigger("btom50",         array($this, "baseMax"      )));
+        $triggers['piv'] = new Trigger("piv", array($this, "calculateIVs"));
 
-        $this->addTrigger(new Trigger("pstat",          array($this, "baseStat"     )));
-        $this->addTrigger(new Trigger("pstats",         array($this, "baseStat"     )));
+        $triggers['maxtobase'] = new Trigger("maxtobase", array($this, "baseMax"));
+        $triggers['maxtobase']->addAlias("mtob");
+        $triggers['maxtobase']->addAlias("m2b");
+
+        $triggers['basetomax'] = new Trigger("basetomax", array($this, "baseMax"));
+        $triggers['basetomax']->addAlias("btom");
+        $triggers['basetomax']->addAlias("b2m");
+
+        $triggers['maxtobase50'] = new Trigger("maxtobase50", array($this, "baseMax"));
+        $triggers['maxtobase50']->addAlias("mtob50");
+        $triggers['maxtobase50']->addAlias("m2b50");
+
+        $triggers['basetomax50'] = new Trigger("basetomax50", array($this, "baseMax"));
+        $triggers['basetomax50']->addAlias("btom50");
+        $triggers['basetomax50']->addAlias("b2m50");
+
+        $triggers['pstats'] = new Trigger("pstat", array($this, "baseStat"));
+        $triggers['pstats']->addAlias("pstat");
+
+        foreach ($triggers as $trigger)
+            $this->addTrigger($trigger);
+
+
+        //  Help entries
+        $help = array();
+
+        $help['phiddenpower'] = new HelpEntry("Pokemon", $triggers['phiddenpower']);
+        $help['phiddenpower']->addParameterTextPair("IVS", "Calculate the type and base power of a Pokemon's hidden power, given its IVs (in the form HP/ATK/DEF/SATK/SDEF/SPE).");
+
+        $help['piv'] = new HelpEntry("Pokemon", $triggers['piv']);
+        $help['piv']->addParameterTextPair(
+            "POKEMON LEVEL NATURE HP[:EVS] ATK[:EVS] DEF[:EVS] SPA[:EVS] SPD[:EVS] SPE[:EVS]",
+            "Perform an IV calculation for the Pokemon with the given stats. Fill in POKEMON, LEVEL, and NATURE with the respective values, followed by the stats."
+        );
+        $help['piv']->addNotes("If there are EVs in a stat, append them with :EVS. Example: Stat - 300, Stat with max EVs - 300:252.");
+
+        $help['maxtobase'] = new HelpEntry("Pokemon", $triggers['maxtobase']);
+        $help['maxtobase']->addParameterTextPair(
+            "[-hp] [-level:LEVEL] VALUE",
+            "Return the base stat given a maximum stat as VALUE (assumes positive nature, 31 IVs, 252 EVs)."
+        );
+        $help['maxtobase']->addNotes("Specify -hp to calculate it for the HP stat, and optionally change level from the default of 100 to LEVEL.");
+        
+        $help['basetomax'] = new HelpEntry("Pokemon", $triggers['basetomax']);
+        $help['basetomax']->addParameterTextPair(
+            "[-hp] [-level:LEVEL] VALUE",
+            "Return the maximum possible stat (positive nature, 31 IVs, 252 EVs) given a base stat as VALUE."
+        );
+        $help['basetomax']->addNotes("Specify -hp to calculate it for the HP stat, and optionally change level from the default of 100 to LEVEL.");
+
+        $help['pstats'] = new HelpEntry("Pokemon", $triggers['pstats']);
+        $help['pstats']->addParameterTextPair(
+            "POKEMON LEVEL NATURE HP[:EVS] ATK[:EVS] DEF[:EVS] SPA[:EVS] SPD[:EVS] SPE[:EVS]",
+            "Perform a stat calculation for the Pokemon with the given IVs. Fill in POKEMON, LEVEL, and NATURE with the respective values, followed by the IVs."
+        );
+        $help['pstats']->addNotes("If there are EVs in a stat, append them with :EVS. Example: IV - 20, IV with max EVs - 20:252.");
+
+        foreach ($help as $entry)
+            $this->addHelp($entry);
     }
 
     public function baseMax(IRCMessage $msg) {

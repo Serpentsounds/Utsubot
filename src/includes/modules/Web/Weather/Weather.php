@@ -8,14 +8,12 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
+use Utsubot\Accounts\Setting;
+use Utsubot\Help\HelpEntry;
 use Utsubot\{
     IRCBot,
     IRCMessage,
     Trigger
-};
-use Utsubot\Accounts\{
-    Setting,
-    AccountsDatabaseInterfaceException
 };
 use function Utsubot\bold;
 
@@ -34,8 +32,8 @@ class WeatherException extends WebModuleException {}
  */
 class Weather extends WebModule {
 
-	const ROUNDING_PRECISION = 1;
-	const FORECAST_DAYS = 2;
+    const ROUNDING_PRECISION = 1;
+    const FORECAST_DAYS = 2;
 
     /**
      * Weather constructor.
@@ -45,13 +43,39 @@ class Weather extends WebModule {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
+        //  Account settings
         $this->registerSetting(new Setting($this,   "weather",    "Default Weather Location",    1));
         $this->registerSetting(new Setting($this,   "units",      "Weather Unit System",         1));
 
-        $this->addTrigger(new Trigger("weather",    array($this, "weather")));
-        $this->addTrigger(new Trigger("w",          array($this, "weather")));
-        $this->addTrigger(new Trigger("forecast",   array($this, "weather")));
-        $this->addTrigger(new Trigger("conditions", array($this, "weather")));
+        
+        //  Command triggers
+        $triggers = array();
+        
+        $triggers['weather']    = new Trigger("weather",    array($this, "weather"));
+        $triggers['weather']->addAlias("w");
+
+        $triggers['conditions'] = new Trigger("conditions", array($this, "weather"));
+        $triggers['forecast']   = new Trigger("forecast",   array($this, "weather"));        
+        
+        foreach ($triggers as $trigger)
+            $this->addTrigger($trigger);
+        
+        
+        //  Help entries
+        $help = array();
+        
+        $help['weather']    = new HelpEntry("Web", $triggers['weather']);
+        $help['weather']->addParameterTextPair("AREA", "Returns current conditions and 2-day forecast of the weather for AREA (an area code or city name).");
+
+        $help['conditions'] = new HelpEntry("Web", $triggers['conditions']);
+        $help['conditions']->addParameterTextPair("AREA", "Returns current conditions of the weather for AREA (an area code or city name).");
+        
+        $help['forecast']   = new HelpEntry("Web", $triggers['forecast']);
+        $help['forecast']->addParameterTextPair("AREA", "Returns 2-day forecast of the weather for AREA (an area code or city name).");
+        
+        foreach ($help as $entry)
+            $this->addHelp($entry);
+        
     }
 
 
@@ -157,82 +181,82 @@ class Weather extends WebModule {
 
 
     /**
-	 * Public interface for searching
-	 *
-	 * @param string $search
-	 * @param Units  $units
+     * Public interface for searching
+     *
+     * @param string $search
+     * @param Units  $units
      * @param bool   $conditions
      * @param bool   $forecast
-	 * @return string
-	 */
-	public function weatherSearch(string $search, Units $units, bool $conditions, bool $forecast): string {
-		//	Convert location name into a string usable by the API
-		$location = $this->weatherLocation($search);
-		$output = array();
+     * @return string
+     */
+    public function weatherSearch(string $search, Units $units, bool $conditions, bool $forecast): string {
+        //	Convert location name into a string usable by the API
+        $location = $this->weatherLocation($search);
+        $output = array();
 
-		//	Default to showing both conditions and forecast, but allow override
-		if ($conditions)
-			$output[] = $this->conditions($location, $units);
-		if ($forecast)
-			$output[] = $this->forecast($location, $units);
+        //	Default to showing both conditions and forecast, but allow override
+        if ($conditions)
+            $output[] = $this->conditions($location, $units);
+        if ($forecast)
+            $output[] = $this->forecast($location, $units);
 
-		return implode("\n", $output);
-	}
-
-
-	/**
-	 * Utility to convert a location search into an API-usable string by using the API's autocomplete
-	 *
-	 * @param string $search
-	 * @return string
-	 * @throws WeatherException If the location isn't found
-	 */
-	public function weatherLocation(string $search): string {
-		//	Convert from UTF-8 to UTF-8 to fix some special character errors
-		$string = mb_convert_encoding(resourceBody("http://autocomplete.wunderground.com/aq?query=". urlencode($search)), "UTF-8", "UTF-8");
-
-		$results = json_decode($string, TRUE);
-
-		//	$query is set to an API-specific identifier returned by this search page
-		$i = 0;
-		$query = "";
-		//	Save the identifier of the first result that matches the identifier format
-		do {
-			if (isset($results['RESULTS'][$i]['l']))
-				$query = $results['RESULTS'][$i++]['l'];
-			else
-				break;
-		} while (strpos($query, '/q/zmw:') === FALSE);
-
-		//	List of results exhausted with no success
-		if (!$query)
-			throw new WeatherException("No location found for '$search'.");
-
-		return $query;
-	}
+        return implode("\n", $output);
+    }
 
 
-	/**
-	 * Get the current conditions for an area
-	 *
-	 * @param string $location The API identifier for a location
-	 * @param Units $units
-	 * @return string
-	 * @throws WeatherException If information isn't available
-	 */
-	public function conditions(string $location, Units $units): string {
+    /**
+     * Utility to convert a location search into an API-usable string by using the API's autocomplete
+     *
+     * @param string $search
+     * @return string
+     * @throws WeatherException If the location isn't found
+     */
+    public function weatherLocation(string $search): string {
+        //	Convert from UTF-8 to UTF-8 to fix some special character errors
+        $string = mb_convert_encoding(resourceBody("http://autocomplete.wunderground.com/aq?query=". urlencode($search)), "UTF-8", "UTF-8");
+
+        $results = json_decode($string, TRUE);
+
+        //	$query is set to an API-specific identifier returned by this search page
+        $i = 0;
+        $query = "";
+        //	Save the identifier of the first result that matches the identifier format
+        do {
+            if (isset($results['RESULTS'][$i]['l']))
+                $query = $results['RESULTS'][$i++]['l'];
+            else
+                break;
+        } while (strpos($query, '/q/zmw:') === FALSE);
+
+        //	List of results exhausted with no success
+        if (!$query)
+            throw new WeatherException("No location found for '$search'.");
+
+        return $query;
+    }
+
+
+    /**
+     * Get the current conditions for an area
+     *
+     * @param string $location The API identifier for a location
+     * @param Units $units
+     * @return string
+     * @throws WeatherException If information isn't available
+     */
+    public function conditions(string $location, Units $units): string {
         $APIKey = $this->getAPIKey("weather");
-		$page = resourceBody("http://api.wunderground.com/api/$APIKey/conditions$location.json");
-		$results = json_decode($page, TRUE);
+        $page = resourceBody("http://api.wunderground.com/api/$APIKey/conditions$location.json");
+        $results = json_decode($page, TRUE);
 
-		//	Check for this index to verify the search was successful
-		if (!isset($results['current_observation']) || !($conditions = $results['current_observation']))
-			throw new WeatherException("Weather::weather: Current observation not available for '$location'.");
+        //	Check for this index to verify the search was successful
+        if (!isset($results['current_observation']) || !($conditions = $results['current_observation']))
+            throw new WeatherException("Weather::weather: Current observation not available for '$location'.");
 
-		$output = array();
+        $output = array();
 
-		//	Location, conditions, temperature
-		$output[] = sprintf(
+        //	Location, conditions, temperature
+        $output[] = sprintf(
             "Current conditions for %s: %s (%s).",
             bold($conditions['display_location']['full']),
             $conditions['weather'],
@@ -244,9 +268,9 @@ class Weather extends WebModule {
             )
         );
 
-		//	Only include heat index/wind chill if it is different
-		if ($conditions['temp_f'] != $conditions['feelslike_f'])
-			$output[] = sprintf(
+        //	Only include heat index/wind chill if it is different
+        if ($conditions['temp_f'] != $conditions['feelslike_f'])
+            $output[] = sprintf(
                 "Feels like %s.",
                 self::formatMeasurements(
                     new Measurement(Measurement::Temperature),
@@ -256,8 +280,8 @@ class Weather extends WebModule {
                 )
             );
 
-		//	Humidity, wind
-		$output[] = sprintf(
+        //	Humidity, wind
+        $output[] = sprintf(
             "Humidity: %s. Wind: From %s at %s.",
             $conditions['relative_humidity'],
             $conditions['wind_dir'],
@@ -269,9 +293,9 @@ class Weather extends WebModule {
             )
         );
 
-		//	Only include wind gusts if they are different
-		if ($conditions['wind_mph'] < $conditions['wind_gust_mph'])
-			$output[] = sprintf(
+        //	Only include wind gusts if they are different
+        if ($conditions['wind_mph'] < $conditions['wind_gust_mph'])
+            $output[] = sprintf(
                 "Gusting to %s.",
                 self::formatMeasurements(
                     new Measurement(Measurement::Speed),
@@ -281,34 +305,34 @@ class Weather extends WebModule {
                 )
             );
 
-		return implode(" ", $output);
-	}
+        return implode(" ", $output);
+    }
 
 
-	/**
-	 * Get the n-day forecast for an area
-	 *
-	 * @param string $location The API identifier for a location
-	 * @param Units $units
-	 * @return string
-	 * @throws WeatherException If information isn't available
-	 */
-	public function forecast(string $location, Units $units): string {
+    /**
+     * Get the n-day forecast for an area
+     *
+     * @param string $location The API identifier for a location
+     * @param Units $units
+     * @return string
+     * @throws WeatherException If information isn't available
+     */
+    public function forecast(string $location, Units $units): string {
         $APIKey = $this->getAPIKey("weather");
-		$page = resourceBody("http://api.wunderground.com/api/$APIKey/forecast$location.json");
-		$results = json_decode($page, TRUE);
+        $page = resourceBody("http://api.wunderground.com/api/$APIKey/forecast$location.json");
+        $results = json_decode($page, TRUE);
 
-		//	Check for this index to verify the search was successful
-		if (empty($results['forecast']['simpleforecast']['forecastday']))
-			throw new WeatherException("Forecast is not available for '$location'.");
+        //	Check for this index to verify the search was successful
+        if (empty($results['forecast']['simpleforecast']['forecastday']))
+            throw new WeatherException("Forecast is not available for '$location'.");
         $forecast = $results['forecast']['simpleforecast']['forecastday'];
 
-		$output = array();
-		//	Add a configurable number of days
-		for ($day = 0; $day < self::FORECAST_DAYS; $day++) {
-			$conditions = $forecast[$day];
+        $output = array();
+        //	Add a configurable number of days
+        for ($day = 0; $day < self::FORECAST_DAYS; $day++) {
+            $conditions = $forecast[$day];
 
-			$output[] = sprintf(
+            $output[] = sprintf(
                 "%s: %s. High of %s. Low of %s.",
                 bold($conditions['date']['weekday']),
                 $conditions['conditions'],
@@ -325,8 +349,8 @@ class Weather extends WebModule {
                     (float)$conditions['low']['celsius']
                 )
             );
-		}
+        }
 
-		return implode(" ", $output);
-	}
+        return implode(" ", $output);
+    }
 }

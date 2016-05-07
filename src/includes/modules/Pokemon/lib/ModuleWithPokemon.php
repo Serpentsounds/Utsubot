@@ -9,6 +9,10 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon;
 use Utsubot\Permission\ModuleWithPermission;
+use Utsubot\Help\{
+    IHelp,
+    THelp
+};
 use Utsubot\{
     ModuleException,
     ManagerException
@@ -28,7 +32,9 @@ class ModuleWithPokemonException extends ModuleException {}
  *
  * @package Utsubot\Pokemon
  */
-abstract class ModuleWithPokemon extends ModuleWithPermission {
+abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
+    
+    use THelp;
 
     private static $managers;
     
@@ -86,7 +92,9 @@ abstract class ModuleWithPokemon extends ModuleWithPermission {
         $result = new PokemonObjectResult();
         $firstWord = explode(" ", $parameterString)[0];
 
+        //  Number of search modes to check
         $maxMode = ($allowSpellcheck) ? 3 : 1;
+        
         //  Set up loop to try multiple fetch angles while catching exceptions for no results
         for ($mode = 0; $mode <= $maxMode; $mode++) {
             try {
@@ -128,6 +136,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission {
                 //  Switch exited successfully, item data should be populated
                 break;
             }
+            
             //  Item lookup failed, try next mode
             catch (ManagerException $e) {}
         }
@@ -138,4 +147,5 @@ abstract class ModuleWithPokemon extends ModuleWithPermission {
 
         return $result;
     }
+    
 }

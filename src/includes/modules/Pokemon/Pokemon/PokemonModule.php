@@ -7,22 +7,20 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Pokemon;
-use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    Color
-};
-use Utsubot\Accounts\{
-    Setting,
-    AccountsDatabaseInterfaceException
-};
+use Utsubot\Accounts\Setting;
+use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
     ModuleWithPokemonException,
     VeekunDatabaseInterface,
     Version,
     Language
+};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger,
+    Color
 };
 use function Utsubot\{
     bold,
@@ -52,22 +50,53 @@ class PokemonModule extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
-        $this->registerSetting(new Setting($this, "pinfo", "Pokemon Info Format", 1));
-        
+        //  Create and register manager with base class
         $pokemonManager = new PokemonManager(new VeekunDatabaseInterface());
         $pokemonManager->load();
         $this->registerManager("Pokemon", $pokemonManager);
 
-        $this->addTrigger(new Trigger("poke",       array($this, "pokemon"  )));
-        $this->addTrigger(new Trigger("pinfo",      array($this, "pokemon"  )));
-        $this->addTrigger(new Trigger("sinfo",      array($this, "pokemon"  )));
-        $this->addTrigger(new Trigger("names",      array($this, "pokemon"  )));
-        $this->addTrigger(new Trigger("dexes",      array($this, "pokemon"  )));
 
-        $this->addTrigger(new Trigger("dex",        array($this, "dex"      )));
+        //  Account settings
+        $this->registerSetting(new Setting($this, "pinfo", "Pokemon Info Format", 1));
 
-        $this->addTrigger(new Trigger("pcompare",   array($this, "compare"  )));
-        $this->addTrigger(new Trigger("pcomp",      array($this, "compare"  )));
+
+        //  Command triggers
+        $triggers['pinfo']      = new Trigger("pinfo",      array($this, "pokemon"  ));
+        $triggers['sinfo']      = new Trigger("sinfo",      array($this, "pokemon"  ));
+        $triggers['names']      = new Trigger("names",      array($this, "pokemon"  ));
+        $triggers['dexes']      = new Trigger("dexes",      array($this, "pokemon"  ));
+        $triggers['dex']        = new Trigger("dex",        array($this, "dex"      ));
+        $triggers['pcompare']   = new Trigger("pcompare",   array($this, "compare"  ));
+
+        foreach ($triggers as $trigger)
+            $this->addTrigger($trigger);
+
+
+        //  Help entries
+        $help['pinfo'] = new HelpEntry("Pokemon", $triggers['pinfo']);
+        $help['pinfo']->addParameterTextPair("POKEMON", "Look up statistical information about POKEMON.");
+
+        $help['sinfo'] = new HelpEntry("Pokemon", $triggers['sinfo']);
+        $help['sinfo']->addParameterTextPair("POKEMON", "Look up semantic information about POKEMON.");
+        
+        $help['names'] = new HelpEntry("Pokemon", $triggers['names']);
+        $help['names']->addParameterTextPair("POKEMON", "Look up names of POKEMON in all available languages.");
+        
+        $help['dexes'] = new HelpEntry("Pokemon", $triggers['dexes']);
+        $help['dexes']->addParameterTextPair("POKEMON", "Look up all in game dex numbers of POKEMON.");
+        
+        $help['dex'] = new HelpEntry("Pokemon", $triggers['dex']);
+        $help['dex']->addParameterTextPair(
+            "[-language:LANGUAGE] [-version:VERSION] POKEMON",
+            "Give a short anime-style pokedex entry of POKEMON. Optionally provide a LANGUAGE and VERSION, or omit for most recent version in English."
+        );
+        
+        $help['pcompare'] = new HelpEntry("Pokemon", $triggers['pcompare']);
+        $help['pcompare']->addParameterTextPair("POKEMON1 POKEMON2", "Show a side-by-side comparison of the main statistics of POKEMON1 and POKEMON2.");
+        
+        foreach ($help as $entry)
+            $this->addHelp($entry);
+        
     }
 
     /**
@@ -89,7 +118,6 @@ class PokemonModule extends ModuleWithPokemon {
         switch ($msg->getCommand()) {
             
             case "pinfo":
-            case "poke":
                 try {
                     $format = $this->getSetting($msg->getNick(), $this->getSettingObject("pinfo"));
                 }                

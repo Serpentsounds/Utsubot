@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Web;
+use Utsubot\Help\HelpEntry;
 use Utsubot\{
     IRCBot,
     IRCMessage,
@@ -33,40 +34,55 @@ class DNS extends WebModule {
      *
      * @param IRCBot $irc
      */
-	public function __construct(IRCBot $irc) {
-		parent::__construct($irc);
+    public function __construct(IRCBot $irc) {
+        parent::__construct($irc);
 
-        $this->addTrigger(new Trigger("dns",    array($this, "dns"  )));
-        $this->addTrigger(new Trigger("rdns",   array($this, "rdns" )));
-	}
+        //  Command triggers
+        $dns  = new Trigger("dns",    array($this, "dns"    ));
+        $this->addTrigger($dns);
+        
+        $rdns = new Trigger("rdns",   array($this, "rdns"   ));
+        $this->addTrigger($rdns);
+        
+        
+        //  Help entries
+        $dnsHelp = new HelpEntry("Web", $dns);
+        $dnsHelp->addParameterTextPair("HOST", "Perform a DNS lookup on HOST, returning the resolved IP address.");
+        $this->addHelp($dnsHelp);
+        
+        $rdnsHelp = new HelpEntry("Web", $rdns);
+        $rdnsHelp->addParameterTextPair( "IP", "Perform a Reverse DNS lookup on IP, returning the resolved hostname and geolocation information.");
+        $this->addHelp($rdnsHelp);
+        
+    }
 
 
-	/**
-	 * Lookup DNS for a hostname. Get A records (IPV4), AAAA records (IPV6), and CNAME records (alias)
-	 *
-	 * @param IRCMessage $msg
-	 * @throws DNSException If hostname is invalid, or no dns records are found
+    /**
+     * Lookup DNS for a hostname. Get A records (IPV4), AAAA records (IPV6), and CNAME records (alias)
+     *
+     * @param IRCMessage $msg
+     * @throws DNSException If hostname is invalid, or no dns records are found
      *
      * @usage !dns <host>
-	 */
-	public function dns(IRCMessage $msg) {
-		//	Make sure the host isn't bogus before attempting dns
-		if (!preg_match('/^([A-Z0-9\-]+\.)+[A-Z0-9\-]+\.?$/i', $msg->getCommandParameterString(), $match))
-			throw new DNSException("Invalid hostname format.");
+     */
+    public function dns(IRCMessage $msg) {
+        //	Make sure the host isn't bogus before attempting dns
+        if (!preg_match('/^([A-Z0-9\-]+\.)+[A-Z0-9\-]+\.?$/i', $msg->getCommandParameterString(), $match))
+            throw new DNSException("Invalid hostname format.");
 
-		//	Append trailing . to speed up the return in some cases
-		if (substr($match[0], -1) != ".")
-			$match[0] .= ".";
+        //	Append trailing . to speed up the return in some cases
+        if (substr($match[0], -1) != ".")
+            $match[0] .= ".";
 
-		//	dns_get_record will throw an error if lookup fails, so @suppress it and throw an exception instead
-		$records = @dns_get_record($match[0], DNS_A + DNS_AAAA + DNS_CNAME);
-		if (!$records)
-			throw new DNSException("No DNS record found.");
+        //	dns_get_record will throw an error if lookup fails, so @suppress it and throw an exception instead
+        $records = @dns_get_record($match[0], DNS_A + DNS_AAAA + DNS_CNAME);
+        if (!$records)
+            throw new DNSException("No DNS record found.");
 
-		$result = array();
+        $result = array();
 
-		//	Filter DNS record array based on record type
-		foreach ($records as $entry) {
+        //	Filter DNS record array based on record type
+        foreach ($records as $entry) {
             switch ($entry['type']) {
 
                 case "A":
@@ -81,16 +97,16 @@ class DNS extends WebModule {
                     $result['CNAME'][] = bold($entry['target']);
                     break;
             }
-		}
+        }
 
-		//	Join multiple entries of the same type with a comma
+        //	Join multiple entries of the same type with a comma
         $response = array();
         foreach ($result as $type => $arr)
             $response[] = implode(", ", $arr). " [$type]";
 
         $response = bold($match[0]). " resolved to ". implode(self::separator, $response);
         $this->respond($msg, $response);
-	}
+    }
 
 
     /**
@@ -101,38 +117,38 @@ class DNS extends WebModule {
      *
      * @usage !rdns <ipaddress>
      */
-	public function rdns(IRCMessage $msg) {
-		$ip = $msg->getCommandParameterString();
+    public function rdns(IRCMessage $msg) {
+        $ip = $msg->getCommandParameterString();
 
-		if (!preg_match('/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/', $ip, $match))
-			throw new DNSException("Invalid IP address format.");
+        if (!preg_match('/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/', $ip, $match))
+            throw new DNSException("Invalid IP address format.");
 
-		$json = resourceBody("http://ip-api.com/json/$ip");
-		$results = json_decode($json, true);
+        $json = resourceBody("http://ip-api.com/json/$ip");
+        $results = json_decode($json, true);
 
-		if ($results['status'] != "success")
-			throw new DNSException("Lookup failed.");
+        if ($results['status'] != "success")
+            throw new DNSException("Lookup failed.");
 
-		$output = array(
-			sprintf(
+        $output = array(
+            sprintf(
                 "%s: %s [%s]",
                 bold("Country"),
                 $results['country'],
                 $results['countryCode']
             ),
-			sprintf(
+            sprintf(
                 "%s: %s [%s]",
                 bold("Region"),
                 $results['regionName'],
                 $results['region']
             ),
-			sprintf(
+            sprintf(
                 "%s: %s [%s]",
                 bold("City"),
                 $results['city'],
                 $results['zip']
             ),
-			sprintf(
+            sprintf(
                 "%s: %s°%s, %s°%s",
                 bold("Location"),
                 round(abs($results['lat']), 2),
@@ -140,19 +156,19 @@ class DNS extends WebModule {
                 round(abs($results['lon']), 2),
                 (($results['lon'] < 0) ? "W" : "E")
             ),
-			sprintf(
+            sprintf(
                 "%s: %s",
                 bold("Time Zone"),
                 str_replace("_", " ", $results['timezone'])
             ),
-			sprintf(
+            sprintf(
                 "%s: %s",
                 bold("ISP"),
                 $results['isp']
             )
-		);
+        );
 
-		$this->respond($msg, implode(self::separator, $output));
-	}
+        $this->respond($msg, implode(self::separator, $output));
+    }
 
 }

@@ -7,15 +7,16 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Move;
-use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger
-};
+use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
     ModuleWithPokemonException,
     VeekunDatabaseInterface
+};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger
 };
 
 
@@ -41,13 +42,23 @@ class MoveModule extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
+        //  Create and register manager with base module
         $moveManager = new MoveManager(new VeekunDatabaseInterface());
         $moveManager->load();
         $this->registerManager("Move", $moveManager);
 
-        $this->addTrigger(new Trigger("pmove",      array($this, "move")));
-        $this->addTrigger(new Trigger("pattack",    array($this, "move")));
-        $this->addTrigger(new Trigger("patk",       array($this, "move")));
+        //  Command triggers
+        $move = new Trigger("pmove",      array($this, "move"));
+        $move->addAlias("pattack");
+        $move->addAlias("patk");
+        $this->addTrigger($move);
+        
+        //  Help entries
+        $help = new HelpEntry("Pokemon", $move);
+        $help->addParameterTextPair("MOVE",             "Look up information about the Pokemon move MOVE.");
+        $help->addParameterTextPair("-verbose MOVE",    "Look up information about the Pokemon move MOVE, with mechanics explained in-depth.");
+        $help->addParameterTextPair("-contest MOVE",    "Look up contest statistics about the Pokemon move MOVE.");
+        $this->addHelp($help);
     }
 
     /**

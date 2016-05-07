@@ -6,10 +6,11 @@
  */
 
 namespace Utsubot\Pokemon;
+use Utsubot\Help\HelpEntry;
 use Utsubot\{
     IRCBot,
     IRCMessage,
-	Trigger,
+    Trigger,
     ModuleException,
     DatabaseInterface,
     MySQLDatabaseCredentials,
@@ -21,7 +22,7 @@ use function Utsubot\{
     bold,
     italic,
     colorText,
-	stripControlCodes
+    stripControlCodes
 };
 use function Utsubot\Web\resourceBody;
 use function Utsubot\Pokemon\Types\{
@@ -56,16 +57,29 @@ class PokemonSuite extends ModuleWithPokemon {
      */
     public function __construct(IRCBot $IRCBot) {
         $this->_require("Utsubot\\Pokemon\\VeekunDatabaseInterface");
-		$this->_require("Utsubot\\Pokemon\\MetaPokemonDatabaseInterface");
+        $this->_require("Utsubot\\Pokemon\\MetaPokemonDatabaseInterface");
 
-		parent::__construct($IRCBot);
+        parent::__construct($IRCBot);
         
         foreach (self::Modules as $module)
             $this->IRCBot->loadModule(__NAMESPACE__. "\\$module\\{$module}Module");
 
-		$this->addTrigger(new Trigger("psearch", 	array($this, "search"					)));
-		$this->addTrigger(new Trigger("mgdb", 		array($this, "updateMetagameDatabase"	)));
-	}
+        
+        //  Command triggers
+        $psearch = new Trigger("psearch", array($this, "search"));
+        $this->addTrigger($psearch);
+        $mgdb = new Trigger("mgdb", array($this, "updateMetagameDatabase"));
+        $this->addTrigger($mgdb);
+        
+        
+        //  Help entries
+        $psearchHelp = new HelpEntry("Pokemon", $psearch);
+        $psearchHelp->addParameterTextPair("CATEGORY PARAMETERS", "Search CATEGORY using any number of custom search PARAMETERS.");
+        $psearchHelp->addNotes("CATEGORY is the name of a class of Pokemon objects (e.g., Pokemon, Item, etc.)");
+        $psearchHelp->addNotes("Parameters are separated by spaces and have three parts each: a field, operator, and value.");
+        $psearchHelp->addNotes("The operator must be approriate for the data type, e.g. atk>150 is O.K., English>Pikachu is not, but English=Pikachu is.");
+        $this->addHelp($psearchHelp);
+    }
 
 
     /**
@@ -155,206 +169,206 @@ class PokemonSuite extends ModuleWithPokemon {
     
 
 
-	public function updateMetagameDatabase(IRCMessage $msg) {
-		$this->requireLevel($msg, 100);
+    public function updateMetagameDatabase(IRCMessage $msg) {
+        $this->requireLevel($msg, 100);
 
-		$mode = @$msg->getCommandParameters()[0];
-		switch ($mode) {
-			case "download":
-				$this->downloadMetagameDatabase($msg);
-			break;
+        $mode = @$msg->getCommandParameters()[0];
+        switch ($mode) {
+            case "download":
+                $this->downloadMetagameDatabase($msg);
+            break;
 
-			case "insert":
-				$this->insertMetagameDatabase($msg);
-			break;
-		}
-	}
+            case "insert":
+                $this->insertMetagameDatabase($msg);
+            break;
+        }
+    }
 
-	private function downloadMetagameDatabase(IRCMessage $msg) {
-		$base = "http://www.smogon.com/stats/";
-		$index = resourceBody($base);
-		if (!preg_match_all('/^<a href="(\d{4}-\d{2}\/)">/m', $index, $match, PREG_PATTERN_ORDER))
-			throw new PokemonSuiteException("Unable to find latest metagame stats.");
-		$latest = $match[1][count($match[1]) - 1];
+    private function downloadMetagameDatabase(IRCMessage $msg) {
+        $base = "http://www.smogon.com/stats/";
+        $index = resourceBody($base);
+        if (!preg_match_all('/^<a href="(\d{4}-\d{2}\/)">/m', $index, $match, PREG_PATTERN_ORDER))
+            throw new PokemonSuiteException("Unable to find latest metagame stats.");
+        $latest = $match[1][count($match[1]) - 1];
 
-		$files = array("ubers-0", "ou-0", "uu-0", "nu-0", "doublesubers-0", "doublesou-0", "doublesuu-0", "vgc2015-0");
-		$jsonDir = $base. $latest. "chaos/";
-		if (!is_dir("metagame"))
-			mkdir("metagame");
-		else {
-			$this->respond($msg, "Clearing out old statistics files...");
-			array_map("unlink", glob("metagame/*.json"));
-		}
-		$this->respond($msg, "Downloading newest metagame statistics...");
-		foreach ($files as $file) {
-			if (file_put_contents("metagame/$file.json", file_get_contents($jsonDir.$file.".json")))
-				$this->respond($msg, "Successfully downloaded $file.");
-			else
-				$this->respond($msg, "Failed to download $file.");
-		}
-		$this->respond($msg, "Download complete.");
-	}
+        $files = array("ubers-0", "ou-0", "uu-0", "nu-0", "doublesubers-0", "doublesou-0", "doublesuu-0", "vgc2015-0");
+        $jsonDir = $base. $latest. "chaos/";
+        if (!is_dir("metagame"))
+            mkdir("metagame");
+        else {
+            $this->respond($msg, "Clearing out old statistics files...");
+            array_map("unlink", glob("metagame/*.json"));
+        }
+        $this->respond($msg, "Downloading newest metagame statistics...");
+        foreach ($files as $file) {
+            if (file_put_contents("metagame/$file.json", file_get_contents($jsonDir.$file.".json")))
+                $this->respond($msg, "Successfully downloaded $file.");
+            else
+                $this->respond($msg, "Failed to download $file.");
+        }
+        $this->respond($msg, "Download complete.");
+    }
 
-	private function insertMetagameDatabase(IRCMessage $msg) {
-		if (!is_dir("metagame"))
-			throw new PokemonSuiteException("There are no metagame statistics to insert. Download them first.");
+    private function insertMetagameDatabase(IRCMessage $msg) {
+        if (!is_dir("metagame"))
+            throw new PokemonSuiteException("There are no metagame statistics to insert. Download them first.");
 
-		$files = glob("metagame/*.json");
-		if (!$files)
-			throw new PokemonSuiteException("There are no metagame statistics to insert. Download them first.");
+        $files = glob("metagame/*.json");
+        if (!$files)
+            throw new PokemonSuiteException("There are no metagame statistics to insert. Download them first.");
 
-		$interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        $interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
 
-		$tiers = $interface->query("SELECT * FROM `metagame_tiers` ORDER BY `id` ASC");
-		$tierIds = array();
-		foreach ($tiers as $id => $row)
-			$tierIds[strtolower(str_replace(" ", "", $row['name']))] = $id;
+        $tiers = $interface->query("SELECT * FROM `metagame_tiers` ORDER BY `id` ASC");
+        $tierIds = array();
+        foreach ($tiers as $id => $row)
+            $tierIds[strtolower(str_replace(" ", "", $row['name']))] = $id;
 
-		$fields = $interface->query("SELECT * FROM `metagame_fields` ORDER BY `id` ASC");
-		$fieldIds = array();
-		foreach ($fields as $id => $row)
-			$fieldIds[$row['name']] = $id;
+        $fields = $interface->query("SELECT * FROM `metagame_fields` ORDER BY `id` ASC");
+        $fieldIds = array();
+        foreach ($fields as $id => $row)
+            $fieldIds[$row['name']] = $id;
 
-		$collections = array(
-			'pokemon'		=> $this->PokemonManager->collection(),
-			'items' 		=> $this->ItemManager->collection(),
-			'abilities' 	=> $this->AbilityManager->collection(),
-			'moves' 		=> $this->MoveManager->collection()
-		);
-		$cache = array();
-		foreach ($collections as $key => $collection) {
-			foreach ($collection as $currentObject) {
-				/** @var $currentObject PokemonBase */
-				$index = $name = $currentObject->getName();
-				if (substr_count($index, " ") > 1)
-					$index = implode(" ", array_slice(explode(" ", $index), 0, 2));
-				$index = strtolower(str_replace(array(" ", "-"), "", $index));
-				$cache[$key][$index] = array($currentObject->getId(), $currentObject->getName());
-			}
-		}
+        $collections = array(
+            'pokemon'		=> $this->PokemonManager->collection(),
+            'items' 		=> $this->ItemManager->collection(),
+            'abilities' 	=> $this->AbilityManager->collection(),
+            'moves' 		=> $this->MoveManager->collection()
+        );
+        $cache = array();
+        foreach ($collections as $key => $collection) {
+            foreach ($collection as $currentObject) {
+                /** @var $currentObject PokemonBase */
+                $index = $name = $currentObject->getName();
+                if (substr_count($index, " ") > 1)
+                    $index = implode(" ", array_slice(explode(" ", $index), 0, 2));
+                $index = strtolower(str_replace(array(" ", "-"), "", $index));
+                $cache[$key][$index] = array($currentObject->getId(), $currentObject->getName());
+            }
+        }
 
-		$this->respond($msg, "Clearing out old data...");
-		$interface->query("TRUNCATE TABLE `metagame_data`");
+        $this->respond($msg, "Clearing out old data...");
+        $interface->query("TRUNCATE TABLE `metagame_data`");
 
-		$table = "`metagame_data`";
-		$columns = array("`pokemon_id`", "`tier_id`", "`field_id`", "`entry`", "`value`");
-		$columnCount = count($columns);
-		$insertRows = 500;
-		$maxData = $columnCount * $insertRows;
-		$statement = $interface->prepare(
-			"INSERT INTO $table (". implode(", ", $columns). ") VALUES ". implode(", ", array_fill(0, $insertRows, "(". implode(", ", array_fill(0, $columnCount, "?")). ")"))
-		);
+        $table = "`metagame_data`";
+        $columns = array("`pokemon_id`", "`tier_id`", "`field_id`", "`entry`", "`value`");
+        $columnCount = count($columns);
+        $insertRows = 500;
+        $maxData = $columnCount * $insertRows;
+        $statement = $interface->prepare(
+            "INSERT INTO $table (". implode(", ", $columns). ") VALUES ". implode(", ", array_fill(0, $insertRows, "(". implode(", ", array_fill(0, $columnCount, "?")). ")"))
+        );
 
-		$fieldNameTranslation = array("raw count" => "count", "checks and counters" => "counters");
+        $fieldNameTranslation = array("raw count" => "count", "checks and counters" => "counters");
 
-		foreach ($files as $file) {
-			$this->respond($msg, "Beginning to process $file...");
+        foreach ($files as $file) {
+            $this->respond($msg, "Beginning to process $file...");
 
-			$data = json_decode(file_get_contents($file), true);
-			$tierId = $tierIds[$data['info']['metagame']];
-			$battleCount = $data['info']['number of battles'];
+            $data = json_decode(file_get_contents($file), true);
+            $tierId = $tierIds[$data['info']['metagame']];
+            $battleCount = $data['info']['number of battles'];
 
-			$queryData = array();
-			$queryDataCount = 0;
-			foreach ($data['data'] as $pokemon => $stats) {
-				$pokemonIndex = strtolower(str_replace(array(" ", "-"), "", $pokemon));
-				if (!isset($cache['pokemon'][$pokemonIndex]))
-					continue;
-				$pokemonId = $cache['pokemon'][$pokemonIndex][0];
+            $queryData = array();
+            $queryDataCount = 0;
+            foreach ($data['data'] as $pokemon => $stats) {
+                $pokemonIndex = strtolower(str_replace(array(" ", "-"), "", $pokemon));
+                if (!isset($cache['pokemon'][$pokemonIndex]))
+                    continue;
+                $pokemonId = $cache['pokemon'][$pokemonIndex][0];
 
-				$total = $stats['Raw count'];
-				foreach ($stats as $field => $entries) {
+                $total = $stats['Raw count'];
+                foreach ($stats as $field => $entries) {
 
-					$fieldName = strtolower($field);
-					if (isset($fieldNameTranslation[$fieldName]))
-						$fieldName = $fieldNameTranslation[$fieldName];
+                    $fieldName = strtolower($field);
+                    if (isset($fieldNameTranslation[$fieldName]))
+                        $fieldName = $fieldNameTranslation[$fieldName];
 
-					if (!isset($fieldIds[$fieldName]))
-						continue;
+                    if (!isset($fieldIds[$fieldName]))
+                        continue;
 
-					$fieldId = $fieldIds[$fieldName];
+                    $fieldId = $fieldIds[$fieldName];
 
-					if ($fieldName == "count") {
-						array_push($queryData, $pokemonId, $tierId, $fieldId, $battleCount, $entries);
-						$queryDataCount += $columnCount;
-					}
+                    if ($fieldName == "count") {
+                        array_push($queryData, $pokemonId, $tierId, $fieldId, $battleCount, $entries);
+                        $queryDataCount += $columnCount;
+                    }
 
-					if (!is_array($entries) || !$entries)
-						continue;
+                    if (!is_array($entries) || !$entries)
+                        continue;
 
-					if ($fieldName == "teammates") {
-						$lower = array_filter($entries, function($item) { return $item < 0; });
-						$upper = array_filter($entries, function($item) { return $item > 0; });
+                    if ($fieldName == "teammates") {
+                        $lower = array_filter($entries, function($item) { return $item < 0; });
+                        $upper = array_filter($entries, function($item) { return $item > 0; });
 
-						arsort($upper);
-						$upper = array_slice($upper, 0, 10);
-						asort($lower);
-						$lower = array_slice($lower, 0, 10);
+                        arsort($upper);
+                        $upper = array_slice($upper, 0, 10);
+                        asort($lower);
+                        $lower = array_slice($lower, 0, 10);
 
-						$entries = array_merge($upper, $lower);
-					}
+                        $entries = array_merge($upper, $lower);
+                    }
 
-					if ($fieldName == "counters") {
-						$entries = array_combine(array_keys($entries), array_column($entries, 1));
-						arsort($entries);
-						$entries = array_slice($entries, 0, 10);
-					}
+                    if ($fieldName == "counters") {
+                        $entries = array_combine(array_keys($entries), array_column($entries, 1));
+                        arsort($entries);
+                        $entries = array_slice($entries, 0, 10);
+                    }
 
-					foreach ($entries as $entry => $frequency) {
-						if (in_array($fieldName, array("items", "moves", "spreads")) && ($frequency / $total) < 0.05)
-							continue;
+                    foreach ($entries as $entry => $frequency) {
+                        if (in_array($fieldName, array("items", "moves", "spreads")) && ($frequency / $total) < 0.05)
+                            continue;
 
-						if (in_array($fieldName, array("abilities", "items", "moves", "teammates", "counters"))) {
-							$cacheKey = null;
-							switch ($fieldName) {
-								case "abilities":
-								case "items":
-								case "moves":
-									$cacheKey = $fieldName;
-								break;
-								case "teammates":
-								case "counters":
-									$cacheKey = "pokemon";
-								break;
-								default:
-									continue;
-								break;
-							}
-							$cacheKey2 = strtolower(str_replace(array(" ", "-"), "", $entry));
+                        if (in_array($fieldName, array("abilities", "items", "moves", "teammates", "counters"))) {
+                            $cacheKey = null;
+                            switch ($fieldName) {
+                                case "abilities":
+                                case "items":
+                                case "moves":
+                                    $cacheKey = $fieldName;
+                                break;
+                                case "teammates":
+                                case "counters":
+                                    $cacheKey = "pokemon";
+                                break;
+                                default:
+                                    continue;
+                                break;
+                            }
+                            $cacheKey2 = strtolower(str_replace(array(" ", "-"), "", $entry));
 
-							if ($entry != "nothing" && !isset($cache[$cacheKey][$cacheKey2]))
-								continue;
-							elseif ($entry != "nothing")
-								$entry = $cache[$cacheKey][$cacheKey2][1];
-						}
+                            if ($entry != "nothing" && !isset($cache[$cacheKey][$cacheKey2]))
+                                continue;
+                            elseif ($entry != "nothing")
+                                $entry = $cache[$cacheKey][$cacheKey2][1];
+                        }
 
-						array_push($queryData, $pokemonId, $tierId, $fieldId, $entry, $frequency);
-						$queryDataCount += $columnCount;
+                        array_push($queryData, $pokemonId, $tierId, $fieldId, $entry, $frequency);
+                        $queryDataCount += $columnCount;
 
-						if ($queryDataCount >= $maxData) {
-							$statement->execute($queryData);
-							$queryData = array();
-							$queryDataCount = 0;
-						}
-					}
+                        if ($queryDataCount >= $maxData) {
+                            $statement->execute($queryData);
+                            $queryData = array();
+                            $queryDataCount = 0;
+                        }
+                    }
 
-				}
+                }
 
-				$this->IRCBot->console("Finished processing $pokemon data for {$data['info']['metagame']}.");
-			}
+                $this->IRCBot->console("Finished processing $pokemon data for {$data['info']['metagame']}.");
+            }
 
-			if ($queryDataCount) {
-				$tempStatement = $interface->prepare(
-					"INSERT INTO $table (" . implode(", ", $columns) . ") VALUES " . implode(", ", array_fill(0, floor($queryDataCount / $columnCount), "(" . implode(", ", array_fill(0, $columnCount, "?")) . ")"))
-				);
-				$tempStatement->execute($queryData);
-				$tempStatement = null;
-			}
-			#$this->respond($msg, "Finished processing $file.");
-		}
+            if ($queryDataCount) {
+                $tempStatement = $interface->prepare(
+                    "INSERT INTO $table (" . implode(", ", $columns) . ") VALUES " . implode(", ", array_fill(0, floor($queryDataCount / $columnCount), "(" . implode(", ", array_fill(0, $columnCount, "?")) . ")"))
+                );
+                $tempStatement->execute($queryData);
+                $tempStatement = null;
+            }
+            #$this->respond($msg, "Finished processing $file.");
+        }
 
-		$this->respond($msg, "All done.");
-		$interface->disconnect($statements = array($statement));
-	}
+        $this->respond($msg, "All done.");
+        $interface->disconnect($statements = array($statement));
+    }
 
 }

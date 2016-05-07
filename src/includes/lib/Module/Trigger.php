@@ -24,6 +24,7 @@ class TriggerException extends \Exception {}
 class Trigger {
 
     private $trigger;
+    private $aliases = array();
     private $method;
 
     /**
@@ -47,10 +48,42 @@ class Trigger {
      * @param IRCMessage $msg
      */
     public function trigger(IRCMessage $msg) {
-        if ($msg->getCommand() === $this->trigger) {
+        if ($this->willTrigger($msg->getCommand())) {
             call_user_func($this->method, $msg);
             $msg->respond($this);
         }        
+    }
+
+    /**
+     * Check if a trigger will cause this command to activate
+     * 
+     * @param string $trigger
+     * @return bool
+     */
+    public function willTrigger(string $trigger) {
+        $trigger = strtolower($trigger);
+        $return = false;
+
+        //  Match command exactly
+        if ($trigger === $this->trigger)
+            $return = true;
+
+        //  Match any aliases
+        foreach ($this->aliases as $alias)
+            if ($trigger === $alias)
+                $return = true;
+
+        return $return;
+    }
+
+    /**
+     * Add a new alias that this command will also trigger on
+     * 
+     * @param string $alias
+     */
+    public function addAlias(string $alias) {
+        if (!in_array($alias, $this->aliases, true))
+            $this->aliases[] = strtolower($alias);
     }
 
     /**
@@ -58,6 +91,13 @@ class Trigger {
      */
     public function getTrigger(): string {
         return $this->trigger;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAliases(): array {
+        return $this->aliases;
     }
     
 }

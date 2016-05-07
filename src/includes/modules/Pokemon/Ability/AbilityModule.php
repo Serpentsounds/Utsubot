@@ -7,17 +7,18 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Ability;
-use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    ManagerSearchCriterion
-};
+use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
     ModuleWithPokemonException,
     VeekunDatabaseInterface,
     Language
+};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger,
+    ManagerSearchCriterion
 };
 use function Utsubot\bold;
 
@@ -44,13 +45,22 @@ class AbilityModule extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
         
+        //  Create and register manager with base module
         $abilityManager = new AbilityManager(new VeekunDatabaseInterface());
         $abilityManager->load();
         $this->registerManager("Ability", $abilityManager);
 
-
-        $this->addTrigger(new Trigger("pability",   array($this, "ability")));
-        $this->addTrigger(new Trigger("pabl",       array($this, "ability")));
+        //  Command triggers
+        $ability = new Trigger("pability", array($this, "ability"));
+        $ability->addAlias("pabl");
+        $this->addTrigger($ability);
+        
+        //  Help entries
+        $help = new HelpEntry("Pokemon", $ability);
+        $help->addParameterTextPair("ABILITY",          "Look up information about the Pokemon ability ABILITY.");
+        $help->addParameterTextPair("-verbose ABILITY", "Look up information about the Pokemon ability ABILITY, with mechanics explained in-depth.");
+        $help->addParameterTextPair("-pokemon ABILITY", "Look up a list of Pokemon who can have ABILITY.");
+        $this->addHelp($help);
     }
 
     /**

@@ -172,17 +172,35 @@ class ParameterParser {
         //	Stat must be a positive integer
         if (!is_numeric($parameters[0]) || ($stat = intval($parameters[0])) != $parameters[0] || $stat < 0)
             throw new ParameterParserException("Invalid stat value.");
-
-        //	Optional HP switch
+        
         $HP = false;
-        if (isset($parameters[1]) && $parameters[1] == "-hp")
-            $HP = true;
+        $level = 100;
+        $match = array();
+        $switch = "";
+        do {
+            if ($switch) {
+                switch (strtolower($match[1])) {
+                    case "hp":
+                        $HP = true;
+                        break;
+                    case "level":
+                        if (!empty($match[2]) && is_numeric($match[2]) && ($value = intval($match[2])) == $match[2] && $value >= 1 && $value <= 100)
+                            $level = $value;
+                        break;
+                    default:
+                        throw new ParameterParserException("Invalid switch '{$match[1]}'.");
+                        break;
+                }
+            }
+
+            $switch = array_shift($parameters);
+        }
+        while (preg_match("/^-([^:]+)(?:\\:(.+))?/", $switch, $match));
 
         switch ($command) {
             case "b2m":
             case "btom":
             case "basetomax":
-                $level = 100;
                 $from = "base";
                 $to = "max";
             break;
@@ -190,23 +208,6 @@ class ParameterParser {
             case "m2b":
             case "mtob":
             case "maxtobase":
-                $level = 100;
-                $from = "max";
-                $to = "base";
-            break;
-
-            case "b2m50":
-            case "btom50":
-            case "basetomax50":
-                $level = 50;
-                $from = "base";
-                $to = "max";
-            break;
-
-            case "m2b50":
-            case "mtob50":
-            case "maxtobase50":
-                $level = 50;
                 $from = "max";
                 $to = "base";
             break;

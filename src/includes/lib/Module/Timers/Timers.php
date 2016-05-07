@@ -29,17 +29,24 @@ trait Timers {
     }
 
     /**
-     * @param float $time
+     * Overwrite Module time tick function to call timer functions
+     *
+     * @param float $time Passed by Utsubot routine but not needed here
      */
-    public function time(float $time){
+    public function time(float $time) {
+
         foreach ($this->timers as $key => $timer) {
+            //  Attempt to activate timer and remove it from queue
             try {
                 $timer->activate();
                 unset($this->timers[$key]);
             }
-            catch(TimerException $e) {
-                if ($e->getCode() == Timer::TimerActivated)
+            //  Error activating timer
+            catch (TimerException $e) {
+                //  Timer was already activated by another routine, remove it from queue
+                if ($e->getCode() === Timer::TimerActivated)
                     unset($this->timers[$key]);
+                //  Otherwise, the error is because it is too early for the timer to activate, so no action is taken
             }
         }
     }

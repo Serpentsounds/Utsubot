@@ -6,9 +6,16 @@
  */
 
 namespace Utsubot\Accounts;
+use Utsubot\Help\{
+    HelpEntry,
+    IHelp,
+    THelp
+};
 use Utsubot\{
     ModuleException,
     IRCBot,
+    Timers,
+    Timer,
     Trigger,
     IRCMessage,
     User
@@ -16,10 +23,22 @@ use Utsubot\{
 use function Utsubot\bold;
 
 
-class AccountsException extends ModuleException {
-}
+/**
+ * Class AccountsException
+ *
+ * @package Utsubot\Accounts
+ */
+class AccountsException extends ModuleException {}
 
-class Accounts extends ModuleWithAccounts {
+/**
+ * Class Accounts
+ *
+ * @package Utsubot\Accounts
+ */
+class Accounts extends ModuleWithAccounts implements IHelp {
+    
+    use THelp;
+    use Timers;
 
     private $interface;
 
@@ -30,34 +49,110 @@ class Accounts extends ModuleWithAccounts {
     private $loggedIn         = array();
     private $defaultNickCheck = array();
 
+    /**
+     * Accounts constructor.
+     *
+     * @param IRCBot $IRCBot
+     */
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
         $this->interface = new AccountsDatabaseInterface();
 
-        $this->registerSetting(new Setting($this, "nick", "Default Nickname", 1));
-        $this->registerSetting(new Setting($this, "disablenotify", "Disable Auto Login Notification", 1));
-        $this->registerSetting(new Setting($this, "autologin", "Auto Login Host", 5));
+        //  Account settings
+        $this->registerSetting(new Setting($this, "nick",           "Default Nickname",                 1));
+        $this->registerSetting(new Setting($this, "disablenotify",  "Disable Auto Login Notification",  1));
+        $this->registerSetting(new Setting($this, "autologin",      "Auto Login Host",                  5));
 
-        $this->addTrigger(new Trigger("login",      array($this, "login"    )));
-        $this->addTrigger(new Trigger("logout",     array($this, "logout"   )));
-        $this->addTrigger(new Trigger("register",   array($this, "register" )));
-        $this->addTrigger(new Trigger("set",        array($this, "set"      )));
-        $this->addTrigger(new Trigger("unset",      array($this, "_unset"   )));
-        $this->addTrigger(new Trigger("settings",   array($this, "settings" )));
-        $this->addTrigger(new Trigger("access",     array($this, "access"   )));
+
+        
+        //  Command triggers
+        $triggers = array();
+        $triggers['login']      = new Trigger("login",      array($this, "login"    ));
+        $triggers['logout']     = new Trigger("logout",     array($this, "logout"   ));
+        $triggers['register']   = new Trigger("register",   array($this, "register" ));
+        $triggers['set']        = new Trigger("set",        array($this, "set"      ));
+        $triggers['unset']      = new Trigger("unset",      array($this, "_unset"   ));
+        $triggers['settings']   = new Trigger("settings",   array($this, "settings" ));
+        $triggers['access']     = new Trigger("access",     array($this, "access"   ));
+        
+        foreach ($triggers as $trigger)
+            $this->addTrigger($trigger);
+
+
+        //  Help entries
+        /** @var HelpEntry[] $help */
+        $help = array();
+        $category = "Account";
+
+        $help['login'] = new HelpEntry($category, $triggers['login']);
+        $help['login']->addParameterTextPair("USERNAME PASSWORD",       "Logs you into your account USERNAME using PASSWORD.");
+
+        $help['logout'] = new HelpEntry($category, $triggers['logout']);
+        $help['logout']->addParameterTextPair("",                       "Logs you out of your account.");
+        
+        $help['register'] = new HelpEntry($category, $triggers['register']);
+        $help['register']->addParameterTextPair("USERNAME PASSWORD",    "Register a new account with the bot.");
+
+        $help['set'] = new HelpEntry($category, $triggers['set']);
+        $help['set']->addParameterTextPair("OPTION [VALUE]",            "Enable OPTION or set OPTION to VALUE on your account.");
+
+        $help['unset'] = new HelpEntry($category, $triggers['unset']);
+        $help['unset']->addParameterTextPair("OPTION [VALUE]",          "Remove the OPTION setting from your account. If OPTION accepts multiple simultaneous values, you must specify which to remove using VALUE.");
+        
+        $help['settings'] = new HelpEntry($category, $triggers['settings']);
+        $help['settings']->addParameterTextPair("OPTION",               "View your current settings for OPTION.");
+        $help['settings']->addParameterTextPair("",                     "View all of your account settings.");
+
+        $help['access'] = new HelpEntry($category, $triggers['access']);
+        $help['access']->addParameterTextPair("add USER LEVEL",         "Give USER's account access level LEVEL.");
+        $help['access']->addParameterTextPair("remove USER",            "Remove USER's account's access (set to level 0).");
+        $help['access']->addParameterTextPair("list [USER]",            "Show the access level for USER's account. If USER is omitted, show your own access level.");
+        $help['access']->addParameterTextPair("",                       "Shortcut to list your own access level.");
+        $help['access']->addNotes("All USER parameters must be nicknames, as account names are private.");
+        $help['access']->addNotes("The add and remove commands require access level 90.");
+        $help['access']->addNotes("You can only modify access on someone whose level is lower than yours, and can only give a lower access level than you have.");
+
+        //  Add common properties for help entries
+        foreach ($help as $key => $entry) {
+            $entry->addNotes("This command can only be used in a private message.");
+            $this->addHelp($entry);
+        }
+        
+
+        //  Initialization
+        //  Create a timer to add notes to the 'set' help entry after all modules have registered
+        $this->addTimer(new Timer(
+            0,  //  No delay necessary, all modules must finish loading before the next Module time() tick occurs
+            array($this, "updateSettingsHelp"),
+            array($help['set'])
+        ));
 
         $this->updateAutoLoginCache();
     }
 
     /**
-     * Register a setting upon module initialization for use with the 'set' command
+     * Update notes in the 'set' command to show all settings. Called on a timer to allow all modules to load their settings first
      *
-     * @param Setting $setting
-     * @throws AccountsDatabaseInterfaceException
+     * @param HelpEntry $entry
+     * @throws AccountsException
      */
-    public function registerSetting(Setting $setting) {
-        $this->settings[] = $setting;
-        $this->interface->registerSetting($setting);
+    public function updateSettingsHelp(HelpEntry $entry) {
+
+        //  Only the 'set' command needs the settings list
+        if (!$entry->matches("set"))
+            throw new AccountsException("Help entry does not correspond to the 'set' command.");
+        
+        $info = array();
+        foreach ($this->settings as $setting) {
+            $info[] = sprintf(
+                "%s (%s)%s",
+                $setting->getName(),
+                $setting->getDisplay(),
+                ($setting->getMaxEntries() > 1) ? " [Up to {$setting->getMaxEntries()} entries]" : ""
+            );
+        }
+        
+        $entry->addNotes("Available settings: ". implode(", ", $info));
     }
 
     /**
@@ -70,6 +165,17 @@ class Accounts extends ModuleWithAccounts {
 
         foreach ($autoLogin as $row)
             $this->autoLoginCache[ intval($row['id']) ][] = $row['value'];
+    }
+
+    /**
+     * Register a setting upon module initialization for use with the 'set' command
+     *
+     * @param Setting $setting
+     * @throws AccountsDatabaseInterfaceException
+     */
+    public function registerSetting(Setting $setting) {
+        $this->settings[] = $setting;
+        $this->interface->registerSetting($setting);
     }
 
     /**
@@ -363,11 +469,13 @@ class Accounts extends ModuleWithAccounts {
 
         //	Construct reply
         $response = $responseString = array();
+        
         //	List each setting under name of setting
         foreach ($settings as $setting) {
             $key                = "{$setting['name']} ({$setting['display']})";
             $response[ $key ][] = (strlen($setting['value'])) ? $setting['value'] : "enabled";
         }
+        
         //	Convert name => settings[] entries into readable format
         foreach ($response as $setting => $values)
             $responseString[] = "$setting: ".implode(", ", $values);

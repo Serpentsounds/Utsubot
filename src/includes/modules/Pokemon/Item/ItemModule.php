@@ -7,15 +7,16 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Item;
-use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger
-};
+use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
     ModuleWithPokemonException,
     VeekunDatabaseInterface
+};
+use Utsubot\{
+    IRCBot,
+    IRCMessage,
+    Trigger
 };
 use function Utsubot\bold;
 
@@ -42,11 +43,20 @@ class ItemModule extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
+        //  Create and register manager with base module
         $itemManager = new ItemManager(new VeekunDatabaseInterface());
         $itemManager->load();
         $this->registerManager("Item", $itemManager);
 
-        $this->addTrigger(new Trigger("pitem", array($this, "item")));
+        //  Command triggers
+        $item = new Trigger("pitem", array($this, "item"));
+        $this->addTrigger($item);
+
+        //  Help entries
+        $help = new HelpEntry("Pokemon", $item);
+        $help->addParameterTextPair("ITEM",             "Look up information about the effect and location of the item ITEM.");
+        $help->addParameterTextPair("-verbose ITEM",    "Look up information about the effect and location of the item ITEM, with mechanics explained in-depth.");
+        $this->addHelp($help);
     }
 
     /**

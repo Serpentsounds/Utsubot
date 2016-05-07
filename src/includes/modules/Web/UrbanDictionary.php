@@ -6,10 +6,11 @@
  */
 
 namespace Utsubot\Web;
+use Utsubot\Help\HelpEntry;
 use Utsubot\{
-	IRCBot,
-	IRCMessage,
-	Trigger
+    IRCBot,
+    IRCMessage,
+    Trigger
 };
 use function Utsubot\bold;
 
@@ -25,10 +26,18 @@ class UrbanDictionary extends WebModule {
      */
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
-
-        $this->addTrigger(new Trigger("ud",                 array($this, "define")));
-        $this->addTrigger(new Trigger("urban",              array($this, "define")));
-        $this->addTrigger(new Trigger("urbandictionary",    array($this, "define")));
+        
+        //  Command triggers
+        $urbanDictionary = new Trigger("urbandictionary", array($this, "define"));
+        $urbanDictionary->addAlias("urban");
+        $urbanDictionary->addAlias("ud");
+        $this->addTrigger($urbanDictionary);
+        
+        //  Help entries
+        $help = new HelpEntry("Web", $urbanDictionary);
+        $help->addParameterTextPair("WORD", "Look up the urban dictionary definition for WORD.");
+        $this->addHelp($help);
+        
     }
 
     /**
@@ -55,20 +64,20 @@ class UrbanDictionary extends WebModule {
     }
 
     /**
-	 * Get a definition from Urban Dictionary
-	 *
-	 * @param string $term
+     * Get a definition from Urban Dictionary
+     *
+     * @param string $term
      * @param int number
-	 * @return string
-	 * @throws UrbanDictionaryException If term is not found
-	 */
-	public function urbanDictionarySearch(string $term, int $number = 1): string {
-		if (!$term)
-			$content = resourceBody("http://www.urbandictionary.com/random.php");
-		else
-			$content = resourceBody("http://www.urbandictionary.com/define.php?term=". urlencode($term));
+     * @return string
+     * @throws UrbanDictionaryException If term is not found
+     */
+    public function urbanDictionarySearch(string $term, int $number = 1): string {
+        if (!$term)
+            $content = resourceBody("http://www.urbandictionary.com/random.php");
+        else
+            $content = resourceBody("http://www.urbandictionary.com/define.php?term=". urlencode($term));
 
-		$regex =
+        $regex =
             "!<div class='def-header'>\s*".
             "<a[^>]+>([^<]+)</a>\s*".
             "(?:<a class='play-sound'[^>]+>\s*".
@@ -77,22 +86,22 @@ class UrbanDictionary extends WebModule {
             "</div>\s*".
             "<div class='meaning'>\s*(.+?)</div>\s*".
             "<div class='example'>\s*(.+?)</div>!s";
-		$number -= 1;
+        $number -= 1;
 
-		if (!preg_match_all($regex, $content, $match, PREG_SET_ORDER))
-			throw new UrbanDictionaryException("No definition found for '$term'.");
+        if (!preg_match_all($regex, $content, $match, PREG_SET_ORDER))
+            throw new UrbanDictionaryException("No definition found for '$term'.");
 
-		elseif (!isset($match[$number]))
-			throw new UrbanDictionaryException("Definition number $number not found for '$term'.");
+        elseif (!isset($match[$number]))
+            throw new UrbanDictionaryException("Definition number $number not found for '$term'.");
 
-		$result = sprintf("%s: %s\n%s",
-					   bold(stripHTML($match[$number][1])),
-					   stripHTML($match[$number][2]),
-					   stripHTML($match[$number][3]));
+        $result = sprintf("%s: %s\n%s",
+                       bold(stripHTML($match[$number][1])),
+                       stripHTML($match[$number][2]),
+                       stripHTML($match[$number][3]));
 
-		if (mb_strlen($result) > 750)
-			$result = mb_substr($result, 0, 750). " ...More at http://www.urbandictionary.com/define.php?term=". urlencode($match[$number][1]);
+        if (mb_strlen($result) > 750)
+            $result = mb_substr($result, 0, 750). " ...More at http://www.urbandictionary.com/define.php?term=". urlencode($match[$number][1]);
 
-		return $result;
-	}
+        return $result;
+    }
 }

@@ -7,8 +7,12 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
-use Utsubot\ModuleException;
 use Utsubot\Permission\ModuleWithPermission;
+use Utsubot\Help\{
+    IHelp,
+    THelp
+};
+use Utsubot\ModuleException;
 
 
 /**
@@ -23,8 +27,10 @@ abstract class WebModuleException extends ModuleException {}
  *
  * @package Utsubot\Web
  */
-abstract class WebModule extends ModuleWithPermission {
+abstract class WebModule extends ModuleWithPermission implements IHelp {
 
+    use THelp;
+    
     const separator = " \x02\x0304¦\x03\x02 ";
 
     /**

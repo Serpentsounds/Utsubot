@@ -8,6 +8,11 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Includes;
+use Utsubot\Help\{
+    HelpEntry,
+    IHelp,
+    THelp
+};
 use Utsubot\{
     Module,
     IRCBot,
@@ -29,7 +34,9 @@ class IncludesException extends ModuleException {}
  *
  * @package Utsubot\Includes
  */
-class Includes extends Module {
+class Includes extends Module implements IHelp {
+
+    use THelp;
 
     //  Max number of files/classes to output before cutoff
     const INCLUDES_DISPLAY_MAX = 10;
@@ -40,7 +47,13 @@ class Includes extends Module {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->addTrigger(new Trigger("includes", array($this, "includes")));
+        $includes = new Trigger("includes", array($this, "includes"));
+        $this->addTrigger($includes);
+
+        $help = new HelpEntry("Includes", $includes);
+        $help->addParameterTextPair("", "Shows a summary of all includes categories.");
+        $help->addParameterTextPair("class|interface|traits|file", "Show information about includes with a focus on the given category.");
+        $this->addHelp($help);
     }
 
     /**

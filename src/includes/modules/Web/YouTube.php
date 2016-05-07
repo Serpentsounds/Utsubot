@@ -7,14 +7,12 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
+use Utsubot\Accounts\Setting;
+use Utsubot\Help\HelpEntry;
 use Utsubot\{
     IRCBot,
     IRCMessage,
     Trigger
-};
-use Utsubot\Accounts\{
-    Setting,
-    AccountsDatabaseInterfaceException
 };
 use function Utsubot\bold;
 
@@ -44,12 +42,24 @@ class YouTube extends WebModule {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
+        //  Account settings
         $this->registerSetting(new Setting($this, "youtuberesults",  "YouTube Result Count", 1));
 
-        $this->addTrigger(new Trigger("yt",             array($this, "youtube")));
-        $this->addTrigger(new Trigger("yts",            array($this, "youtube")));
-        $this->addTrigger(new Trigger("youtube",        array($this, "youtube")));
-        $this->addTrigger(new Trigger("youtubesearch",  array($this, "youtube")));
+        //  Command triggers
+        $youtubeSearch = new Trigger("youtubesearch",  array($this, "youtube"));
+        $youtubeSearch->addAlias("youtube");
+        $youtubeSearch->addAlias("yts");
+        $youtubeSearch->addAlias("yt");
+        $this->addTrigger($youtubeSearch);
+        
+        //  Help entries
+        $help = new HelpEntry("Web", $youtubeSearch);
+        $help->addParameterTextPair(
+            "[-results:RESULTS]",
+            "Search YouTube for videos matching SEARCH. Optionally specify a result count as RESULTS (default ". self::DefaultResults. ", maximum ". self::MaxResults. ")."
+        );
+        $this->addHelp($help);
+        
     }
 
 

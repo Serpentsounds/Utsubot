@@ -8,11 +8,7 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Types;
 use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    ManagerException,
-    ManagerSearchCriterion
+    Help\HelpEntry, IRCBot, IRCMessage, Trigger, ManagerException, ManagerSearchCriterion
 };
 use Utsubot\Pokemon\{
     Language,
@@ -43,9 +39,32 @@ class TypesModule extends ModuleWithPokemon {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
-        $this->addTrigger(new Trigger("ptype",      array($this, "type"     )));
-        $this->addTrigger(new Trigger("pcoverage",  array($this, "coverage" )));
-        $this->addTrigger(new Trigger("pcov",       array($this, "coverage" )));
+        //  Command triggers
+        $types = new Trigger("ptype", array($this, "type"));
+        $this->addTrigger($types);
+        
+        $coverage = new Trigger("pcoverage", array($this, "coverage"));
+        $coverage->addAlias("pcov");
+        $this->addTrigger($coverage);
+        
+        
+        //  Help entries
+        $typeHelp = new HelpEntry("Pokemon", $types);
+        $typeHelp->addParameterTextPair("[-d] TYPE1[/TYPE2] TYPE1[/TYPE2]", "View the type matchup of the first type or pair of types vs. the second. Specify -d to reverse the matchup.");
+        $typeHelp->addParameterTextPair(
+            "[-d|-o] TYPE1[/TYPE2]", 
+            "View an offensive type chart of the given type or pair of types. Specify -o to force an offensive chart, or -d to force a defensive chart."
+        );
+        $typeHelp->addParameterTextPair("[-p] TYPE1[/TYPE2]", "View a list of Pokemon whose typing matches the given type or pair of types.");
+        $typeHelp->addNotes("A Pokemon or move name can be used in place of a type name to fill in their respective corresponding values.");
+        $typeHelp->addNotes("Specifying a Pokemon in chart mode will imply a defensive type chart, and take into account the Pokemon's abilities.");
+        $this->addHelp($typeHelp);
+        
+        $coverageHelp = new HelpEntry("Pokemon", $coverage);
+        $coverageHelp->addParameterTextPair("TYPE1 [TYPE2] ... [TYPEN]", "View the combined coverage of the list of types. A list of Pokemon who resist all given types will be returned.");
+        $coverageHelp->addNotes("Pokemon abilities will be taken into account for type effectiveness.");
+        $this->addHelp($coverageHelp);
+        
     }
 
 

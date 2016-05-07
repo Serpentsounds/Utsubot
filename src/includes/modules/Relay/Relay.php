@@ -3,6 +3,12 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Relay;
+use Utsubot\Permission\ModuleWithPermission;
+use Utsubot\Help\{
+    HelpEntry,
+    IHelp,
+    THelp
+};
 use Utsubot\{
     IRCBot,
     IRCMessage,
@@ -10,7 +16,6 @@ use Utsubot\{
     ModuleException,
     User
 };
-use Utsubot\Permission\ModuleWithPermission;
 
 
 /**
@@ -28,7 +33,9 @@ class RelayException extends ModuleException {}
  *
  * @package Utsubot\Relay
  */
-class Relay extends ModuleWithPermission {
+class Relay extends ModuleWithPermission implements IHelp {
+    
+    use THelp;
 
     /** @var ActiveRelay[] $relays */
     protected $relays = array();
@@ -41,9 +48,38 @@ class Relay extends ModuleWithPermission {
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
-        $this->addTrigger(new Trigger("relay",      array($this, "newRelay"     )));
-        $this->addTrigger(new Trigger("unrelay",    array($this, "removeRelay"  )));
-        $this->addTrigger(new Trigger("relays",     array($this, "listRelays"   )));
+        
+        //  Command triggers
+        $triggers = array();        
+        $triggers['relay']      = new Trigger("relay",      array($this, "newRelay"     ));
+        $triggers['unrelay']    = new Trigger("unrelay",    array($this, "removeRelay"  ));
+        $triggers['relays']     = new Trigger("relays",     array($this, "listRelays"   ));
+        
+        foreach ($triggers as $trigger)
+            $this->addTrigger($trigger);        
+        
+        
+        //  Help entries
+        $help = array();
+        $category = "Relay Module";
+        
+        $help['relay'] = new HelpEntry($category, $triggers['relay']);
+        $help['relay']->addParameterTextPair("NAME SOURCE DESTINATION [OPTIONS]", "Set up a local event relay (with a unique identifier NAME) to forward IRC events from SOURCE to DESTINATION.");
+        $help['relay']->addNotes("This command requires level 75.");
+        $help['relay']->addNotes("By default, all events will be forwarded, but you can manually select or remove events by with OPTIONS (e.g., +all -ctcp).");
+        $help['relay']->addNotes("Valid OPTIONS events: privmsg, notice, ctcp, ctcpreply, join, part, quit, mode, topic, nick, and kick.");
+        $help['relay']->addNotes("Special OPTIONS fields: message (includes privmsg, notice, ctcp, and ctcpreply), and all (includes all events, this is the default mode).");
+        
+        $help['unrelay'] = new HelpEntry($category, $triggers['unrelay']);
+        $help['unrelay']->addNotes("This command requires level 75.");
+        $help['unrelay']->addParameterTextPair("NAME", "Remove and active relay matching the identifier NAME.");
+
+        $help['relays'] = new HelpEntry($category, $triggers['relays']);
+        $help['relays']->addParameterTextPair("", "List details about all currently active relays.");
+        
+        foreach ($help as $entry)
+            $this->addHelp($entry);        
+        
     }
 
     /**

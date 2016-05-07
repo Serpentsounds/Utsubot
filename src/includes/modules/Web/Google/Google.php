@@ -6,37 +6,60 @@
  */
 
 namespace Utsubot\Web;
+use Utsubot\Accounts\Setting;
+use Utsubot\Help\HelpEntry;
 use Utsubot\{
     IRCBot,
     IRCMessage,
     ModuleException,
     Trigger
 };
-use Utsubot\Accounts\Setting;
 use function Utsubot\bold;
 
 
+/**
+ * Class GoogleException
+ *
+ * @package Utsubot\Web
+ */
 class GoogleException extends WebModuleException {}
 
+/**
+ * Class Google
+ *
+ * @package Utsubot\Web
+ */
 class Google extends WebModule {
 
-	const DefaultResults    = 1;
+    const DefaultResults    = 1;
     const SafeSearch        = false;
-	const MaxResults        = 5;
+    const MaxResults        = 5;
 
     /**
      * Google constructor.
      *
      * @param IRCBot $IRCBot
      */
-	public function __construct(IRCBot $IRCBot) {
+    public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
+        //  Account settings
         $this->registerSetting(new Setting($this, "safesearch",     "Google Safe Search", 1));
         $this->registerSetting(new Setting($this, "googleresults",  "Google Result Count", 1));
 
-        $this->addTrigger(new Trigger("google",     array($this, "google")));
-        $this->addTrigger(new Trigger("g",          array($this, "google")));
+        //  Command triggers
+        $google = new Trigger("google", array($this, "google"));
+        $google->addAlias("g");
+        $this->addTrigger($google);
+        
+        //  Help entries
+        $help = new HelpEntry("Web", $google);
+        $help->addParameterTextPair(
+            "[-results:RESULTS] TOPIC",
+            "Search Google for TOPIC. Optionally specify a result count as RESULTS (default ". self::DefaultResults. ", maximum ". self::MaxResults. ")."
+        );
+        $this->addHelp($help);
+        
     }
 
 
@@ -110,26 +133,26 @@ class Google extends WebModule {
     }
 
 
-	/**
-	 * Query Google and return search results
-	 *
-	 * @param string $search
-	 * @param int $results
-	 * @param bool $safeSearch
-	 * @return string
-	 * @throws GoogleException If no results are found
-	 */
-	public function googleSearch(string $search, int $results, bool $safeSearch) {
+    /**
+     * Query Google and return search results
+     *
+     * @param string $search
+     * @param int $results
+     * @param bool $safeSearch
+     * @return string
+     * @throws GoogleException If no results are found
+     */
+    public function googleSearch(string $search, int $results, bool $safeSearch) {
         $APIKey = $this->getAPIKey("google");
         $engine = ($safeSearch) ? $this->getAPIKey("googlecxsafe") : $this->getAPIKey("googlecx");
 
-		$string = resourceBody(
+        $string = resourceBody(
             "https://www.googleapis.com/customsearch/v1?key=$APIKey&cx=$engine&fields=searchInformation/formattedTotalResults,items%28title,link,snippet%29&q=".
             urlencode($search)
         );
 
-		$data = json_decode($string, TRUE);
-		$out = array();
+        $data = json_decode($string, TRUE);
+        $out = array();
 
         //  Empty result set
         $resultCount = $data['searchInformation']['formattedTotalResults'];
@@ -161,7 +184,7 @@ class Google extends WebModule {
             ));
 
 
-		return implode("\n", $out);
-	}
+        return implode("\n", $out);
+    }
 
 }
