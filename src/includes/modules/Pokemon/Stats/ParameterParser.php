@@ -175,7 +175,7 @@ class ParameterParser {
         
         $HP = false;
         $level = 100;
-        $match = array();
+        $match = [ ];
         $switch = "";
         do {
             if ($switch) {

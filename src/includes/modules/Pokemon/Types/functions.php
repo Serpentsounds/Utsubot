@@ -346,7 +346,7 @@ function typeChart($type, $mode = "defensive", $chart = CHART_BASIC) {
     if (!is_array($chart))
         throw new TypesException("Invalid chart name '$chart'.");
 
-    $return = array();
+    $return = [ ];
     foreach ($chart as $entry) {
         if ($mode == "offensive")
             $return[$entry] = typeMatchup($type, $entry);
@@ -395,7 +395,7 @@ function parseTypeParameter($parameter) {
 function pokemonMatchup($attacking, Pokemon $pokemon, $depth = 0) {
     //	Get type charts if necessary
     $attacking = parseTypeParameter($attacking);
-    $result    = array();
+    $result    = [ ];
 
     //	Array of types, current recursion depth==0, so it's the list of matchups (depth==1 means components of a compound type, handled later)
     if (is_array($attacking) && $depth == 0) {
@@ -407,7 +407,7 @@ function pokemonMatchup($attacking, Pokemon $pokemon, $depth = 0) {
     }
 
     //	If all type names are valid, this will be numeric
-    if (is_numeric($effectiveness = typeMatchup($attacking, $pokemon->getType()))) {
+    if (is_numeric($effectiveness = typeMatchup($attacking, $pokemon->getTypes()))) {
         //	Can't have arrays as indexes, so form arrays (compound types) into slash/separated/strings
         $key          = (is_array($attacking) ? implode("/", $attacking) : $attacking);
         $result[$key] = $effectiveness;

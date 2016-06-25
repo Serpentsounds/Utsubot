@@ -22,27 +22,27 @@ class NatureManager extends PokemonManagerBase {
 	public function searchFields($field, $operator = "", $value = "") {
 		switch ($field) {
 			case "increases":
-				return new ManagerSearchObject($this, "getIncreases", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getIncreases", [ ], self::$stringOperators);
 			break;
 
 			case "decreases":
-				return new ManagerSearchObject($this, "getDecreases", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getDecreases", [ ], self::$stringOperators);
 			break;
 
 			case "likes":
-				return new ManagerSearchObject($this, "getLikes", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getLikes", [ ], self::$stringOperators);
 			break;
 
 			case "dislikes":
-				return new ManagerSearchObject($this, "getDislikes", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getDislikes", [ ], self::$stringOperators);
 			break;
 
 			case "likesFlavor":
-				return new ManagerSearchObject($this, "getLikes", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getLikes", [ ], self::$stringOperators);
 			break;
 
 			case "dislikesFlavor":
-				return new ManagerSearchObject($this, "getDislikes", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getDislikes", [ ], self::$stringOperators);
 			break;
 		}
 

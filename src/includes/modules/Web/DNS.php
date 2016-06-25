@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Web;
+
 use Utsubot\Help\HelpEntry;
 use Utsubot\{
     IRCBot,
@@ -20,7 +21,9 @@ use function Utsubot\bold;
  *
  * @package Utsubot\Web
  */
-class DNSException extends WebModuleException {}
+class DNSException extends WebModuleException {
+
+}
 
 /**
  * Class DNS
@@ -38,22 +41,21 @@ class DNS extends WebModule {
         parent::__construct($irc);
 
         //  Command triggers
-        $dns  = new Trigger("dns",    array($this, "dns"    ));
+        $dns = new Trigger("dns", [$this, "dns"]);
         $this->addTrigger($dns);
-        
-        $rdns = new Trigger("rdns",   array($this, "rdns"   ));
+
+        $rdns = new Trigger("rdns", [$this, "rdns"]);
         $this->addTrigger($rdns);
-        
-        
+
         //  Help entries
         $dnsHelp = new HelpEntry("Web", $dns);
         $dnsHelp->addParameterTextPair("HOST", "Perform a DNS lookup on HOST, returning the resolved IP address.");
         $this->addHelp($dnsHelp);
-        
+
         $rdnsHelp = new HelpEntry("Web", $rdns);
-        $rdnsHelp->addParameterTextPair( "IP", "Perform a Reverse DNS lookup on IP, returning the resolved hostname and geolocation information.");
+        $rdnsHelp->addParameterTextPair("IP", "Perform a Reverse DNS lookup on IP, returning the resolved hostname and geolocation information.");
         $this->addHelp($rdnsHelp);
-        
+
     }
 
 
@@ -79,7 +81,7 @@ class DNS extends WebModule {
         if (!$records)
             throw new DNSException("No DNS record found.");
 
-        $result = array();
+        $result = [ ];
 
         //	Filter DNS record array based on record type
         foreach ($records as $entry) {
@@ -100,11 +102,11 @@ class DNS extends WebModule {
         }
 
         //	Join multiple entries of the same type with a comma
-        $response = array();
+        $response = [ ];
         foreach ($result as $type => $arr)
-            $response[] = implode(", ", $arr). " [$type]";
+            $response[] = implode(", ", $arr)." [$type]";
 
-        $response = bold($match[0]). " resolved to ". implode(self::separator, $response);
+        $response = bold($match[0])." resolved to ".implode(self::separator, $response);
         $this->respond($msg, $response);
     }
 
@@ -123,7 +125,7 @@ class DNS extends WebModule {
         if (!preg_match('/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/', $ip, $match))
             throw new DNSException("Invalid IP address format.");
 
-        $json = resourceBody("http://ip-api.com/json/$ip");
+        $json    = resourceBody("http://ip-api.com/json/$ip");
         $results = json_decode($json, true);
 
         if ($results['status'] != "success")

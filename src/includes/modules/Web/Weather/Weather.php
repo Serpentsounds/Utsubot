@@ -49,20 +49,20 @@ class Weather extends WebModule {
 
         
         //  Command triggers
-        $triggers = array();
+        $triggers = [ ];
         
-        $triggers['weather']    = new Trigger("weather",    array($this, "weather"));
+        $triggers['weather']    = new Trigger("weather",    [$this, "weather"]);
         $triggers['weather']->addAlias("w");
 
-        $triggers['conditions'] = new Trigger("conditions", array($this, "weather"));
-        $triggers['forecast']   = new Trigger("forecast",   array($this, "weather"));        
+        $triggers['conditions'] = new Trigger("conditions", [$this, "weather"]);
+        $triggers['forecast']   = new Trigger("forecast",   [$this, "weather"]);        
         
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
         
         
         //  Help entries
-        $help = array();
+        $help = [ ];
         
         $help['weather']    = new HelpEntry("Web", $triggers['weather']);
         $help['weather']->addParameterTextPair("AREA", "Returns current conditions and 2-day forecast of the weather for AREA (an area code or city name).");
@@ -126,7 +126,7 @@ class Weather extends WebModule {
                 break;
         }
 
-        $return = array();
+        $return = [ ];
         if ($units->hasFlag(Units::Imperial))
             $return[] = $imperial;
         if ($units->hasFlag(Units::Metric))
@@ -192,7 +192,7 @@ class Weather extends WebModule {
     public function weatherSearch(string $search, Units $units, bool $conditions, bool $forecast): string {
         //	Convert location name into a string usable by the API
         $location = $this->weatherLocation($search);
-        $output = array();
+        $output = [ ];
 
         //	Default to showing both conditions and forecast, but allow override
         if ($conditions)
@@ -253,7 +253,7 @@ class Weather extends WebModule {
         if (!isset($results['current_observation']) || !($conditions = $results['current_observation']))
             throw new WeatherException("Weather::weather: Current observation not available for '$location'.");
 
-        $output = array();
+        $output = [ ];
 
         //	Location, conditions, temperature
         $output[] = sprintf(
@@ -301,7 +301,7 @@ class Weather extends WebModule {
                     new Measurement(Measurement::Speed),
                     $units,
                     (float)$conditions['wind_gust_mph'],
-                    $conditions['wind_gust_kph']
+                    (float)$conditions['wind_gust_kph']
                 )
             );
 
@@ -327,7 +327,7 @@ class Weather extends WebModule {
             throw new WeatherException("Forecast is not available for '$location'.");
         $forecast = $results['forecast']['simpleforecast']['forecastday'];
 
-        $output = array();
+        $output = [ ];
         //	Add a configurable number of days
         for ($day = 0; $day < self::FORECAST_DAYS; $day++) {
             $conditions = $forecast[$day];

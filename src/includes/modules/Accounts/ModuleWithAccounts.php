@@ -81,7 +81,7 @@ abstract class ModuleWithAccounts extends Module {
     protected function getSetting(string $nick, Setting $setting) {
         $accountID = $this->getAccountIDByNickname($nick);
 
-        $settings = $this->getAccounts()->getInterface()->getSetting($accountID, $setting);
+        $settings = $this->getAccounts()->getInterface()->getUserSetting($accountID, $setting);
         return $settings[0]['value'];
         
     }

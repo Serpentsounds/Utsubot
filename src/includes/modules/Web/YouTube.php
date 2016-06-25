@@ -46,7 +46,7 @@ class YouTube extends WebModule {
         $this->registerSetting(new Setting($this, "youtuberesults",  "YouTube Result Count", 1));
 
         //  Command triggers
-        $youtubeSearch = new Trigger("youtubesearch",  array($this, "youtube"));
+        $youtubeSearch = new Trigger("youtubesearch",  [$this, "youtube"]);
         $youtubeSearch->addAlias("youtube");
         $youtubeSearch->addAlias("yts");
         $youtubeSearch->addAlias("yt");
@@ -133,7 +133,7 @@ class YouTube extends WebModule {
         if (!$count)
             throw new YouTubeException("No results found.");
 
-        $output = array();
+        $output = [ ];
         for ($i = 0; $i < $count; $i++) {
             //  Error in result set, abort
             if (!isset($items[$i]))

@@ -18,7 +18,7 @@ class IRCNetwork {
     private $onConnect;
     private $commandPrefixes;
 
-    public function __construct(string $name, array $servers, int $port, array $nicknames, array $defaultChannels = array(), array $onConnect = array(), array $commandPrefixes = array()) {
+    public function __construct(string $name, array $servers, int $port, array $nicknames, array $defaultChannels = [ ], array $onConnect = [ ], array $commandPrefixes = [ ]) {
         $this->serverCycle = new NonEmptyCycle($servers);
         $this->nicknameCycle = new NonEmptyCycle($nicknames);
 

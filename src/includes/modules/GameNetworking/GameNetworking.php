@@ -38,7 +38,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * Stores database entries for code types and formats
      * @var $validCodes GameNetworkingCode[]
      */
-    private $validCodes = array();
+    private $validCodes = [ ];
 
     //	GameNetworkingDatabase interface
     private $interface;
@@ -60,7 +60,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
 
 
         //  Command trigger
-        $code = new Trigger("code", array($this, "code"));
+        $code = new Trigger("code", [$this, "code"]);
         $code->addAlias("friendcode");
         $code->addAlias("fc");
         $this->addTrigger($code);
@@ -75,7 +75,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
         $help->addParameterTextPair("add TYPE CODE", "Store your network code, given as CODE, for the given TYPE.");
         $help->addParameterTextPair("del TYPE [CODE]", "Remove your current network code for TYPE matching CODE. If CODE is omitted, remove all entries for TYPE.");
 
-        $codeTitles = array();
+        $codeTitles = [ ];
         foreach ($this->validCodes as $code)
             $codeTitles[] = $code->getTitle();
 
@@ -90,11 +90,11 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws DatabaseInterfaceException PDO error
      */
     public function updateValidCodeCache(): bool {
-        $this->validCodes = array();
+        $this->validCodes = [ ];
 
         $results = $this->interface->query(
             "SELECT * FROM `codes`",
-            array()
+            [ ]
         );
 
         foreach ($results as $row)
@@ -128,7 +128,8 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws GameNetworkingException If a subroutine errors
      */
     public function code(IRCMessage $msg) {
-        $action = array_shift($msg->getCommandParameters());
+        $parameters = $msg->getCommandParameters();
+        $action = array_shift($parameters);
 
         switch ($action) {
             case "add":
@@ -221,7 +222,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
         }
 
         //	Organize codes by type for output
-        $codeTypes = array();
+        $codeTypes = [ ];
         foreach ($codes as $row) {
             $value = $row['value'];
             if ($row['notes'] && $row['value'] != "(Private)")
@@ -236,7 +237,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
 
         //	Output all codes by type ([Type: code1, code2] [Type2: code1, code2])
         else {
-            $response = array();
+            $response = [ ];
             foreach ($codeTypes as $codeType => $list)
                 $response[] = sprintf("[%s: %s]", bold($this->validCodes[$codeType]->getTitle()), implode(", ", $list));
 
@@ -361,7 +362,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
                 if (preg_match($currentCode->getValidFormatRegex(), $newCode, $match)) {
 
                     //	In case of multiple capture groups, join all with a space to normalize entries
-                    $construct = array();
+                    $construct = [ ];
                     for ($i = 1; $i < count($match); $i++)
                         $construct[] = $match[$i];
 

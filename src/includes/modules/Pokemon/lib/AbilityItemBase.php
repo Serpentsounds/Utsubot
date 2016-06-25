@@ -9,9 +9,9 @@ namespace Utsubot\Pokemon;
 
 abstract class AbilityItemBase extends PokemonBase {
 
-	private $text = array();
-	private $effect = array();
-	private $shortEffect = array();
+	private $text = [ ];
+	private $effect = [ ];
+	private $shortEffect = [ ];
 
 	/**
 	 * Get this ability or item's effect

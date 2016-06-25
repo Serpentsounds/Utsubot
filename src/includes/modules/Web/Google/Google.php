@@ -48,7 +48,7 @@ class Google extends WebModule {
         $this->registerSetting(new Setting($this, "googleresults",  "Google Result Count", 1));
 
         //  Command triggers
-        $google = new Trigger("google", array($this, "google"));
+        $google = new Trigger("google", [$this, "google"]);
         $google->addAlias("g");
         $this->addTrigger($google);
         
@@ -152,7 +152,7 @@ class Google extends WebModule {
         );
 
         $data = json_decode($string, TRUE);
-        $out = array();
+        $out = [ ];
 
         //  Empty result set
         $resultCount = $data['searchInformation']['formattedTotalResults'];

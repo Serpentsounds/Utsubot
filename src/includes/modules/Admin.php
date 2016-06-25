@@ -7,6 +7,7 @@
 declare(strict_types = 1);
 
 namespace Utsubot;
+
 use Utsubot\Accounts\ModuleWithAccountsException;
 use Utsubot\Permission\ModuleWithPermission;
 
@@ -26,10 +27,11 @@ class Admin extends ModuleWithPermission {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->addTrigger(new Trigger("eval",       array($this, "_eval"    )));
-        $this->addTrigger(new Trigger("return",     array($this, "_return"  )));
-        $this->addTrigger(new Trigger("restart",    array($this, "restart"  )));        
+        $this->addTrigger(new Trigger("eval",       [ $this, "_eval"    ]));
+        $this->addTrigger(new Trigger("return",     [ $this, "_return"  ]));
+        $this->addTrigger(new Trigger("restart",    [ $this, "restart"  ]));
     }
+
 
     /**
      * Evaluate text as PHP. Much danger
@@ -41,6 +43,7 @@ class Admin extends ModuleWithPermission {
         $this->requireLevel($msg, 100);
         $this->respond($msg, (string)eval("{$msg->getCommandParameterString()};"));
     }
+
 
     /**
      * Evaluate text as PHP and return the result. Still much danger

@@ -128,7 +128,7 @@ class APIKeys extends WebModule {
      */
     private function loadAPIKeys() {
         $results = $this->interface->getAPIKeys();
-        $this->APIKeys = array();
+        $this->APIKeys = [ ];
         
         foreach ($results as $row)
             $this->APIKeys[$row['service']] = $row['key'];

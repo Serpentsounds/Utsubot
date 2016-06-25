@@ -61,12 +61,12 @@ class PokemonModule extends ModuleWithPokemon {
 
 
         //  Command triggers
-        $triggers['pinfo']      = new Trigger("pinfo",      array($this, "pokemon"  ));
-        $triggers['sinfo']      = new Trigger("sinfo",      array($this, "pokemon"  ));
-        $triggers['names']      = new Trigger("names",      array($this, "pokemon"  ));
-        $triggers['dexes']      = new Trigger("dexes",      array($this, "pokemon"  ));
-        $triggers['dex']        = new Trigger("dex",        array($this, "dex"      ));
-        $triggers['pcompare']   = new Trigger("pcompare",   array($this, "compare"  ));
+        $triggers['pinfo']      = new Trigger("pinfo",      [$this, "pokemon"  ]);
+        $triggers['sinfo']      = new Trigger("sinfo",      [$this, "pokemon"  ]);
+        $triggers['names']      = new Trigger("names",      [$this, "pokemon"  ]);
+        $triggers['dexes']      = new Trigger("dexes",      [$this, "pokemon"  ]);
+        $triggers['dex']        = new Trigger("dex",        [$this, "dex"      ]);
+        $triggers['pcompare']   = new Trigger("pcompare",   [$this, "compare"  ]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
@@ -193,7 +193,7 @@ class PokemonModule extends ModuleWithPokemon {
         $version = null;
         $language = new Language(Language::English);
 
-        $match = array();
+        $match = [ ];
         $switch = "";
         do {
             if ($switch) {
@@ -274,7 +274,7 @@ class PokemonModule extends ModuleWithPokemon {
         }
 
         //  Separate fields into data for comparison
-        $data = array();
+        $data = [ ];
         for ($i = 0; $i <= 1; $i++) {
             $info = new PokemonInfoFormat($pokemonList[$i]);
             $data[$i] = array_map("trim", explode("%n", $info->parseFormat(PokemonInfoFormat::getCompareFormat())));
@@ -288,13 +288,13 @@ class PokemonModule extends ModuleWithPokemon {
         $red = new Color(Color::Red);
 
         foreach ($statNames as $key => $statName) {
-            $statValues = array(stripControlCodes($data[0][$i]), stripControlCodes($data[1][$key]));
+            $statValues = [stripControlCodes($data[0][$i]), stripControlCodes($data[1][$key])];
             //  Default to blue for equal comparison
             $colors = array($blue, $blue);
 
             //  Dynamic whitespace padding for column alignment
             $paddingWidth = 3;
-            $padding = array($paddingWidth - strlen($statValues[0]), $paddingWidth - strlen($statValues[1]));
+            $padding = [$paddingWidth - strlen($statValues[0]), $paddingWidth - strlen($statValues[1])];
 
             //  Not an equal comparison, overwrite colors with green for greater stat and red for lesser
             if ($statValues[0] > $statValues[1])
@@ -321,7 +321,7 @@ class PokemonModule extends ModuleWithPokemon {
         }
 
         //  Calculate additional padding
-        $lines = array();
+        $lines = [ ];
         for ($i = 0; $i <= 1; $i++) {
             //  Find the longest single line
             $maxLength = max(

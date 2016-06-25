@@ -51,7 +51,7 @@ class NatureModule extends ModuleWithPokemon {
         $this->registerManager("Nature", $natureManager);
 
         //  Command triggers
-        $nature = new Trigger("pnature", array($this, "nature"));
+        $nature = new Trigger("pnature", [$this, "nature"]);
         $nature->addAlias("pnat");
         $this->addTrigger($nature);
         

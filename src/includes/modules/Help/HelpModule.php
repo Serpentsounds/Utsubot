@@ -39,7 +39,7 @@ class HelpModule extends ModuleWithPermission implements IHelp {
     const Separator     = " \x02\x0304¦\x03\x02 ";
 
     /** @var HelpEntries[] $helpEntries  */
-    private $helpEntries = array();
+    private $helpEntries = [ ];
 
     /**
      * HelpModule constructor.
@@ -50,9 +50,9 @@ class HelpModule extends ModuleWithPermission implements IHelp {
         parent::__construct($irc);
         
         //  Command triggers
-        $triggers = array();
-        $triggers['help']       = new Trigger("help",       array($this, "help"));
-        $triggers['showhelp']   = new Trigger("showhelp",   array($this, "help"));
+        $triggers = [ ];
+        $triggers['help']       = new Trigger("help",       [$this, "help"]);
+        $triggers['showhelp']   = new Trigger("showhelp",   [$this, "help"]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
@@ -74,7 +74,7 @@ class HelpModule extends ModuleWithPermission implements IHelp {
         $this->addTimer(new Timer(
             0,
             array($this, "loadHelp"),
-            array()
+            [ ]
         ));
     }
 
@@ -82,7 +82,7 @@ class HelpModule extends ModuleWithPermission implements IHelp {
      * Cache information from modules which implement help
      */
     public function loadHelp() {
-        $this->helpEntries = array();
+        $this->helpEntries = [ ];
         $modules = $this->IRCBot->getModules();
 
         foreach ($modules as $module) {
@@ -218,7 +218,7 @@ class HelpModule extends ModuleWithPermission implements IHelp {
      * @return string
      */
     private function formatHelpEntry(HelpEntry $entry): string {
-        $return = array();
+        $return = [ ];
         
         //  Build parameter/text lines
         foreach ($entry->getParameterTextPairs() as $parameters => $text) {

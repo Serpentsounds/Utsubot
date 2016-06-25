@@ -16,7 +16,7 @@ abstract class Module {
     protected $IRCBot;
     
     /** @var Trigger[] $triggers */
-    private $triggers = array();
+    private $triggers = [ ];
 
     /**
      * Module constructor.

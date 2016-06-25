@@ -37,8 +37,8 @@ class URLParser extends WebModule {
     const URL_CACHE_DELAY = 1800;
 
     /** @var URLParserRegex[] $URLRegexes */
-    private $URLRegexes = array();
-    private $URLCache = array();
+    private $URLRegexes = [ ];
+    private $URLCache = [ ];
 
     /**
      * URLParser constructor.
@@ -73,7 +73,7 @@ class URLParser extends WebModule {
                 return;
 
             //  Attempt to grab all URLs
-            $return = array();
+            $return = [ ];
             if (preg_match_all('/https?:\/\/[^\s\x01\x02\x03\x0F\x1D\x1F]+|(?:https?:\/\/)?www\.[^\s\x01\x02\x03\x0F\x1D\x1F]+/i', $msg->getParameterString(), $match, PREG_PATTERN_ORDER)) {
 
                 foreach ($match[0] as $url) {
@@ -178,7 +178,7 @@ class URLParser extends WebModule {
 
         if (preg_match("/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)$/", $iso8601, $match)) {
             $units = array("d", "hr", "min", "sec");
-            $durationComponents = array();
+            $durationComponents = [ ];
 
             for ($i = 0, $count = count($units); $i < $count; $i++) {
                 if ($match[$i+1] || ($i == $count - 1 && count($durationComponents) == 0))
@@ -308,7 +308,7 @@ class URLParser extends WebModule {
 
         //  Form preview out of paragraphs
         if (preg_match_all("/<p>(.*?)<\/p>/is", $pageContents, $match)) {
-            $return = array();
+            $return = [ ];
             $output = "";
 
             foreach($match[1] as $paragraph) {

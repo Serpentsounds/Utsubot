@@ -49,7 +49,7 @@ class ItemModule extends ModuleWithPokemon {
         $this->registerManager("Item", $itemManager);
 
         //  Command triggers
-        $item = new Trigger("pitem", array($this, "item"));
+        $item = new Trigger("pitem", [$this, "item"]);
         $this->addTrigger($item);
 
         //  Help entries

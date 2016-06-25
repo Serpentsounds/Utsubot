@@ -18,6 +18,7 @@ use function Utsubot\bold;
  */
 class EvolutionException extends PokemonBaseException {}
 
+
 /**
  * Class Evolution
  *
@@ -33,6 +34,7 @@ class Evolution {
     protected $details;
     protected $isPre;
 
+
     /**
      * @param string $from
      */
@@ -40,12 +42,14 @@ class Evolution {
         $this->from = $from;
     }
 
+
     /**
      * @param string $to
      */
     public function setTo(string $to) {
         $this->to = $to;
     }
+
 
     /**
      * @param Method $method
@@ -55,12 +59,14 @@ class Evolution {
         $this->method = $method;
     }
 
+
     /**
      * @param bool $pre
      */
     public function setPre(bool $pre) {
         $this->isPre = $pre;
     }
+
 
     /**
      * Add a method requirement to the level up process
@@ -75,6 +81,7 @@ class Evolution {
         $this->details[$value] = $details;
     }
 
+
     /**
      * Format evolution information into a human-readable string
      *
@@ -88,7 +95,7 @@ class Evolution {
             if (intval($binary[$i])) {
                 $value = 1 << ($length - 1 - $i);
                 $display = (string)(new Requirement($value));
-                
+
                 //  Parameters to be filled
                 if (strpos($display, "%") !== false)
                     $output[] = sprintf($display, $this->details[$value]);
@@ -102,4 +109,5 @@ class Evolution {
         $name = ($this->isPre) ? $this->from : $this->to;
         return bold($name). "/". implode(" ", $output);
     }
+
 }

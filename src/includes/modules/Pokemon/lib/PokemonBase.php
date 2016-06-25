@@ -18,9 +18,9 @@ class PokemonBaseException extends \Exception {}
  */
 abstract class PokemonBase {
 
-	protected $id = -1;
-	protected $generation = -1;
-	protected $names = array();
+    protected $id = -1;
+    protected $generation = -1;
+    protected $names = [ ];
     protected $lastJaroResult;
     
     /**
@@ -30,23 +30,23 @@ abstract class PokemonBase {
         return $this->getName(new Language(Language::English));
     }
     
-	/**
-	 * Test if a search term (usu. id number or name) matches this object
-	 *
-	 * @param mixed $search
-	 * @return bool
-	 */
-	public function search($search): bool {
+    /**
+     * Test if a search term (usu. id number or name) matches this object
+     *
+     * @param mixed $search
+     * @return bool
+     */
+    public function search($search): bool {
 
-		//	Numeric search
-		if (is_int($search)) {
-			if ($search == $this->id)
-				return true;
-		}
+        //	Numeric search
+        if (is_int($search)) {
+            if ($search == $this->id)
+                return true;
+        }
 
-		//	String search
-		elseif (is_string($search)) {
-			//	Case insensitive
+        //	String search
+        elseif (is_string($search)) {
+            //	Case insensitive
             $normalize = function(string $str) {
                 return strtolower(
                     str_replace(
@@ -63,11 +63,11 @@ abstract class PokemonBase {
                     return true;
             }
 
-		}
+        }
 
-		//	No match
-		return false;
-	}
+        //	No match
+        return false;
+    }
 
     /**
      * Retieve this object's unique ID number
@@ -143,25 +143,25 @@ abstract class PokemonBase {
         $this->generation = $generation;
     }
 
-	/**
-	 * Get the Jaro-Winkler distance from a search to the closest 'name' this object has
-	 *
-	 * @param string $search
-	 * @param Language $language
-	 * @return float
-	 */
-	public function jaroSearch(string $search, Language $language): float {
+    /**
+     * Get the Jaro-Winkler distance from a search to the closest 'name' this object has
+     *
+     * @param string $search
+     * @param Language $language
+     * @return float
+     */
+    public function jaroSearch(string $search, Language $language): float {
         $return = 0;
         $languageId = $language->getValue();
-		foreach ($this->names as $compareLanguage => $name) {
-			if (($languageId == Language::All || $languageId == $compareLanguage) && ($jaroWinkler = jaroWinklerDistance($name, $search)) > $return) {
+        foreach ($this->names as $compareLanguage => $name) {
+            if (($languageId == Language::All || $languageId == $compareLanguage) && ($jaroWinkler = jaroWinklerDistance($name, $search)) > $return) {
                 $return = $jaroWinkler;
                 $this->lastJaroResult = new JaroResult($name, $search, $jaroWinkler);
             }
-		}
+        }
 
-		return $return;
-	}
+        return $return;
+    }
 
     /**
      * @return JaroResult

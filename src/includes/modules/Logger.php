@@ -117,7 +117,7 @@ Class Logger extends ModuleWithAccounts {
 	 * @return array An array of matching instances, where each element is an array containing command, user, and channel
 	 */
 	public function getLogs(string $command, int $user, string $channel): array {
-		$constraints = $parameters = array();
+		$constraints = $parameters = [ ];
 		//	Search for a command
 		if (strlen($command)) {
 			$constraints[] = "`command`=?";
@@ -165,7 +165,7 @@ Class Logger extends ModuleWithAccounts {
 				throw new LoggerException("You have no logs on record.");
 
 			//	Count each command separately
-			$count = array();
+			$count = [ ];
 			foreach ($logs as $log)
 				@$count[$log['command']]++;
 
@@ -209,13 +209,13 @@ Class Logger extends ModuleWithAccounts {
 					throw new LoggerException("There are no logs on record for '$cmd'.");
 
 				//	Count each user separately
-				$count = array();
+				$count = [ ];
 				foreach ($logs as $log)
 					@$count[$log['user_id']]++;
 
 				//	Sort users and prepare to get nicknames
 				arsort($count);
-				$return = array();
+				$return = [ ];
 
 				//	Get "Top online users" by attempting to match the list of user IDs to logged in accounts
 				foreach ($count as $userID => $used) {

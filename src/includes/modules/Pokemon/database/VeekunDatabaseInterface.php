@@ -34,7 +34,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
 
     public function getPokemon() {
         /** @var Pokemon[] $pokemon */
-        $pokemon = array();
+        $pokemon = [ ];
 
         $nationalDex = new Dex(Dex::National);
 
@@ -408,14 +408,14 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             return false;
 
         if ($table == "location")
-            $query = "	SELECT ln.name AS `name`, l.region_id AS generation
+            $query = "  SELECT ln.name AS `name`, l.region_id AS generation
                         FROM location_names ln, locations l
                         WHERE ln.location_id=l.id AND l.id=? AND ln.local_language_id=9
                         LIMIT 1";
         else
             $query = "SELECT `name` FROM ${table}_names WHERE ${table}_id=? AND local_language_id=9 LIMIT 1";
 
-        $res = $this->query($query, array($id));
+        $res = $this->query($query, [$id]);
 
         if (!$res)
             return false;
@@ -461,7 +461,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
 
     public function getAbility() {
         /** @var Ability[] $abilities */
-        $abilities = array();
+        $abilities = [ ];
 
         $names = $this->getAbilityNames();
         foreach ($names as $row) {
@@ -547,7 +547,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
 
     public function getItem() {
         /** @var Item[] $items */
-        $items = array();
+        $items = [ ];
 
         $itemRow = $this->getItemRow();
         foreach ($itemRow as $row) {
@@ -658,7 +658,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
 
     public function getNature() {
         /** @var Nature[] $natures */
-        $natures = array();
+        $natures = [ ];
 
         $natureAttributes = $this->getNatureAttributes();
         foreach ($natureAttributes as $row) {
@@ -719,7 +719,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
 
     public function getMove($id = null) {
         /** @var Move[] $moves */
-        $moves = array();
+        $moves = [ ];
 
         $moveRow = $this->getMoveRow();
         foreach ($moveRow as $row) {

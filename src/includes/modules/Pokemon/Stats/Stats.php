@@ -32,28 +32,28 @@ class Stats extends ModuleWithPokemon {
 
 
         //  Command triggers
-        $triggers['phiddenpower'] = new Trigger("phiddenpower", array($this, "hiddenPower"));
+        $triggers['phiddenpower'] = new Trigger("phiddenpower", [$this, "hiddenPower"]);
         $triggers['phiddenpower']->addAlias("php");
 
-        $triggers['piv'] = new Trigger("piv", array($this, "calculateIVs"));
+        $triggers['piv'] = new Trigger("piv", [$this, "calculateIVs"]);
 
-        $triggers['maxtobase'] = new Trigger("maxtobase", array($this, "baseMax"));
+        $triggers['maxtobase'] = new Trigger("maxtobase", [$this, "baseMax"]);
         $triggers['maxtobase']->addAlias("mtob");
         $triggers['maxtobase']->addAlias("m2b");
 
-        $triggers['basetomax'] = new Trigger("basetomax", array($this, "baseMax"));
+        $triggers['basetomax'] = new Trigger("basetomax", [$this, "baseMax"]);
         $triggers['basetomax']->addAlias("btom");
         $triggers['basetomax']->addAlias("b2m");
 
-        $triggers['maxtobase50'] = new Trigger("maxtobase50", array($this, "baseMax"));
+        $triggers['maxtobase50'] = new Trigger("maxtobase50", [$this, "baseMax"]);
         $triggers['maxtobase50']->addAlias("mtob50");
         $triggers['maxtobase50']->addAlias("m2b50");
 
-        $triggers['basetomax50'] = new Trigger("basetomax50", array($this, "baseMax"));
+        $triggers['basetomax50'] = new Trigger("basetomax50", [$this, "baseMax"]);
         $triggers['basetomax50']->addAlias("btom50");
         $triggers['basetomax50']->addAlias("b2m50");
 
-        $triggers['pstats'] = new Trigger("pstat", array($this, "baseStat"));
+        $triggers['pstats'] = new Trigger("pstat", [$this, "baseStat"]);
         $triggers['pstats']->addAlias("pstat");
 
         foreach ($triggers as $trigger)
@@ -61,7 +61,7 @@ class Stats extends ModuleWithPokemon {
 
 
         //  Help entries
-        $help = array();
+        $help = [ ];
 
         $help['phiddenpower'] = new HelpEntry("Pokemon", $triggers['phiddenpower']);
         $help['phiddenpower']->addParameterTextPair("IVS", "Calculate the type and base power of a Pokemon's hidden power, given its IVs (in the form HP/ATK/DEF/SATK/SDEF/SPE).");
@@ -126,7 +126,7 @@ class Stats extends ModuleWithPokemon {
         $parser->injectManager("Nature", $this->getOutsideManager("Nature"));
         $result = $parser->parseIVStatParameters($msg->getCommandParameters());
 
-        $output = array();
+        $output = [ ];
         for ($i = 0; $i <= 5; $i++) {
             $stat = new Stat($i);
             $statName = $stat->getName();
@@ -168,7 +168,7 @@ class Stats extends ModuleWithPokemon {
         $parser->injectManager("Nature", $this->getOutsideManager("Nature"));
         $result = $parser->parseIVStatParameters($msg->getCommandParameters());
 
-        $output = array();
+        $output = [ ];
         for ($i = 0; $i <= 5; $i++) {
             $stat     = new Stat($i);
             $statName = $stat->getName();

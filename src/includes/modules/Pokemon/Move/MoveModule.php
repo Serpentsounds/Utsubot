@@ -48,7 +48,7 @@ class MoveModule extends ModuleWithPokemon {
         $this->registerManager("Move", $moveManager);
 
         //  Command triggers
-        $move = new Trigger("pmove",      array($this, "move"));
+        $move = new Trigger("pmove",      [$this, "move"]);
         $move->addAlias("pattack");
         $move->addAlias("patk");
         $this->addTrigger($move);

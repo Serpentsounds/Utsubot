@@ -14,13 +14,13 @@ use Utsubot\{
 class MetaTier extends PokemonManagerBase {
 	protected static $manages = "Utsubot\\Pokemon\\MetaPokemon";
 
-	protected static $customOperators = array();
+	protected static $customOperators = [ ];
 
 	/** @var $interface MetaPokemonDatabaseInterface */
 	protected $interface;
 
-	private $usages = array();
-	private $pokemonUsages = array();
+	private $usages = [ ];
+	private $pokemonUsages = [ ];
 
 	public function __construct(MetaPokemonDatabaseInterface $interface) {
 		parent::__construct($interface);

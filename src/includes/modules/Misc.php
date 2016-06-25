@@ -36,7 +36,7 @@ class Misc extends ModuleWithPermission implements IHelp {
     const NOW_PLAYING_INTERVAL = 60;
     const NOW_PLAYING_FILE = '\\\\GENSOU\drop\nowplaying.txt';
 
-    protected $inCountdown = array();
+    protected $inCountdown = [ ];
     private $lastNowPlaying = 0;
 
     /**
@@ -49,21 +49,21 @@ class Misc extends ModuleWithPermission implements IHelp {
 
 
         //  Command triggers
-        $triggers = array();
+        $triggers = [ ];
 
-        $triggers['hug']        = new Trigger("hug",        array($this, "hug"          ));
+        $triggers['hug']        = new Trigger("hug",        [$this, "hug"          ]);
 
-        $triggers['nowplaying'] = new Trigger("nowplaying", array($this, "nowPlaying"   ));
+        $triggers['nowplaying'] = new Trigger("nowplaying", [$this, "nowPlaying"   ]);
         $triggers['nowplaying']->addAlias("np");
 
-        $triggers['countdown']  = new Trigger("countdown",   array($this, "countdown"    ));
+        $triggers['countdown']  = new Trigger("countdown",   [$this, "countdown"    ]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
 
 
         //  Help entries
-        $help = array();
+        $help = [ ];
 
         $help['hug'] = new HelpEntry("Misc", $triggers['hug']);
         $help['hug']->addParameterTextPair("", "Get a free hug!");

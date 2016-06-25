@@ -21,7 +21,7 @@ class AbilityManager extends PokemonManagerBase {
 	public function searchFields($field, $operator = "", $value = "") {
 		switch ($field) {
 			case "effect":
-				return new ManagerSearchObject($this, "getEffect", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getEffect", [ ], self::$stringOperators);
 			break;
 		}
 

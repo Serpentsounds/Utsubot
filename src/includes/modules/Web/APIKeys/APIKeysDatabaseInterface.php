@@ -10,7 +10,8 @@ namespace Utsubot\Web;
 use Utsubot\{
     DatabaseInterface,
     DatabaseInterfaceException,
-    MySQLDatabaseCredentials
+    MySQLDatabaseCredentials,
+    SQLiteDatbaseCredentials
 };
 
 
@@ -32,7 +33,8 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
      * APIKeysDatabaseInterface constructor.
      */
     public function __construct() {
-        parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        #parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
         
         $this->createAPIKeyTable();
     }
@@ -45,9 +47,9 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
             $this->query(
                 "CREATE TABLE `apikeys`
                 (
-	              `service` varchar(64) NOT NULL,
-	              `key` varchar(256) NOT NULL,
-	              PRIMARY KEY (`service`)
+                  `service` varchar(64) NOT NULL,
+                  `key` varchar(256) NOT NULL,
+                  PRIMARY KEY (`service`)
                 )"
             );
 

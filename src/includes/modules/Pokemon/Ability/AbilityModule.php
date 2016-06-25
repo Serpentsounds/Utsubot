@@ -51,7 +51,7 @@ class AbilityModule extends ModuleWithPokemon {
         $this->registerManager("Ability", $abilityManager);
 
         //  Command triggers
-        $ability = new Trigger("pability", array($this, "ability"));
+        $ability = new Trigger("pability", [$this, "ability"]);
         $ability->addAlias("pabl");
         $this->addTrigger($ability);
         

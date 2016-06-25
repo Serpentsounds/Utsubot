@@ -154,7 +154,7 @@ class Calculator {
 	public static function math($function, $parameters) {
         //  Call existing php functions directly
         if (function_exists($function))
-			return call_user_func_array($function, (strlen($parameters)) ? explode(",", $parameters) : array());
+			return call_user_func_array($function, (strlen($parameters)) ? explode(",", $parameters) : [ ]);
 
         //  Supplemental functions
 		switch ($function) {

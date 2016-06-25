@@ -27,8 +27,8 @@ class HelpEntry {
     private $trigger;
     private $category;
 
-    private $parameterText = array();
-    private $notes = array();
+    private $parameterText = [ ];
+    private $notes = [ ];
 
     /**
      * HelpEntry constructor.

@@ -19,7 +19,7 @@ namespace Utsubot\Jaro;
  * @return string The common characters between them
  */
 function getMatchingCharacters(string $base, string $comparison): string {
-    $lengths = array(strlen($base), strlen($comparison));
+    $lengths = [strlen($base), strlen($comparison)];
     $maxDistance = floor(max($lengths) / 2) - 1;
     $result = "";
 
@@ -49,13 +49,13 @@ function getMatchingCharacters(string $base, string $comparison): string {
  * @return float
  */
 function jaroDistance(string $base, string $comparison): float {
-    $lengths = array(strlen($base), strlen($comparison));
+    $lengths = [strlen($base), strlen($comparison)];
 
     $matchingCharacters = array(
         getMatchingCharacters($base, $comparison),
         getMatchingCharacters($comparison, $base)
     );
-    $matchingLengths = array(strlen($matchingCharacters[0]), strlen($matchingCharacters[1]));
+    $matchingLengths = [strlen($matchingCharacters[0]), strlen($matchingCharacters[1])];
 
     $matchingLengthsMinimum = min($matchingLengths);
     if ($matchingLengthsMinimum == 0)

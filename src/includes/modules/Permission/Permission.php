@@ -59,18 +59,18 @@ class Permission extends ModuleWithPermission implements IHelp {
 
 
         //  Command triggers
-        $triggers = array();
-        $triggers['allow']      = new Trigger("allow",      array($this, "allow"    ));
-        $triggers['deny']       = new Trigger("deny",       array($this, "deny"     ));
-        $triggers['unallow']    = new Trigger("unallow",    array($this, "unallow"  ));
-        $triggers['undeny']     = new Trigger("undeny",     array($this, "undeny"   ));
+        $triggers = [ ];
+        $triggers['allow']      = new Trigger("allow",      [$this, "allow"    ]);
+        $triggers['deny']       = new Trigger("deny",       [$this, "deny"     ]);
+        $triggers['unallow']    = new Trigger("unallow",    [$this, "unallow"  ]);
+        $triggers['undeny']     = new Trigger("undeny",     [$this, "undeny"   ]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
 
 
         //  Help entries
-        $help = array();
+        $help = [ ];
         $category = "Permission";
 
         $help['allow'] = new HelpEntry($category, $triggers['allow']);

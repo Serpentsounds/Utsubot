@@ -47,7 +47,7 @@ class Includes extends Module implements IHelp {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $includes = new Trigger("includes", array($this, "includes"));
+        $includes = new Trigger("includes", [$this, "includes"]);
         $this->addTrigger($includes);
 
         $help = new HelpEntry("Includes", $includes);

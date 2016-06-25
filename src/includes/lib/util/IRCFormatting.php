@@ -7,7 +7,6 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
-
 /**
  * Returns text bolded
  *
@@ -49,7 +48,8 @@ function reverse(string $text): string {
 }
 
 /**
- * Returns text with formatting intact, but with the clear formatting control code (\x0F) so subsequent text will have no formatting
+ * Returns text with formatting intact, but with the clear formatting control code (\x0F) so subsequent text will have
+ * no formatting
  *
  * @param string $text
  * @return string
@@ -69,7 +69,7 @@ function stripControlCodes(string $text): string {
     $text = preg_replace('/\x03\d{1,2}(,\d{1,2})?/', "", $text);
 
     //	Strip all other formatting
-    $text = str_replace(array(chr(2), chr(3), chr(15), chr(22), chr(29), chr(31)), "", $text);
+    $text = str_replace(array( chr(2), chr(3), chr(15), chr(22), chr(29), chr(31) ), "", $text);
 
     return $text;
 }
@@ -78,21 +78,21 @@ function stripControlCodes(string $text): string {
  * Returns text with given IRC color
  *
  * @param string $text
- * @param Color $color
- * @param Color $background
- * @param bool $close True to close the color code, so subsequent text isn't colored
+ * @param Color  $color
+ * @param Color  $background
+ * @param bool   $close True to close the color code, so subsequent text isn't colored
  * @return string
  */
 function colorText(string $text, Color $color, Color $background = null, bool $close = true): string {
     return sprintf(
-           "\x03%02d%s%s%s",
-           $color->getValue(),
-           ($background instanceof Color && $background->getValue() != Color::Clear) ?
-               sprintf(",%02d", $background->getValue()) :
-               "",
-            $text,
-           ($close) ? 
-               "\x03" : 
-               ""
+        "\x03%02d%s%s%s",
+        $color->getValue(),
+        ($background instanceof Color && $background->getValue() != Color::Clear) ?
+            sprintf(",%02d", $background->getValue()) :
+            "",
+        $text,
+        ($close) ?
+            "\x03" :
+            ""
     );
 }

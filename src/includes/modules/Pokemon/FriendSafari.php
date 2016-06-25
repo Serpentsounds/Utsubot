@@ -29,7 +29,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
     use THelp;
     
     private $interface;
-    private $validPokemon = array();
+    private $validPokemon = [ ];
 
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
@@ -41,7 +41,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
         );
         $this->updateValidPokemonCache();
 
-        $friendSafari = new Trigger("friendsafari", array($this, "friendSafari"));
+        $friendSafari = new Trigger("friendsafari", [$this, "friendSafari"]);
         $friendSafari->addAlias("fs");
         $this->addTrigger($friendSafari);
         
@@ -54,11 +54,11 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
     }
 
     public function updateValidPokemonCache() {
-        $this->validPokemon = array();
+        $this->validPokemon = [ ];
 
         $results = $this->interface->query(
             "SELECT * FROM `friendsafari_pokemon`",
-            array());
+            [ ]);
 
         foreach ($results as $row)
             $this->validPokemon[$row['dexnum']][] = $row;
@@ -138,7 +138,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
         if (!$type)
             throw new FriendSafariException("No type given.");
 
-        $pokemon = array();
+        $pokemon = [ ];
         foreach ($this->validPokemon as $dexnum => $rows) {
             foreach ($rows as $row) {
                 if ($row['type'] == $type)
@@ -150,7 +150,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
             throw new FriendSafariException("Invalid type '$type'.");
 
         ksort($pokemon);
-        $response = array();
+        $response = [ ];
         foreach ($pokemon as $slot => $pokemonList)
             $response[] = sprintf(
                 "[%s: %s]",
@@ -179,7 +179,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
         if (!$results)
             throw new FriendSafariException("There is nobody with a '$pokemon' in his or her Friend Safari.");
 
-        $return = array();
+        $return = [ ];
         foreach ($results as $row) {
             if (isset($row['nickname']))
                 $return[] = $row['nickname'];
@@ -212,7 +212,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
         if (!$results)
             throw new FriendSafariException("No Friend Safari entries found for '$nick'.");
 
-        $response = array();
+        $response = [ ];
         foreach ($results as $row) {
             $response[] = sprintf(
                 "[%s: %s]",
@@ -306,7 +306,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
     private function verifyUserPokemon($pokemonString) {
         //	No friend safari pokemon are multi-word pokemon, so word by word checking is sufficient
         $userPokemon = explode(" ", $pokemonString);
-        $pokemon = $safaris = array();
+        $pokemon = $safaris = [ ];
         $type = null;
 
         foreach ($userPokemon as $slot => $currentPokemon) {

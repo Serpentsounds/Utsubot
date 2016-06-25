@@ -60,7 +60,7 @@ class PokemonManager extends PokemonManagerBase {
 	private function getLooseSearchResults($search, $englishOnly = false) {
 		//	Minimum result of the Jaro-Winkler algorithm for a pokemon to be considered
 		$minimumSimilarity = 0.80;
-		$results = array();
+		$results = [ ];
 
 		//	Save each Jaro-Winkler distance
 		foreach ($this->collection as $key => $item) {
@@ -97,11 +97,11 @@ class PokemonManager extends PokemonManagerBase {
 	 */
 	public function searchFields($field, $operator = "", $value = "") {
 		if (in_array(strtolower($operator), self::$customOperators))
-			return new ManagerSearchObject($this, "", array(), self::$customOperators);
+			return new ManagerSearchObject($this, "", [ ], self::$customOperators);
 
 		switch ($field) {
 			case	"id":		case 	"pid":
-				return new ManagerSearchObject($this, "getId", array(), self::$numericOperators);
+				return new ManagerSearchObject($this, "getId", [ ], self::$numericOperators);
 			break;
 
 			case	"hp":		case	"hit points":
@@ -115,7 +115,7 @@ class PokemonManager extends PokemonManagerBase {
 
 			case "total":
 			case "bst":
-				return new ManagerSearchObject($this, "getBaseStatTotal", array(), self::$numericOperators);
+				return new ManagerSearchObject($this, "getBaseStatTotal", [ ], self::$numericOperators);
 			break;
 
 			case	"name":		case	"english":
@@ -153,7 +153,7 @@ class PokemonManager extends PokemonManagerBase {
 			break;
 
 			case "species":
-				return new ManagerSearchObject($this, "getSpecies", array(), self::$stringOperators);
+				return new ManagerSearchObject($this, "getSpecies", [ ], self::$stringOperators);
 			break;
 		}
 

@@ -10,8 +10,13 @@ namespace Utsubot\Pokemon\Pokemon;
 use Utsubot\Enum;
 
 
+/**
+ * Class Requirement
+ *
+ * @package Utsubot\Pokemon\Pokemon
+ */
 class Requirement extends Enum {
-    
+
     const Level             = 1;
     const Gender            = 1 << 1;
     const Time              = 1 << 2;
@@ -30,6 +35,7 @@ class Requirement extends Enum {
     const Party_Pokemon     = 1 << 15;
     const Party_Type        = 1 << 16;
     const Trade_For         = 1 << 17;
+
 
     private static $display = array(
         self::Level             => "(%d)",
@@ -52,10 +58,12 @@ class Requirement extends Enum {
         self::Trade_For         => "for %s"
     );
 
+
     /**
      * @return string
      */
     public function __toString(): string {
         return self::$display[$this->getValue()];
     }
+    
 }

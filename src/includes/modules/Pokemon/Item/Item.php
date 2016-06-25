@@ -178,7 +178,7 @@ class Item extends AbilityItemBase implements Manageable {
 	 * @return string
 	 */
 	public function formatFlags(): string {
-        $return = array();
+        $return = [ ];
 		foreach (self::FLAG_DISPLAY as $flag => $description) {
             if ($flag & $this->flag)
                 $return[] = $description;

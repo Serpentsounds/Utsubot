@@ -8,13 +8,14 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
-
 /**
  * Class TimerException
  *
  * @package Utsubot
  */
-class TimerException extends \Exception {}
+class TimerException extends \Exception {
+
+}
 
 /**
  * Class Timer
@@ -23,13 +24,14 @@ class TimerException extends \Exception {}
  */
 class Timer {
 
-    const TooEarly = 0;
+    const TooEarly       = 0;
     const TimerActivated = 1;
-    
+
     protected $time;
     protected $function;
     protected $parameters;
     protected $activated = false;
+
 
     /**
      * Timer constructor.
@@ -43,10 +45,11 @@ class Timer {
         if ($time < 0)
             throw new TimerException("Timer delay can not be negative.");
 
-        $this->time = microtime(true) + $time;
-        $this->function = $function;
+        $this->time       = microtime(true) + $time;
+        $this->function   = $function;
         $this->parameters = $parameters;
     }
+
 
     /**
      * Attempt to activate this timer object
@@ -57,13 +60,14 @@ class Timer {
     public function activate() {
         if ($this->activated == true)
             throw new TimerException("This Timer has already activated.", self::TimerActivated);
-        
+
         if (microtime(true) < $this->time)
             throw new TimerException("It is too early for this Timer to activate.", self::TooEarly);
 
-        $return = call_user_func_array($this->function, $this->parameters);
+        $return          = call_user_func_array($this->function, $this->parameters);
         $this->activated = true;
+
         return $return;
     }
-    
+
 }

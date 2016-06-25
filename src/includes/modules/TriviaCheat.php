@@ -11,13 +11,15 @@ namespace Utsubot;
 
 class TriviaCheat extends Module {
 
+    use Timers;
+
     private static $logfile = 'trivia.log';
     private static $botnick = "Rapidash-Trivia";
     private static $questionRegex = '/^\[\d{2}:\d{2}:\d{2}\] <[~&@%+]?BOTNICK> \d+\. (.+)/i';
     private static $answerRegex = '/^\[\d{2}:\d{2}:\d{2}\] <[~&@%+]?BOTNICK> Winner: \S+ Answer: (.+?) Time:/i';
     private static $triggerRegex = '/^\d+\. (.+)/i';
 
-    private $questions = array();
+    private $questions = [ ];
 
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
@@ -33,9 +35,13 @@ class TriviaCheat extends Module {
         if ($msg->getNick() == self::$botnick && preg_match(self::$triggerRegex, stripControlCodes($msg->getParameterString()), $match)) {
             foreach ($this->questions as $arr) {
                 if (!strcmp(strtolower(trim($match[1])), strtolower(trim($arr[0])))) {
-                    $this->timerQueue[] = array(
-                        'time'    => time() + 1,
-                        'command' => "\$this->IRCBot->message('{$msg->getResponseTarget()}', '{$arr[1]}');"
+
+                    $this->addTimer(
+                        new Timer(
+                            time() + 1,
+                            array($this->IRCBot, "message"),
+                            array($msg->getResponseTarget(), $arr[1])
+                        )
                     );
 
                     break;
@@ -46,7 +52,7 @@ class TriviaCheat extends Module {
     }
 
     public function cacheLog() {
-        $this->questions = array();
+        $this->questions = [ ];
         $lines = file(self::$logfile);
 
         $question = "";
