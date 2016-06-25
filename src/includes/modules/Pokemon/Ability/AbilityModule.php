@@ -7,6 +7,7 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Ability;
+
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
@@ -28,7 +29,9 @@ use function Utsubot\bold;
  *
  * @package Utsubot\Pokemon\Ability
  */
-class AbilityModuleException extends ModuleWithPokemonException {}
+class AbilityModuleException extends ModuleWithPokemonException {
+
+}
 
 /**
  * Class AbilityModule
@@ -44,24 +47,25 @@ class AbilityModule extends ModuleWithPokemon {
      */
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
-        
+
         //  Create and register manager with base module
         $abilityManager = new AbilityManager(new VeekunDatabaseInterface());
         $abilityManager->load();
         $this->registerManager("Ability", $abilityManager);
 
         //  Command triggers
-        $ability = new Trigger("pability", [$this, "ability"]);
+        $ability = new Trigger("pability", [ $this, "ability" ]);
         $ability->addAlias("pabl");
         $this->addTrigger($ability);
-        
+
         //  Help entries
         $help = new HelpEntry("Pokemon", $ability);
-        $help->addParameterTextPair("ABILITY",          "Look up information about the Pokemon ability ABILITY.");
+        $help->addParameterTextPair("ABILITY", "Look up information about the Pokemon ability ABILITY.");
         $help->addParameterTextPair("-verbose ABILITY", "Look up information about the Pokemon ability ABILITY, with mechanics explained in-depth.");
         $help->addParameterTextPair("-pokemon ABILITY", "Look up a list of Pokemon who can have ABILITY.");
         $this->addHelp($help);
     }
+
 
     /**
      * Ability lookup function
@@ -75,21 +79,21 @@ class AbilityModule extends ModuleWithPokemon {
         $this->requireParameters($msg, 1);
 
         //  Check if switches were applied
-        $copy = $parameters = $msg->getCommandParameters();
-        $switch = null;
+        $copy      = $parameters = $msg->getCommandParameters();
+        $switch    = null;
         $firstWord = strtolower(array_shift($copy));
         //  Switch detected, save it and remove from parameters
         if (substr($firstWord, 0, 1) == "-") {
-            $switch = substr($firstWord, 1);
+            $switch     = substr($firstWord, 1);
             $parameters = $copy;
         }
 
-        $result = $this->getObject(implode(" ",  $parameters));
+        $result = $this->getObject(implode(" ", $parameters));
         /** @var Ability $ability */
-        $ability = $result->current();
+        $ability     = $result->current();
         $abilityInfo = new AbilityInfoFormat($ability);
-        $return = $abilityInfo->parseFormat();
-        
+        $return      = $abilityInfo->parseFormat();
+
         //  Parse switches
         switch ($switch) {
             //  Verbose mode, change format to be more descriptive
@@ -105,14 +109,14 @@ class AbilityModule extends ModuleWithPokemon {
 
                 //  Grab PokemonManager from the Pokemon Module. Exception if it's not loaded
                 $pokemonManager = $this->getOutsideManager("Pokemon");
-                $criteria = array(
+                $criteria       = [
                     new ManagerSearchCriterion($pokemonManager, "ability1", "==", $abilityName),
                     new ManagerSearchCriterion($pokemonManager, "ability2", "==", $abilityName),
                     new ManagerSearchCriterion($pokemonManager, "ability3", "==", $abilityName)
-                );
-                
-                 // Perform a loose search to match any criteria
-                $pokemon = $pokemonManager->fullSearch($criteria, true, false);                
+                ];
+
+                // Perform a loose search to match any criteria
+                $pokemon = $pokemonManager->fullSearch($criteria, true, false);
 
                 $return = sprintf(
                     "These pokemon can have %s: %s.",
@@ -128,5 +132,5 @@ class AbilityModule extends ModuleWithPokemon {
         if ($suggestions = $result->formatSuggestions())
             $this->respond($msg, $suggestions);
     }
-    
+
 }

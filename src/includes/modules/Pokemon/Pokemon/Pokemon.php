@@ -45,7 +45,7 @@ class Pokemon extends PokemonBase implements Manageable {
     const NUMBER_OF_EGG_GROUPS  = 2;
 
     //  Order of preference for default dex entries
-    const DEX_VERSION_PREFERENCE = array(
+    const DEX_VERSION_PREFERENCE = [
         Version::Omega_Ruby,    Version::Alpha_Sapphire,
         Version::X,             Version::Y,
         Version::Black_2,       Version::White_2,
@@ -56,20 +56,20 @@ class Pokemon extends PokemonBase implements Manageable {
         Version::Emerald,       Version::Ruby,              Version::Sapphire,
         Version::Crystal,       Version::Gold,              Version::Silver,
         Version::Yellow,        Version::Red,               Version::Blue
-    );
+    ];
 
 
     private $regexSearch    = "//";
 
-    private $abilities      = array("", "", "");
+    private $abilities      = [ "", "", "" ];
     private $evolutions     = [ ];
     private $preEvolutions  = [ ];
     private $alternateForms = [ ];
 
     //	Attributes
-    private $baseStats      = array(0, 0, 0, 0, 0, 0);
-    private $evYield        = array(0, 0, 0, 0, 0, 0);
-    private $types          = array("", "");
+    private $baseStats      = [ 0, 0, 0, 0, 0, 0 ];
+    private $evYield        = [ 0, 0, 0, 0, 0, 0 ];
+    private $types          = [ "", "" ];
     private $eggGroups      = [ ];
     private $eggSteps       = 0;
     private $baseExp        = 0;

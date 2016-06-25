@@ -45,7 +45,7 @@ class MetaTier extends PokemonManagerBase {
 	public function get(int $index): Manageable {
 		if ($results = parent::get($index)) {
 			/** @var $results MetaPokemon */
-			$results = array($results, $this->usages[$results->getId()]);
+			$results = [ $results, $this->usages[$results->getId()] ];
 		}
 
 		return $results;

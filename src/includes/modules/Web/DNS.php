@@ -131,7 +131,7 @@ class DNS extends WebModule {
         if ($results['status'] != "success")
             throw new DNSException("Lookup failed.");
 
-        $output = array(
+        $output = [
             sprintf(
                 "%s: %s [%s]",
                 bold("Country"),
@@ -168,7 +168,7 @@ class DNS extends WebModule {
                 bold("ISP"),
                 $results['isp']
             )
-        );
+        ];
 
         $this->respond($msg, implode(self::separator, $output));
     }

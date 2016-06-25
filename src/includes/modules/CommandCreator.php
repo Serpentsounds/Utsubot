@@ -119,6 +119,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param IRCMessage $msg
+     */
     public function privmsg(IRCMessage $msg) {
         parent::privmsg($msg);
 
@@ -141,6 +144,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param IRCMessage $msg
+     * @throws CommandCreatorException
+     * @throws \Utsubot\Accounts\ModuleWithAccountsException
+     */
     public function addCommand(IRCMessage $msg) {
         $this->requireLevel($msg, 50);
 
@@ -161,6 +169,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param IRCMessage $msg
+     * @throws CommandCreatorException
+     * @throws \Utsubot\Accounts\ModuleWithAccountsException
+     */
     public function removeCommand(IRCMessage $msg) {
         $this->requireLevel($msg, 50);
 
@@ -171,6 +184,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param IRCMessage $msg
+     * @throws CommandCreatorException
+     * @throws \Utsubot\Accounts\ModuleWithAccountsException
+     */
     public function viewCommand(IRCMessage $msg) {
         $this->requireLevel($msg, 50);
 
@@ -208,6 +226,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param IRCMessage $msg
+     * @throws CommandCreatorException
+     * @throws \Utsubot\Accounts\ModuleWithAccountsException
+     */
     public function editCommand(IRCMessage $msg) {
         $this->requireLevel($msg, 50);
         //	!editcommand bartender list add 1 beer
@@ -299,6 +322,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     *
+     */
     public function updateCustomTriggerCache() {
         $results = $this->interface->query(
             "SELECT * FROM `custom_commands_triggers`",
@@ -310,10 +336,15 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param            $commandID
+     * @param IRCMessage $msg
+     * @throws CommandCreatorException
+     */
     private function triggerCommand($commandID, IRCMessage $msg) {
         $commandInfo = $this->interface->query(
             "SELECT * FROM `custom_commands` WHERE `id`=? LIMIT 1",
-            array( $commandID )
+            [ $commandID ]
         );
 
         if (!$commandInfo)
@@ -358,6 +389,13 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @param $type
+     * @param $format
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function createCommand($command, $type, $format) {
         $rowCount = $this->interface->query(
             "INSERT INTO `custom_commands` (`name`, `type`, `format`) VALUES (?, ?, ?)",
@@ -371,6 +409,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function destroyCommand($command) {
         $rowCount = $this->interface->query(
             "DELETE FROM `custom_commands` WHERE `name`=? LIMIT 1",
@@ -386,6 +429,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @return mixed
+     * @throws CommandCreatorException
+     */
     private function getCommandId($command) {
         $results = $this->interface->query(
             "SELECT `id` FROM `custom_commands` WHERE `name`=? LIMIT 1",
@@ -399,6 +447,12 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @param $format
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function setFormat($command, $format) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
@@ -413,6 +467,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @return mixed
+     * @throws CommandCreatorException
+     */
     private function getFormat($command) {
         $results = $this->interface->query(
             "SELECT `format` FROM `custom_commands` WHERE `name`=? LIMIT 1",
@@ -426,6 +485,12 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @param $type
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function setType($command, $type) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
@@ -440,6 +505,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @return mixed
+     * @throws CommandCreatorException
+     */
     private function getType($command) {
         $results = $this->interface->query(
             "SELECT `type` FROM `custom_commands` WHERE `name`=? LIMIT 1",
@@ -453,6 +523,12 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @param $trigger
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function addCustomTrigger($command, $trigger) {
         if (isset($this->getTriggers()[ strtolower($trigger) ]))
             throw new CommandCreatorException("Trigger '$trigger' is reserved for a CommandCreator command.");
@@ -474,6 +550,12 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @param $trigger
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function removeCustomTrigger($command, $trigger) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
@@ -490,6 +572,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @return array|bool|int
+     * @throws CommandCreatorException
+     */
     private function clearCustomTriggers($command) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
@@ -506,6 +593,11 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param $command
+     * @return mixed
+     * @throws CommandCreatorException
+     */
     public function getCustomTriggers($command) {
         $commandID = $this->getCommandId($command);
         if (isset($this->customTriggers[ $commandID ]))
@@ -517,6 +609,13 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param     $command
+     * @param     $item
+     * @param int $slot
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function addListItem($command, $item, $slot = 1) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
@@ -531,6 +630,13 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param     $command
+     * @param     $item
+     * @param int $slot
+     * @return bool
+     * @throws CommandCreatorException
+     */
     private function removeListItem($command, $item, $slot = 1) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
@@ -545,6 +651,12 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param     $command
+     * @param int $slot
+     * @return array|bool|int
+     * @throws CommandCreatorException
+     */
     private function clearListItems($command, $slot = 1) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
@@ -559,6 +671,12 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     }
 
 
+    /**
+     * @param     $command
+     * @param int $slot
+     * @return array|bool|int
+     * @throws CommandCreatorException
+     */
     private function getListItems($command, $slot = 1) {
         $id      = $this->getCommandId($command);
         $results = $this->interface->query(

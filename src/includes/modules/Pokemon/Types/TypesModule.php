@@ -95,7 +95,7 @@ class TypesModule extends ModuleWithPokemon {
         }
         
         $next = 0;
-        $types = array(null, null);
+        $types = [ null, null ];
         $PokemonManager = $this->getOutsideManager("Pokemon");
         $MoveManager = $this->getOutsideManager("Move");
         //	Loop through words until we find 2 parameters
@@ -187,18 +187,18 @@ class TypesModule extends ModuleWithPokemon {
 
             //	Normalize type list to array with indices beginning at 1
             elseif (!is_array($types[0]))
-                $searchType = array(1 => $types[0]);
+                $searchType = [ 1 => $types[0] ];
             else
-                $searchType = array(1 => $types[0][0], 2 => $types[0][1]);
+                $searchType = [ 1 => $types[0][0], 2 => $types[0][1] ];
 
             $searchType = array_map(function ($element) {
                 return ucwords(strtolower($element));
             }, $searchType);
 
             //	Add criteria to allow reverse order for dual types
-            $criteria = array(
+            $criteria = [
                 new ManagerSearchCriterion($PokemonManager, "types", "==", $searchType)
-            );
+            ];
             if (count($searchType) == 2)
                 $criteria[] = new ManagerSearchCriterion($PokemonManager, "types", "==", [1 => $searchType[2], 2 => $searchType[1]]);
 
@@ -414,7 +414,7 @@ class TypesModule extends ModuleWithPokemon {
         foreach ($pokemonList as $pokemon) {
             if ($pokemon instanceof Pokemon) {
                 $abilityNames = [ ];
-                $actualResistances = array('base' => 0);
+                $actualResistances = [ 'base' => 0 ];
 
                 foreach ($parameters as $key => $type) {
                     $results = pokemonMatchup($type, $pokemon);

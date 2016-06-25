@@ -6,28 +6,33 @@
  */
 
 namespace Utsubot\GameNetworking;
-use Utsubot\{HybridDatabaseInterface, DatabaseInterfaceException, ModuleException};
+
+use Utsubot\{
+    HybridDatabaseInterface, DatabaseInterfaceException, ModuleException
+};
 
 
 class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
 
     protected static $table = "users_codes";
 
-    protected static $userIDColumn = "user_id";
+    protected static $userIDColumn   = "user_id";
     protected static $nicknameColumn = "nickname";
 
-    protected static $itemIDColumn = "code_id";
+    protected static $itemIDColumn    = "code_id";
     protected static $itemValueColumn = "value";
+
 
     /**
      * Insert a networking code into the database
      *
      * @param string $nickname
-     * @param int $item ID of code
+     * @param int    $item  ID of code
      * @param string $value Code itself
      * @return int|bool Number of affected rows, or false on failure
      * @throws DatabaseInterfaceException If a PDO error is encountered
-     * @throws ModuleException If there is an error configuring the hybrid analysis, or if the nickname link failsafe is triggered
+     * @throws ModuleException If there is an error configuring the hybrid analysis, or if the nickname link failsafe
+     *                         is triggered
      */
     public function insert($nickname, $item, $value) {
         $hybridAnalysis = $this->analyze($nickname);
@@ -38,19 +43,21 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
 
         return $this->query(
             sprintf("INSERT INTO `%s` (`$column`, `%s`, `%s`) VALUES (?, ?, ?)", self::$table, self::$itemIDColumn, self::$itemValueColumn),
-            array($user, $item, $value)
+            [ $user, $item, $value ]
         );
     }
+
 
     /**
      * Delete a networking code or codes from the database
      *
      * @param string $nickname
-     * @param int $item ID of code
+     * @param int    $item  ID of code
      * @param string $value Code itself, or null to remove all codes of given ID
      * @return int|bool Number of affected rows, or false on failure
      * @throws DatabaseInterfaceException If a PDO error is encountered
-     * @throws ModuleException If there is an error configuring the hybrid analysis, or if the nickname link failsafe is triggered
+     * @throws ModuleException If there is an error configuring the hybrid analysis, or if the nickname link failsafe
+     *                         is triggered
      */
     public function delete($nickname, $item, $value = null) {
         $hybridAnalysis = $this->analyze($nickname);
@@ -63,23 +70,24 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
         if ($value === null)
             return $this->query(
                 sprintf("DELETE FROM `%s` WHERE `$column`=? AND `%s`=?", self::$table, self::$itemIDColumn),
-                array($user, $item)
+                [ $user, $item ]
             );
 
         //	Delete a specific code of a single type
         else
             return $this->query(
                 sprintf("DELETE FROM `%s` WHERE `$column`=? AND `%s`=? AND `%s`=? LIMIT 1", self::$table, self::$itemIDColumn, self::$itemValueColumn),
-                array($user, $item, $value)
+                [ $user, $item, $value ]
             );
     }
+
 
     /**
      * Retrieve a networking code from the database
      *
      * @param string $nickname
-     * @param int $item ID of code, or null to retrieve all codes for given nickname
-     * @param string $value Code itself, or null to retrieve all codes of given ID
+     * @param int    $item        ID of code, or null to retrieve all codes for given nickname
+     * @param string $value       Code itself, or null to retrieve all codes of given ID
      * @param string $callingNick Nickname of user who is performing the search (needed to enforce private permissions)
      * @return array|bool Result set, or false on failure
      * @throws DatabaseInterfaceException If a PDO error is encountered
@@ -96,21 +104,21 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
             if ($item === null)
                 $codes = $this->query(
                     sprintf("SELECT * FROM `%s` WHERE `$column`=?", self::$table),
-                    array($user)
+                    [ $user ]
                 );
 
             //	Select all codes of a single type
             elseif ($value === null)
                 $codes = $this->query(
                     sprintf("SELECT * FROM `%s` WHERE `$column`=? AND `%s`=?", self::$table, self::$itemIDColumn),
-                    array($user, $item)
+                    [ $user, $item ]
                 );
 
             //	Select a specific code of a single type
             else
                 $codes = $this->query(
                     sprintf("SELECT * FROM `%s` WHERE `$column`=? AND `%s`=? AND `%s`=? LIMIT 1", self::$table, self::$itemIDColumn, self::$itemValueColumn),
-                    array($user, $item, $value)
+                    [ $user, $item, $value ]
                 );
 
             //	Retry in secure mode to prevent account linking, if user has an account but has codes still in nickname mode
@@ -127,37 +135,40 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
 
         //	Calling user is logged into the account of the target codes
         if ($callingUserHybridAnalysis->getMode() == "account" && ($callingUserHybridAnalysis->getAccountID() == $hybridAnalysis->getAccountID() ||
-            $callingUserHybridAnalysis->getAccountID() == $hybridAnalysis->getLinkedAccountID()))
+                                                                   $callingUserHybridAnalysis->getAccountID() == $hybridAnalysis->getLinkedAccountID())
+        )
             $sameUser = true;
         //	Calling user is linked to the account of the target codes
         elseif ($callingUserHybridAnalysis->getMode() == "nickname" && is_int($callingUserHybridAnalysis->getLinkedAccountID()) &&
-                $callingUserHybridAnalysis->getLinkedAccountID() == $hybridAnalysis->getAccountID())
+                $callingUserHybridAnalysis->getLinkedAccountID() == $hybridAnalysis->getAccountID()
+        )
             $sameUser = true;
 
         //	If calling user does not own the codes, block locked codes from being displayed
         foreach ($codes as &$code) {
-            if ($code['locked'] && !$sameUser)
-                $code['value'] = "(Private)";
+            if ($code[ 'locked' ] && !$sameUser)
+                $code[ 'value' ] = "(Private)";
         }
 
         return $codes;
 
     }
 
+
     /**
      * Update a code entry with various setting
      *
-     * @param string $nickname
-     * @param int $item Code ID
-     * @param string $value Code itself
-     * @param string $field Name of settings column
+     * @param string     $nickname
+     * @param int        $item       Code ID
+     * @param string     $value      Code itself
+     * @param string     $field      Name of settings column
      * @param int|string $fieldValue New value
      * @return int|bool Number of affected rows, or false on failure
      * @throws DatabaseInterfaceException If an invalid setting is specified, or a PDO error is encountered
      * @throws ModuleException If there is an error configuring the hybrid analysis
      */
     public function update($nickname, $item, $value, $field, $fieldValue) {
-        if (!in_array($field, array("notes", "locked")))
+        if (!in_array($field, [ "notes", "locked" ]))
             throw new DatabaseInterfaceException("Invalid field '$field' for updating GameNetworking entry.");
 
         $hybridAnalysis = $this->analyze($nickname);
@@ -171,21 +182,22 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
         if ($fieldValue === null) {
             return $this->query(
                 sprintf("UPDATE `%s` SET `$field`=NULL WHERE `$column`=? AND `%s`=? AND `%s`=?", self::$table, self::$itemIDColumn, self::$itemValueColumn),
-                array($user, $item, $value)
+                [ $user, $item, $value ]
             );
         }
         //	Set value
         else
             return $this->query(
                 sprintf("UPDATE `%s` SET `$field`=? WHERE `$column`=? AND `%s`=? AND `%s`=?", self::$table, self::$itemIDColumn, self::$itemValueColumn),
-                array($fieldValue, $user, $item, $value)
+                [ $fieldValue, $user, $item, $value ]
             );
     }
+
 
     /**
      * Search for the owner of a code entry
      *
-     * @param int $item Code ID
+     * @param int    $item  Code ID
      * @param string $value Code itself
      * @return array|bool Result set, or false on failure
      * @throws DatabaseInterfaceException If a PDO error is encountered
@@ -193,7 +205,7 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
     public function selectValue($item, $value) {
         return $this->query(
             sprintf("SELECT * FROM `%s` WHERE `%s`=? AND `%s`=? LIMIT 1", self::$table, self::$itemIDColumn, self::$itemValueColumn),
-            array($item, $value)
+            [ $item, $value ]
         );
     }
 

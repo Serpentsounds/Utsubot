@@ -7,47 +7,68 @@
 
 namespace Utsubot;
 
-
+/**
+ * Class Core
+ *
+ * @package Utsubot
+ */
 class Core extends Module {
-    
+
     const VersionResponse = "Utsubot by Serpentsounds: https://github.com/Serpentsounds/Utsubot";
-    
+
+
+    /**
+     *
+     */
     public function connect() {
         $this->IRCBot->raw("PROTOCTL NAMESX");
         $this->IRCBot->raw("PROTOCTL UHNAMES");
         $this->IRCBot->raw("MODE {$this->IRCBot->getNickname()} +B");
 
         if (!empty($commands = $this->IRCBot->getIRCNetwork()->getOnConnect()))
-        foreach ($commands as $command)
-            $this->IRCBot->raw($command);
+            foreach ($commands as $command)
+                $this->IRCBot->raw($command);
 
         if (!empty($channels = $this->IRCBot->getIRCNetwork()->getDefaultChannels()))
-        foreach ($channels as $channel)
-            $this->IRCBot->join($channel);
+            foreach ($channels as $channel)
+                $this->IRCBot->join($channel);
 
     }
 
+
+    /**
+     *
+     */
     public function disconnect() {
         $this->IRCBot->connect();
     }
 
+
+    /**
+     * @param IRCMessage $msg
+     */
     public function ping(IRCMessage $msg) {
         $this->IRCBot->raw("PONG :{$msg->getParameterString()}");
     }
 
+
+    /**
+     * @param IRCMessage $msg
+     */
     public function ctcp(IRCMessage $msg) {
         switch (strtolower($msg->getCTCP())) {
             case "version":
                 $this->IRCBot->ctcpReply($msg->getResponseTarget(), $msg->getCTCP(), self::VersionResponse);
-            break;
+                break;
             case "time":
                 $this->IRCBot->ctcpReply($msg->getResponseTarget(), $msg->getCTCP(), date("D M j H:i:s Y"));
-            break;
+                break;
             case "ping":
                 $this->IRCBot->ctcpReply($msg->getResponseTarget(), $msg->getCTCP(), $msg->getParameterString());
-            break;
+                break;
         }
     }
+
 
     /**
      * Update User objects on nick changes
@@ -56,9 +77,10 @@ class Core extends Module {
      */
     public function nick(IRCMessage $msg) {
         $users = $this->IRCBot->getUsers();
-        $user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
-        $user->setNick($msg->getParameters()[0]);
+        $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
+        $user->setNick($msg->getParameters()[ 0 ]);
     }
+
 
     /**
      * On join, create new User object if necessary
@@ -67,13 +89,13 @@ class Core extends Module {
      */
     public function join(IRCMessage $msg) {
         $users = $this->IRCBot->getUsers();
-        $user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
+        $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
 
         $channels = $this->IRCBot->getChannels();
         //	Bot is joining a channel, add channel to list and /WHO the channel to supplement /NAMES user info
         if ($msg->getNick() == $this->IRCBot->getNickname()) {
             $channels->confirmChannel($msg->getResponseTarget());
-            $this->IRCBot->raw("WHO " . $msg->getResponseTarget());
+            $this->IRCBot->raw("WHO ".$msg->getResponseTarget());
         }
 
         $channel = $channels->search($msg->getResponseTarget());
@@ -83,6 +105,7 @@ class Core extends Module {
         }
     }
 
+
     /**
      * On quit, destroy User object
      *
@@ -91,7 +114,7 @@ class Core extends Module {
     public function quit(IRCMessage $msg) {
         //	Destroy user object
         $users = $this->IRCBot->getUsers();
-        $user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
+        $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
         $msg->setQuitUser(clone $user);
         $users->removeItem($user);
 
@@ -107,11 +130,16 @@ class Core extends Module {
             $this->IRCBot->nick($msg->getNick());
     }
 
+
+    /**
+     * @param IRCMessage $msg
+     * @throws ManagerException
+     */
     public function part(IRCMessage $msg) {
-        $users = $this->IRCBot->getUsers();
+        $users    = $this->IRCBot->getUsers();
         $channels = $this->IRCBot->getChannels();
 
-        $user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
+        $user    = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
         $channel = $channels->confirmChannel($msg->getResponseTarget());
 
         $user->part($channel->getName());
@@ -122,17 +150,21 @@ class Core extends Module {
             $users->removeItem($user);
     }
 
+
+    /**
+     * @param IRCMessage $msg
+     */
     public function raw(IRCMessage $msg) {
         $parameters = $msg->getParameters();
 
         switch ($msg->getRaw()) {
             case 001:
                 #$this->IRCBot->setAddress(end($parameters));
-            break;
+                break;
 
             case 004:
-                $this->IRCBot->setHost($parameters[0]);
-            break;
+                $this->IRCBot->setHost($parameters[ 0 ]);
+                break;
 
             /*
              *	/WHO response, create new users
@@ -142,10 +174,10 @@ class Core extends Module {
                 list($channelName, $ident, $host, $server, $nick, $flags, $hops, $realname) = $msg->getParameters();
 
                 //	Ensure User object exists and has channel listed
-                $users = $this->IRCBot->getUsers();
+                $users    = $this->IRCBot->getUsers();
                 $channels = $this->IRCBot->getChannels();
 
-                $user = $users->createIfAbsent("$nick!$ident@$host");
+                $user    = $users->createIfAbsent("$nick!$ident@$host");
                 $channel = $channels->confirmChannel($channelName);
 
                 $user->join($channelName);
@@ -153,16 +185,16 @@ class Core extends Module {
 
                 //	Check flags for channel modes
                 if (preg_match("/([~&@%+]+)/", $flags, $match)) {
-                    $modes = str_split($match[1]);
-                    $modeLetters = array('~' => "q", '&' => "a", '@' => "o", '%' => "h", '+' => "v");
+                    $modes       = str_split($match[ 1 ]);
+                    $modeLetters = [ '~' => "q", '&' => "a", '@' => "o", '%' => "h", '+' => "v" ];
 
                     //	Update channel status on User object
                     foreach ($modes as $mode) {
-                        if (isset($modeLetters[$mode]))
+                        if (isset($modeLetters[ $mode ]))
                             $user->mode($channelName, "+{$modeLetters[$mode]}");
                     }
                 }
-            break;
+                break;
 
             /*
              *	/NAMES response, create new users, with UHNAMES support
@@ -173,9 +205,9 @@ class Core extends Module {
                 array_shift($parameters);
                 $channelName = array_shift($parameters);
 
-                $users = $this->IRCBot->getUsers();
+                $users    = $this->IRCBot->getUsers();
                 $channels = $this->IRCBot->getChannels();
-                $channel = $channels->confirmChannel($channelName);
+                $channel  = $channels->confirmChannel($channelName);
 
                 //	Process each return
                 foreach ($parameters as $fullAddress) {
@@ -185,35 +217,38 @@ class Core extends Module {
 
                         //	Confirm user and create with address if applicable; join channel
                         $address = (strlen($ident)) ? "$ident@$host" : "";
-                        $user = $users->createIfAbsent("$nick!$address");
+                        $user    = $users->createIfAbsent("$nick!$address");
                         $user->join($channelName);
                         $channel->join($user);
 
                         //	Check prefixes for channel modes
-                        $modes = str_split($modes);
-                        $modeLetters = array('~' => "q", '&' => "a", '@' => "o", '%' => "h", '+' => "v");
+                        $modes       = str_split($modes);
+                        $modeLetters = [ '~' => "q", '&' => "a", '@' => "o", '%' => "h", '+' => "v" ];
 
                         //	Update channel status on User object
                         foreach ($modes as $mode) {
-                            if (isset($modeLetters[$mode]))
+                            if (isset($modeLetters[ $mode ]))
                                 $user->mode($channelName, "+{$modeLetters[$mode]}");
                         }
                     }
                 }
-            break;
+                break;
 
             case "433":
                 $this->IRCBot->getIRCNetwork()->getNicknameCycle()->cycle();
                 $this->IRCBot->raw("NICK :{$this->IRCBot->getIRCNetwork()->getNicknameCycle()->get()}");
-            break;
-
+                break;
 
         }
     }
 
+
+    /**
+     * @param User $user
+     */
     public function user(User $user) {
         $channelNames = array_keys($user->getChannels());
-        $channels = $this->IRCBot->getChannels();
+        $channels     = $this->IRCBot->getChannels();
         foreach ($channelNames as $channelName) {
             $channel = $channels->confirmChannel($channelName);
             $channel->join($user);

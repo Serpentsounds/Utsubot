@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Accounts;
+
 use Utsubot\Help\{
     HelpEntry,
     IHelp,
@@ -28,7 +29,9 @@ use function Utsubot\bold;
  *
  * @package Utsubot\Accounts
  */
-class AccountsException extends ModuleException {}
+class AccountsException extends ModuleException {
+
+}
 
 /**
  * Class Accounts
@@ -60,57 +63,55 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $this->interface = new AccountsDatabaseInterface();
 
         //  Account settings
-        $this->registerSetting(new Setting($this, "nick",           "Default Nickname",                 1));
-        $this->registerSetting(new Setting($this, "disablenotify",  "Disable Auto Login Notification",  1));
-        $this->registerSetting(new Setting($this, "autologin",      "Auto Login Host",                  5));
-
+        $this->registerSetting(new Setting($this, "nick", "Default Nickname", 1));
+        $this->registerSetting(new Setting($this, "disablenotify", "Disable Auto Login Notification", 1));
+        $this->registerSetting(new Setting($this, "autologin", "Auto Login Host", 5));
 
         //  Command triggers
-        $triggers = [ ];
-        $triggers['login']      = new Trigger("login",      [$this, "login"    ]);
-        $triggers['logout']     = new Trigger("logout",     [$this, "logout"   ]);
-        $triggers['register']   = new Trigger("register",   [$this, "register" ]);
-        $triggers['set']        = new Trigger("set",        [$this, "set"      ]);
-        $triggers['unset']      = new Trigger("unset",      [$this, "_unset"   ]);
-        $triggers['settings']   = new Trigger("settings",   [$this, "settings" ]);
-        $triggers['access']     = new Trigger("access",     [$this, "access"   ]);
+        $triggers               = [ ];
+        $triggers[ 'login' ]    = new Trigger("login", [ $this, "login" ]);
+        $triggers[ 'logout' ]   = new Trigger("logout", [ $this, "logout" ]);
+        $triggers[ 'register' ] = new Trigger("register", [ $this, "register" ]);
+        $triggers[ 'set' ]      = new Trigger("set", [ $this, "set" ]);
+        $triggers[ 'unset' ]    = new Trigger("unset", [ $this, "_unset" ]);
+        $triggers[ 'settings' ] = new Trigger("settings", [ $this, "settings" ]);
+        $triggers[ 'access' ]   = new Trigger("access", [ $this, "access" ]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
 
-
         //  Help entries
         /** @var HelpEntry[] $help */
-        $help = [ ];
+        $help     = [ ];
         $category = "Account";
 
-        $help['login'] = new HelpEntry($category, $triggers['login']);
-        $help['login']->addParameterTextPair("USERNAME PASSWORD",       "Logs you into your account USERNAME using PASSWORD.");
+        $help[ 'login' ] = new HelpEntry($category, $triggers[ 'login' ]);
+        $help[ 'login' ]->addParameterTextPair("USERNAME PASSWORD", "Logs you into your account USERNAME using PASSWORD.");
 
-        $help['logout'] = new HelpEntry($category, $triggers['logout']);
-        $help['logout']->addParameterTextPair("",                       "Logs you out of your account.");
+        $help[ 'logout' ] = new HelpEntry($category, $triggers[ 'logout' ]);
+        $help[ 'logout' ]->addParameterTextPair("", "Logs you out of your account.");
 
-        $help['register'] = new HelpEntry($category, $triggers['register']);
-        $help['register']->addParameterTextPair("USERNAME PASSWORD",    "Register a new account with the bot.");
+        $help[ 'register' ] = new HelpEntry($category, $triggers[ 'register' ]);
+        $help[ 'register' ]->addParameterTextPair("USERNAME PASSWORD", "Register a new account with the bot.");
 
-        $help['set'] = new HelpEntry($category, $triggers['set']);
-        $help['set']->addParameterTextPair("OPTION [VALUE]",            "Enable OPTION or set OPTION to VALUE on your account.");
+        $help[ 'set' ] = new HelpEntry($category, $triggers[ 'set' ]);
+        $help[ 'set' ]->addParameterTextPair("OPTION [VALUE]", "Enable OPTION or set OPTION to VALUE on your account.");
 
-        $help['unset'] = new HelpEntry($category, $triggers['unset']);
-        $help['unset']->addParameterTextPair("OPTION [VALUE]",          "Remove the OPTION setting from your account. If OPTION accepts multiple simultaneous values, you must specify which to remove using VALUE.");
+        $help[ 'unset' ] = new HelpEntry($category, $triggers[ 'unset' ]);
+        $help[ 'unset' ]->addParameterTextPair("OPTION [VALUE]", "Remove the OPTION setting from your account. If OPTION accepts multiple simultaneous values, you must specify which to remove using VALUE.");
 
-        $help['settings'] = new HelpEntry($category, $triggers['settings']);
-        $help['settings']->addParameterTextPair("OPTION",               "View your current settings for OPTION.");
-        $help['settings']->addParameterTextPair("",                     "View all of your account settings.");
+        $help[ 'settings' ] = new HelpEntry($category, $triggers[ 'settings' ]);
+        $help[ 'settings' ]->addParameterTextPair("OPTION", "View your current settings for OPTION.");
+        $help[ 'settings' ]->addParameterTextPair("", "View all of your account settings.");
 
-        $help['access'] = new HelpEntry($category, $triggers['access']);
-        $help['access']->addParameterTextPair("add USER LEVEL",         "Give USER's account access level LEVEL.");
-        $help['access']->addParameterTextPair("remove USER",            "Remove USER's account's access (set to level 0).");
-        $help['access']->addParameterTextPair("list [USER]",            "Show the access level for USER's account. If USER is omitted, show your own access level.");
-        $help['access']->addParameterTextPair("",                       "Shortcut to list your own access level.");
-        $help['access']->addNotes("All USER parameters must be nicknames, as account names are private.");
-        $help['access']->addNotes("The add and remove commands require access level 90.");
-        $help['access']->addNotes("You can only modify access on someone whose level is lower than yours, and can only give a lower access level than you have.");
+        $help[ 'access' ] = new HelpEntry($category, $triggers[ 'access' ]);
+        $help[ 'access' ]->addParameterTextPair("add USER LEVEL", "Give USER's account access level LEVEL.");
+        $help[ 'access' ]->addParameterTextPair("remove USER", "Remove USER's account's access (set to level 0).");
+        $help[ 'access' ]->addParameterTextPair("list [USER]", "Show the access level for USER's account. If USER is omitted, show your own access level.");
+        $help[ 'access' ]->addParameterTextPair("", "Shortcut to list your own access level.");
+        $help[ 'access' ]->addNotes("All USER parameters must be nicknames, as account names are private.");
+        $help[ 'access' ]->addNotes("The add and remove commands require access level 90.");
+        $help[ 'access' ]->addNotes("You can only modify access on someone whose level is lower than yours, and can only give a lower access level than you have.");
 
         //  Add common properties for help entries
         foreach ($help as $key => $entry) {
@@ -121,10 +122,10 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         //  Initialization
         //  Create a timer to add notes to the 'set' help entry after all modules have registered
         $this->addTimer(new Timer(
-            0,  //  No delay necessary, all modules must finish loading before the next Module time() tick occurs
-            array($this, "updateSettingsHelp"),
-            array($help['set'])
-        ));
+                            0,  //  No delay necessary, all modules will finish loading before the next Module time() tick occurs
+                            [ $this, "updateSettingsHelp" ],
+                            [ $help[ 'set' ] ]
+                        ));
 
         $this->updateAutoLoginCache();
     }
@@ -151,7 +152,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $autoLogin = $this->interface->getEntriesForSetting($this->getSettingObject("autologin"));
 
         foreach ($autoLogin as $row)
-            $this->autoLoginCache[ intval($row['id']) ][] = $row['value'];
+            $this->autoLoginCache[ intval($row[ 'id' ]) ][] = $row[ 'value' ];
     }
 
 
@@ -172,7 +173,8 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
 
     /**
-     * Update notes in the 'set' command to show all settings. Called on a timer to allow all modules to load their settings first
+     * Update notes in the 'set' command to show all settings. Called on a timer to allow all modules to load their
+     * settings first
      *
      * @param HelpEntry $entry
      * @throws AccountsException
@@ -193,7 +195,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
             );
         }
 
-        $entry->addNotes("Available settings: ". implode(", ", $info));
+        $entry->addNotes("Available settings: ".implode(", ", $info));
     }
 
 
@@ -215,12 +217,14 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         }
     }
 
+
     /**
      * @return AccountsDatabaseInterface
      */
     public function getInterface() {
         return $this->interface;
     }
+
 
     /**
      * Fetch the User object currently logged in to an account
@@ -254,7 +258,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
             case 330:
                 $parameters = $msg->getParameters();
                 //	Adjust to format for different raws
-                $nick = ($msg->getRaw() == 307) ? $parameters[0] : $parameters[1];
+                $nick = ($msg->getRaw() == 307) ? $parameters[ 0 ] : $parameters[ 1 ];
 
                 //	Make sure user is in the verification process
                 if (isset($this->defaultNickCheck[ $nick ])) {
@@ -263,9 +267,9 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                     unset($this->defaultNickCheck[ $nick ]);
 
                     //	Make sure that this response corresponds to the recent request, but allow 5 seconds for server latency
-                    if (time() - $info['time'] <= 5) {
+                    if (time() - $info[ 'time' ] <= 5) {
                         try {
-                            $this->interface->setUserSetting($info['accountID'], $this->getSettingObject("nick"), $nick);
+                            $this->interface->setUserSetting($info[ 'accountID' ], $this->getSettingObject("nick"), $nick);
                             $this->IRCBot->message($nick, "Your default nickname has been saved as ".bold($nick).".");
                         }
                         catch (\Exception $e) {
@@ -280,7 +284,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
              *	End of /WHOIS, report default nickname verification failure
              */
             case 318:
-                $nick = $msg->getParameters()[0];
+                $nick = $msg->getParameters()[ 0 ];
                 //	Make sure user is in the verification process
                 if (isset($this->defaultNickCheck[ $nick ])) {
                     unset($this->defaultNickCheck[ $nick ]);
@@ -342,7 +346,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                 if (fnmatch($wildcardHost, $host)) {
                     /*	Associate the account with the number of non-wildcard characters in a host. In the event that more than 1 host matches, the account with the highest value is logged in to
                         This is to help prevent a user from accidentally being logged into someone else's account, if that person has an ambiguous auto-login mask	*/
-                    $significantCharacters = strlen(str_replace(array("*", "?", "[", "]"), "", $wildcardHost));
+                    $significantCharacters = strlen(str_replace([ "*", "?", "[", "]" ], "", $wildcardHost));
 
                     //	Only overwrite the same account's entry with a higher value
                     if (!isset($results[ $id ]) || $results[ $id ] < $significantCharacters)
@@ -357,7 +361,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         //	Place the highest value of significant characters at the front of the array
         arsort($results);
 
-        return (int)(array_keys($results)[0]);
+        return (int)(array_keys($results)[ 0 ]);
     }
 
 
@@ -426,7 +430,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
      * @param $nick
      */
     public function setDefaultNick(int $accountID, string $nick) {
-        $this->defaultNickCheck[ $nick ] = ['time' => time(), 'accountID' => $accountID];
+        $this->defaultNickCheck[ $nick ] = [ 'time' => time(), 'accountID' => $accountID ];
         $this->IRCBot->raw("WHOIS $nick");
     }
 
@@ -485,7 +489,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         //	List each setting under name of setting
         foreach ($settings as $setting) {
             $key                = "{$setting['name']} ({$setting['display']})";
-            $response[ $key ][] = (strlen($setting['value'])) ? $setting['value'] : "enabled";
+            $response[ $key ][] = (strlen($setting[ 'value' ])) ? $setting[ 'value' ] : "enabled";
         }
 
         //	Convert name => settings[] entries into readable format
@@ -607,7 +611,6 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $this->loginUser($user, $accountID);
         $this->respond($msg, "$autoLogin has been added as an autologin host for this account. You will automatically be logged in when connecting from this host. To remove this, please use 'unset autologin'.");
 
-
         //	Attempt to automatically set nickname, if it's not already set
         $settings = $this->interface->getUsersWithSetting($this->getSettingObject("nick"), $msg->getNick());
         if ($settings)
@@ -714,6 +717,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         }
     }
 
+
     /**
      * Get the access level for a User object. Default 0, unregistered has a level of -1
      *
@@ -741,6 +745,5 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
         parent::parseTriggers($msg);
     }
-
 
 }

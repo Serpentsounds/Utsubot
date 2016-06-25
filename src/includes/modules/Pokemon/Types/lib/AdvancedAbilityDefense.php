@@ -7,6 +7,7 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Types;
+
 use Utsubot\{
     Enum,
     EnumException
@@ -18,7 +19,9 @@ use Utsubot\{
  *
  * @package Utsubot\Pokemon\Types
  */
-class AdvancedAbilityDefenseException extends EnumException {}
+class AdvancedAbilityDefenseException extends EnumException {
+
+}
 
 /**
  * Class AdvancedAbilityDefense
@@ -26,28 +29,29 @@ class AdvancedAbilityDefenseException extends EnumException {}
  * @package Utsubot\Pokemon\Types
  */
 class AdvancedAbilityDefense extends Enum {
-    
-    const Filter      = array(
-        "multiplier"    => 0.75,
-        "condition"     => ">",
-        "value"         => 1
-    );
-    
-    const SolidRock   = array(
-        "multiplier"    => 0.75,
-        "condition"     => ">",
-        "value"         => 1
-    );
-    
-    const WonderGuard = array(
-        "multiplier"    => 0,
-        "condition"     => "<",
-        "value"         => 2
-    );
+
+    const Filter = [
+        "multiplier" => 0.75,
+        "condition"  => ">",
+        "value"      => 1
+    ];
+
+    const SolidRock = [
+        "multiplier" => 0.75,
+        "condition"  => ">",
+        "value"      => 1
+    ];
+
+    const WonderGuard = [
+        "multiplier" => 0,
+        "condition"  => "<",
+        "value"      => 2
+    ];
+
 
     /**
      * Attempt to apply this ability's effects to a running type matchup multiplier
-     * 
+     *
      * @param float $value
      * @return float
      * @throws AdvancedAbilityDefenseException
@@ -55,15 +59,15 @@ class AdvancedAbilityDefense extends Enum {
     public function apply(float $value): float {
         $newValue = $value;
 
-        switch ($this->value['condition']) {
+        switch ($this->value[ 'condition' ]) {
             case ">":
-                if ($this->value['value'] > $value)
-                    $value *= $this->value['multiplier'];
+                if ($this->value[ 'value' ] > $value)
+                    $value *= $this->value[ 'multiplier' ];
                 break;
 
             case "<":
-                if ($this->value['value'] < $value)
-                    $value *= $this->value['multiplier'];
+                if ($this->value[ 'value' ] < $value)
+                    $value *= $this->value[ 'multiplier' ];
                 break;
         }
 
@@ -72,5 +76,5 @@ class AdvancedAbilityDefense extends Enum {
 
         return $value;
     }
-    
+
 }

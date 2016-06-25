@@ -29,24 +29,24 @@ class TypeColorException extends EnumException {}
  */
 class TypeColor extends Enum {
 
-    const Bug       = array(Color::Green,      Color::Clear);
-    const Dark      = array(Color::Black,      Color::White);
-    const Dragon    = array(Color::Teal,       Color::Clear);
-    const Electric  = array(Color::Yellow,     Color::Black);
-    const Fighting  = array(Color::Maroon,     Color::Clear);
-    const Fire      = array(Color::Red,        Color::Clear);
-    const Flying    = array(Color::Light_Gray, Color::Black);
-    const Ghost     = array(Color::Purple,     Color::Clear);
-    const Grass     = array(Color::Lime,       Color::Black);
-    const Ground    = array(Color::Orange,     Color::Clear);
-    const Ice       = array(Color::Aqua,       Color::Black);
-    const Normal    = array(Color::White,      Color::Black);
-    const Poison    = array(Color::Purple,     Color::Clear);
-    const Psychic   = array(Color::Fuchsia,    Color::Clear);
-    const Rock      = array(Color::Orange,     Color::Clear);
-    const Steel     = array(Color::Gray,       Color::Clear);
-    const Water     = array(Color::Blue,       Color::Clear);
-    const Fairy     = array(Color::Fuchsia,    Color::Clear);
+    const Bug       = [ Color::Green,      Color::Clear ];
+    const Dark      = [ Color::Black,      Color::White ];
+    const Dragon    = [ Color::Teal,       Color::Clear ];
+    const Electric  = [ Color::Yellow,     Color::Black ];
+    const Fighting  = [ Color::Maroon,     Color::Clear ];
+    const Fire      = [ Color::Red,        Color::Clear ];
+    const Flying    = [ Color::Light_Gray, Color::Black ];
+    const Ghost     = [ Color::Purple,     Color::Clear ];
+    const Grass     = [ Color::Lime,       Color::Black ];
+    const Ground    = [ Color::Orange,     Color::Clear ];
+    const Ice       = [ Color::Aqua,       Color::Black ];
+    const Normal    = [ Color::White,      Color::Black ];
+    const Poison    = [ Color::Purple,     Color::Clear ];
+    const Psychic   = [ Color::Fuchsia,    Color::Clear ];
+    const Rock      = [ Color::Orange,     Color::Clear ];
+    const Steel     = [ Color::Gray,       Color::Clear ];
+    const Water     = [ Color::Blue,       Color::Clear ];
+    const Fairy     = [ Color::Fuchsia,    Color::Clear ];
 
     const Bird          = self::Flying;
     const FlyingPress   = self::Fighting;

@@ -10,26 +10,44 @@ use Utsubot\Pokemon\PokemonManagerBase;
 use Utsubot\ManagerSearchObject;
 
 class AbilityManager extends PokemonManagerBase {
-	protected static $manages = "Utsubot\\Pokemon\\Ability\\Ability";
+    protected static $manages = "Utsubot\\Pokemon\\Ability\\Ability";
 
-	protected static $validFields = array("effect");
+    protected static $validFields = [ "effect" ];
 
+
+    /**
+     *
+     */
     public function load() {
         $this->collection = $this->interface->getAbility();
     }
 
-	public function searchFields($field, $operator = "", $value = "") {
-		switch ($field) {
-			case "effect":
-				return new ManagerSearchObject($this, "getEffect", [ ], self::$stringOperators);
-			break;
-		}
 
-		return null;
-	}
+    /**
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return null|ManagerSearchObject
+     */
+    public function searchFields($field, $operator = "", $value = "") {
+        switch ($field) {
+            case "effect":
+                return new ManagerSearchObject($this, "getEffect", [ ], self::$stringOperators);
+            break;
+        }
 
-	public function customComparison($object, $field, $operator, $value) {
-		// TODO: Implement customComparison() method.
-	}
+        return null;
+    }
+
+
+    /**
+     * @param mixed $object
+     * @param mixed $field
+     * @param mixed $operator
+     * @param mixed $value
+     */
+    public function customComparison($object, $field, $operator, $value) {
+        // TODO: Implement customComparison() method.
+    }
 
 }

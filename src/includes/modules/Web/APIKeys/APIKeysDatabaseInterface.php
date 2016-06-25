@@ -72,7 +72,7 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
             $this->query(
                 "INSERT INTO `apikeys` (`service`, `key`)
                 VALUES (?, ?)",
-                array($service, $key)
+                [ $service, $key ]
             );
         }
         
@@ -83,7 +83,7 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
                 SET `key`=?
                 WHERE `service`=?
                 LIMIT 1",
-                array($key, $service)
+                [ $key, $service ]
             );
 
             //  Update failed, key matches existing database value
@@ -103,7 +103,7 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
             "DELETE FROM `apikeys`
             WHERE `service`=?
             LIMIT 1",
-            array($service)
+            [ $service ]
         );
 
         //  No rows deleted

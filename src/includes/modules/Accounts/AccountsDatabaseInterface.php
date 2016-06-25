@@ -51,7 +51,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
             "  INSERT INTO `users` (`user`, `password`)
                VALUES (?, ?)",
 
-            array( $username, md5($password) )
+            [ $username, md5($password) ]
         );
 
         if (!$rowCount)
@@ -74,7 +74,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                WHERE `user`=?
                LIMIT 1",
 
-            (array( md5($newPassword), $username ))
+            [ md5($newPassword), $username ]
         );
 
         if (!$rowCount)
@@ -133,7 +133,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                WHERE `id`=?
                LIMIT 1",
 
-            array( $level, $accountID )
+            [ $level, $accountID ]
         );
 
         if (!$rowCount)
@@ -155,7 +155,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                WHERE `name`=?
                LIMIT 1",
 
-            array( $setting->getName() )
+            [ $setting->getName() ]
         );
 
         //  Settings name doesn't exist
@@ -163,7 +163,12 @@ class AccountsDatabaseInterface extends DatabaseInterface {
             if ($this->query(
                 "  INSERT INTO `account_settings` (`name`, `display`, `max_entries`)
                    VALUES (?, ?, ?)",
-                array( $setting->getName(), $setting->getDisplay(), $setting->getMaxEntries() ))
+                [
+                    $setting->getName(),
+                    $setting->getDisplay(),
+                    $setting->getMaxEntries()
+                ]
+            )
             )
                 echo "Registered new settings field '{$setting->getName()}' (display: {$setting->getDisplay()}, maximum entries: {$setting->getMaxEntries()}).\n\n";
 
@@ -245,7 +250,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                            WHERE `user_id`=? AND `account_settings_id`=?
                            LIMIT 1",
 
-                        array( $value, $accountID, $settingID )
+                        [ $value, $accountID, $settingID ]
                     );
 
                     //  No change in database, value was most likely the same as the record
@@ -319,7 +324,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                ON `as`.`id`=`uas`.`account_settings_id`
                WHERE `uas`.`user_id`=? AND `as`.`id`=?",
 
-            array( $accountID, $settingID )
+            [ $accountID, $settingID ]
         );
 
         if (!$results)
@@ -346,7 +351,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                ON `as`.`id`=`uas`.`account_settings_id`
                WHERE `u`.`id`=?",
 
-            array( $accountID )
+            [ $accountID ]
         );
     }
 
@@ -368,7 +373,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                ON `as`.`id`=`uas`.`account_settings_id`
                WHERE `as`.`name`=?",
 
-            array( $setting->getName() )
+            [ $setting->getName() ]
         );
     }
 
@@ -391,7 +396,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                WHERE `uas`.`value`=? AND `as`.`name`=?
                ORDER BY `uas`.`user_id` ASC",
 
-            array( $value, $setting->getName() )
+            [ $value, $setting->getName() ]
         );
     }
 
@@ -413,7 +418,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                WHERE `uas`.`value` LIKE ? AND `as`.`name`=?
                ORDER BY `uas`.`user_id` ASC",
 
-            array( $pattern, $setting->getName() )
+            [ $pattern, $setting->getName() ]
         );
     }
 
@@ -433,7 +438,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                WHERE `name`=?
                LIMIT 1",
 
-            array( $setting->getName() )
+            [ $setting->getName() ]
         );
 
         if (!$results)

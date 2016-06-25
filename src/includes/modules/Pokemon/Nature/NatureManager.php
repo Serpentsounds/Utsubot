@@ -13,7 +13,7 @@ use Utsubot\Pokemon\PokemonManagerBase;
 class NatureManager extends PokemonManagerBase {
 	protected static $manages = "Utsubot\\Pokemon\\Nature\\Nature";
 
-	protected static $validFields = array("increases", "decreases", "likes", "dislikes", "likesFlavor", "dislikesFlavor");
+	protected static $validFields = [ "increases", "decreases", "likes", "dislikes", "likesFlavor", "dislikesFlavor" ];
 
 	public function load() {
 		$this->collection = $this->interface->getNature();

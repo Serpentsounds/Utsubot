@@ -50,7 +50,7 @@ abstract class PokemonBase {
             $normalize = function(string $str) {
                 return strtolower(
                     str_replace(
-                        array(" ", "-"),
+                        [ " ", "-" ],
                         "",
                         $str
                     )

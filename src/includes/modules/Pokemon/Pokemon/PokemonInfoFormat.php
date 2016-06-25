@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Pokemon\Pokemon;
+
 use Utsubot\Converter\Converter;
 use Utsubot\Pokemon\{
     Dex,
@@ -28,10 +29,10 @@ use function Utsubot\{
  * @package Utsubot\Pokemon\Pokemon
  */
 class PokemonInfoFormat extends InfoFormat {
-    
+
     const UNITS_IMPERIAL = 1;
-    const UNITS_METRIC = 2;
-    const UNITS_BOTH = 3;
+    const UNITS_METRIC   = 2;
+    const UNITS_BOTH     = 3;
 
     /** @var $object Pokemon */
     protected $object;
@@ -72,19 +73,24 @@ EOF;
 {ability3}
 EOF;
 
-
-
-    protected static $validFields = array(
-        "english", "japanese", "roumaji", "officialroumaji", "german", "french", "spanish", "korean", "chinese", "italian", "czech",
+    protected static $validFields = [
+        "english", "japanese", "roumaji", "officialroumaji",
+        "german", "french", "spanish", "korean", "chinese", "italian", "czech",
         "generation",
         "type1", "type2",
         "ability1", "ability2", "ability3",
         "hp", "atk", "def", "spa", "spd", "spe", "total",
         "preevolution", "evolution",
         "color", "species", "habitat",
-        "male", "female", "height", "weight", "evs", "catchRate", "baseExp", "baseHappiness", "eggGroup", "eggSteps",
-        "national", "kanto", "johto", "hoenn", "sinnoh", "extsinnoh", "newjohto", "unova", "newunova", "centralkalos", "coastalkalos", "mountainkalos", "newhoenn"
-    );
+        "male", "female",
+        "height", "weight",
+        "evs",
+        "catchRate", "baseExp", "baseHappiness",
+        "eggGroup", "eggSteps",
+        "national", "kanto", "johto", "hoenn", "sinnoh", "extsinnoh", "newjohto",
+        "unova", "newunova", "centralkalos", "coastalkalos", "mountainkalos", "newhoenn"
+    ];
+
 
     /**
      * @return string
@@ -93,12 +99,14 @@ EOF;
         return self::$semanticFormat;
     }
 
+
     /**
      * @return string
      */
     public static function getNamesFormat(): string {
         return self::$namesFormat;
     }
+
 
     /**
      * @return string
@@ -107,12 +115,14 @@ EOF;
         return self::$dexesFormat;
     }
 
+
     /**
      * @return string
      */
     public static function getCompareFormat(): string {
         return self::$compareFormat;
     }
+
 
     /**
      * @param int $units
@@ -125,9 +135,10 @@ EOF;
         $this->units = $units;
     }
 
+
     /**
      * @param string $field
-     * @param $fieldValue
+     * @param        $fieldValue
      * @return string
      */
     protected function formatField(string $field, $fieldValue): string {
@@ -138,7 +149,8 @@ EOF;
             $fieldValue = italic(bold($fieldValue));
 
         //	Special case for evolutions, bold already added
-        elseif (substr($field, -9) == "evolution" || $field == "evs" || $field == "eggGroup" || (($field == "height" || $field == "weight") && $this->units == "both")) {}
+        elseif (substr($field, -9) == "evolution" || $field == "evs" || $field == "eggGroup" || (($field == "height" || $field == "weight") && $this->units == "both")) {
+        }
 
         //	Default case, just bold
         else
@@ -147,16 +159,17 @@ EOF;
         return $fieldValue;
     }
 
+
     /**
      * @param string $field
      * @return string
      * @throws PokemonException
      */
     protected function getField(string $field): string {
-        
+
         if ($return = parent::getField($field))
             return $return;
-        
+
         switch ($field) {
             case "national":
             case "kanto":
@@ -172,42 +185,43 @@ EOF;
             case "mountainkalos":
             case "newhoenn":
             case "gallery":
-                $dexes = array(
-                    'johto' 		=> "Original Johto",
-                    'sinnoh' 		=> "Original Sinnoh",
+                $dexes = [
+                    'johto'         => "Original Johto",
+                    'sinnoh'        => "Original Sinnoh",
                     'hoenn'         => "Original Hoenn",
-                    'extsinnoh' 	=> "Extended Sinnoh",
-                    'unova' 		=> "Original Unova",
-                    'newjohto'		=> "Updated Johto",
-                    'newunova'		=> "Updated Unova",
-                    'centralkalos'	=> "Central Kalos",
-                    'coastalkalos'	=> "Coastal Kalos",
-                    'mountainkalos'	=> "Mountain Kalos",
-                    'newhoenn'		=> "New Hoenn"
-                );
+                    'extsinnoh'     => "Extended Sinnoh",
+                    'unova'         => "Original Unova",
+                    'newjohto'      => "Updated Johto",
+                    'newunova'      => "Updated Unova",
+                    'centralkalos'  => "Central Kalos",
+                    'coastalkalos'  => "Coastal Kalos",
+                    'mountainkalos' => "Mountain Kalos",
+                    'newhoenn'      => "New Hoenn"
+                ];
 
-                if (isset($dexes[$field]))
-                    $field = $dexes[$field];
+                if (isset($dexes[ $field ]))
+                    $field = $dexes[ $field ];
                 else
                     $field = ucfirst($field);
 
                 $dex = $this->object->getDexNumber(new Dex(Dex::findValue($field)));
+
                 return ($dex > -1) ? $dex : "";
-            break;
+                break;
 
             case "type":
                 return $this->object->getFormattedType();
-            break;
+                break;
             case "type1":
             case "type2":
                 return $this->object->getType(substr($field, -1) - 1);
-            break;
+                break;
 
             case "ability1":
             case "ability2":
             case "ability3":
                 return $this->object->getAbility(substr($field, -1) - 1);
-            break;
+                break;
 
             case "hp":
             case "atk":
@@ -216,11 +230,11 @@ EOF;
             case "spd":
             case "spe":
                 return $this->object->getBaseStat(Stat::fromName($field));
-            break;
+                break;
 
             case "total":
                 return $this->object->getBaseStatTotal();
-            break;
+                break;
 
             case "generation":
             case "color":
@@ -229,66 +243,67 @@ EOF;
             case "baseExp":
             case "eggSteps":
             case "baseHappiness":
-                $method = "get" . ucfirst($field);
+                $method = "get".ucfirst($field);
+
                 return $this->object->{$method}();
-            break;
+                break;
 
             case "species":
                 return $this->object->getSpecies(new Language(Language::English));
-            break;
+                break;
 
             case "height":
-                $value = null;
+                $value     = null;
                 $converter = new Converter("distance", "m", "ft");
-                $heightM = $this->object->getHeight();
-                $heightFt = round($converter->convert($heightM), 2);
+                $heightM   = $this->object->getHeight();
+                $heightFt  = round($converter->convert($heightM), 2);
 
                 switch ($this->units) {
                     case "metric":
                         $value = "{$heightM}m";
-                    break;
+                        break;
 
                     case "both":
-                        $value = implode("/", array(
+                        $value = implode("/", [
                             bold("{$heightFt}ft"),
                             bold("{$heightM}m")
-                        ));
-                    break;
+                        ]);
+                        break;
 
                     case "imperial":
                     default:
                         $value = "{$heightFt}ft";
-                    break;
+                        break;
                 }
 
                 return $value;
-            break;
+                break;
 
             case "weight":
-                $value = null;
+                $value     = null;
                 $converter = new Converter("mass", "kg", "lb");
-                $weightKg = $this->object->getWeight();
-                $weightLb = round($converter->convert($weightKg), 2);
+                $weightKg  = $this->object->getWeight();
+                $weightLb  = round($converter->convert($weightKg), 2);
                 switch ($this->units) {
                     case "metric":
                         $value = "{$weightKg}kg";
-                    break;
+                        break;
 
                     case "both":
-                        $value = implode("/", array(
+                        $value = implode("/", [
                             bold("{$weightLb}lb"),
                             bold("{$weightKg}kg")
-                        ));
-                    break;
+                        ]);
+                        break;
 
                     case "imperial":
                     default:
                         $value = "{$weightLb}lb";
-                    break;
+                        break;
                 }
 
                 return $value;
-            break;
+                break;
 
             case "male":
             case "female":
@@ -299,22 +314,22 @@ EOF;
                     $ratio = 100 - $ratio;
 
                 return "$ratio%";
-            break;
+                break;
 
             case "evs":
                 $evYield = array_filter($this->object->getEVYield());
-                $return = [ ];
+                $return  = [ ];
 
                 foreach ($evYield as $index => $EV)
-                    $return[] = bold("$EV ". Stat::findName($index));
+                    $return[] = bold("$EV ".Stat::findName($index));
 
                 return implode(", ", $return);
-            break;
+                break;
 
             case "eggGroup":
                 return implode("/", array_map("Utsubot\\bold", $this->object->getEggGroups()));
-            break;
-            
+                break;
+
             case "preevolution":
                 /** @var Evolution[] $evolutions */
                 $evolutions = $this->object->getPreEvolutions();
@@ -324,8 +339,8 @@ EOF;
                     $return[] = $evolution->format();
 
                 return implode("; ", $return);
-            break;
-            
+                break;
+
             case "evolution":
                 /** @var Evolution[] $evolutions */
                 $evolutions = $this->object->getEvolutions();
@@ -335,11 +350,11 @@ EOF;
                     $return[] = $evolution->format();
 
                 return implode("; ", $return);
-            break;
+                break;
 
         }
+
         return "";
     }
-
 
 } 

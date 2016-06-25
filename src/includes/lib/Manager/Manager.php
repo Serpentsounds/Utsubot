@@ -217,7 +217,7 @@ abstract class Manager {
                         $operator = "==";
 
                     //	Call saved method to retrieve value for comparison
-                    $result = call_user_func_array(array( $object, $method ), $parameters);
+                    $result = call_user_func_array([ $object, $method ], $parameters);
                     if (is_string($result))
                         $result = strtolower($result);
 

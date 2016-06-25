@@ -7,6 +7,7 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
+
 /**
  * Returns text bolded
  *
@@ -16,6 +17,7 @@ namespace Utsubot;
 function bold(string $text): string {
     return "\x02$text\x02";
 }
+
 
 /**
  * Returns text italicized
@@ -27,6 +29,7 @@ function italic(string $text): string {
     return "\x1D$text\x1D";
 }
 
+
 /**
  * Returns text underlined
  *
@@ -37,6 +40,7 @@ function underline(string $text): string {
     return "\x1F$text\x1F";
 }
 
+
 /**
  * Returns text "reversed", which reverses the default background and foreground colors
  *
@@ -46,6 +50,7 @@ function underline(string $text): string {
 function reverse(string $text): string {
     return "\x16$text\x16";
 }
+
 
 /**
  * Returns text with formatting intact, but with the clear formatting control code (\x0F) so subsequent text will have
@@ -58,6 +63,7 @@ function terminate(string $text): string {
     return "$text\x0F";
 }
 
+
 /**
  * Strip bold, underline, italic, reverse, and color from text
  *
@@ -69,10 +75,11 @@ function stripControlCodes(string $text): string {
     $text = preg_replace('/\x03\d{1,2}(,\d{1,2})?/', "", $text);
 
     //	Strip all other formatting
-    $text = str_replace(array( chr(2), chr(3), chr(15), chr(22), chr(29), chr(31) ), "", $text);
+    $text = str_replace([ chr(2), chr(3), chr(15), chr(22), chr(29), chr(31) ], "", $text);
 
     return $text;
 }
+
 
 /**
  * Returns text with given IRC color

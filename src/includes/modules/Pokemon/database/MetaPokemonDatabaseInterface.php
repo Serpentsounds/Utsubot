@@ -6,15 +6,21 @@
  */
 
 namespace Utsubot\Pokemon;
-use Utsubot\{DatabaseInterface, DatabaseInterfaceException, MySQLDatabaseCredentials};
+
+use Utsubot\{
+    DatabaseInterface, DatabaseInterfaceException, MySQLDatabaseCredentials
+};
 
 
-class MetaPokemonDatabaseInterfaceException extends DatabaseInterfaceException {}
+class MetaPokemonDatabaseInterfaceException extends DatabaseInterfaceException {
 
-class MetaPokemonDatabaseInterface extends DatabaseInterface{
+}
 
-    private $tiers = [ ];
+class MetaPokemonDatabaseInterface extends DatabaseInterface {
+
+    private $tiers  = [ ];
     private $fields = [ ];
+
 
     public function __construct() {
         parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
@@ -22,25 +28,30 @@ class MetaPokemonDatabaseInterface extends DatabaseInterface{
         $this->loadFields();
     }
 
+
     /**
      * Load the list of tier names/IDs
+     *
      * @throws DatabaseInterfaceException PDO error
      */
     private function loadTiers() {
         $tiers = $this->query("SELECT * FROM `metagame_tiers`");
         foreach ($tiers as $tier)
-            $this->tiers[$tier['id']] = $tier['name'];
+            $this->tiers[ $tier[ 'id' ] ] = $tier[ 'name' ];
     }
+
 
     /**
      * Load the list of field names/IDs
+     *
      * @throws DatabaseInterfaceException PDO error
      */
     private function loadFields() {
         $fields = $this->query("SELECT * FROM `metagame_fields`");
         foreach ($fields as $field)
-            $this->fields[$field['id']] = $field['name'];
+            $this->fields[ $field[ 'id' ] ] = $field[ 'name' ];
     }
+
 
     /**
      * Validate and retrieve tier ID given a name
@@ -55,6 +66,7 @@ class MetaPokemonDatabaseInterface extends DatabaseInterface{
 
         throw new MetaPokemonDatabaseInterfaceException("Invalid tier '$tierName'.");
     }
+
 
     /**
      * Get the whole tier list
@@ -75,22 +87,23 @@ class MetaPokemonDatabaseInterface extends DatabaseInterface{
      */
     public function getPokemonUsages($pokemon = null) {
         if ($pokemon === null) {
-            $query = "SELECT * FROM `metagame_data` WHERE `field_id`=? ORDER BY `pokemon_id` ASC";
-            $parameters = [array_search("count", $this->fields)];
+            $query      = "SELECT * FROM `metagame_data` WHERE `field_id`=? ORDER BY `pokemon_id` ASC";
+            $parameters = [ array_search("count", $this->fields) ];
         }
         else {
-            $query = "SELECT * FROM `metagame_data` WHERE `field_id`=? AND `pokemon_id`=? ORDER BY `pokemon_id` ASC";
-            $parameters = array(array_search("count", $this->fields), $pokemon);
+            $query      = "SELECT * FROM `metagame_data` WHERE `field_id`=? AND `pokemon_id`=? ORDER BY `pokemon_id` ASC";
+            $parameters = [ array_search("count", $this->fields), $pokemon ];
         }
-        $data = $this->query($query, $parameters);
+        $data          = $this->query($query, $parameters);
         $pokemonUsages = [ ];
         foreach ($data as $row) {
-            if (!isset($pokemonUsages[$row['pokemon_id']]) || $pokemonUsages[$row['pokemon_id']]['usage'] < $row['value'] * 100 / $row['entry'])
-                $pokemonUsages[$row['pokemon_id']][$this->tiers[$row['tier_id']]] = round($row['value'] * 100 / $row['entry']);
+            if (!isset($pokemonUsages[ $row[ 'pokemon_id' ] ]) || $pokemonUsages[ $row[ 'pokemon_id' ] ][ 'usage' ] < $row[ 'value' ] * 100 / $row[ 'entry' ])
+                $pokemonUsages[ $row[ 'pokemon_id' ] ][ $this->tiers[ $row[ 'tier_id' ] ] ] = round($row[ 'value' ] * 100 / $row[ 'entry' ]);
         }
 
         return $pokemonUsages;
     }
+
 
     /**
      * Poll database for statistics and create MetaPokemon objects out of them
@@ -105,18 +118,19 @@ class MetaPokemonDatabaseInterface extends DatabaseInterface{
 
         /** @var $metaPokemon MetaPokemon[] */
         $metaPokemon = [ ];
-        $data = $this->query("SELECT * FROM `metagame_data` WHERE `tier_id`=? ORDER BY `pokemon_id` ASC", [$tierID]);
+        $data        = $this->query("SELECT * FROM `metagame_data` WHERE `tier_id`=? ORDER BY `pokemon_id` ASC", [ $tierID ]);
         foreach ($data as $row) {
-            if (!isset($metaPokemon[$row['pokemon_id']]) || !($metaPokemon[$row['pokemon_id']] instanceof MetaPokemon)) {
-                $metaPokemon[$row['pokemon_id']] = new MetaPokemon();
-                $metaPokemon[$row['pokemon_id']]->setId($row['pokemon_id']);
+            if (!isset($metaPokemon[ $row[ 'pokemon_id' ] ]) || !($metaPokemon[ $row[ 'pokemon_id' ] ] instanceof MetaPokemon)) {
+                $metaPokemon[ $row[ 'pokemon_id' ] ] = new MetaPokemon();
+                $metaPokemon[ $row[ 'pokemon_id' ] ]->setId($row[ 'pokemon_id' ]);
             }
 
-            $metaPokemon[$row['pokemon_id']]->add($this->fields[$row['field_id']], $row['entry'], $row['value']);
+            $metaPokemon[ $row[ 'pokemon_id' ] ]->add($this->fields[ $row[ 'field_id' ] ], $row[ 'entry' ], $row[ 'value' ]);
         }
 
         return $metaPokemon;
     }
+
 
     /**
      * Gets usage percentages of abilities, items, and moves independent of pokemon
@@ -129,16 +143,16 @@ class MetaPokemonDatabaseInterface extends DatabaseInterface{
     public function getUsages($tier) {
         $tierID = $this->getTierID($tier);
 
-        $fields = array("abilities", "moves", "items");
+        $fields = [ "abilities", "moves", "items" ];
         $usages = [ ];
-        $data = $this->query("SELECT * FROM `metagame_data` WHERE `tier_id`=? ORDER BY `pokemon_id` ASC", [$tierID]);
+        $data   = $this->query("SELECT * FROM `metagame_data` WHERE `tier_id`=? ORDER BY `pokemon_id` ASC", [ $tierID ]);
         foreach ($data as $row) {
-            $field = $this->fields[$row['field_id']];
+            $field = $this->fields[ $row[ 'field_id' ] ];
 
             if ($field == "count")
-                $usages['pokemon'][$row['pokemon_id']] = $row['value'];
+                $usages[ 'pokemon' ][ $row[ 'pokemon_id' ] ] = $row[ 'value' ];
             elseif (in_array($field, $fields))
-                @$usages[$field][$row['entry']] += $row['value'];
+                @$usages[ $field ][ $row[ 'entry' ] ] += $row[ 'value' ];
         }
 
         foreach ($usages as $field => $entries) {

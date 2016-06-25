@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Pokemon;
+
 use Utsubot\{
     DatabaseInterface,
     DatabaseInterfaceException,
@@ -24,6 +25,7 @@ use Utsubot\Pokemon\Move\Move;
 
 
 class VeekunDatabaseInterfaceException extends DatabaseInterfaceException {
+
 }
 
 class VeekunDatabaseInterface extends DatabaseInterface {
@@ -31,6 +33,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     public function __construct() {
         parent::__construct(MySQLDatabaseCredentials::createFromConfig("veekun"));
     }
+
 
     public function getPokemon() {
         /** @var Pokemon[] $pokemon */
@@ -44,148 +47,145 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         foreach ($species as $row) {
             $newPokemon = new Pokemon();
 
-            $newPokemon->setId($row['id']);
+            $newPokemon->setId($row[ 'id' ]);
 
-            $newPokemon->setGeneration((int)$row['generation_id']);
+            $newPokemon->setGeneration((int)$row[ 'generation_id' ]);
 
-            $newPokemon->setCatchRate((int)$row['capture_rate']);
+            $newPokemon->setCatchRate((int)$row[ 'capture_rate' ]);
 
-            $newPokemon->setColor(ucwords($row['color']));
+            $newPokemon->setColor(ucwords($row[ 'color' ]));
 
-            $newPokemon->setBaseHappiness((int)$row['base_happiness']);
+            $newPokemon->setBaseHappiness((int)$row[ 'base_happiness' ]);
 
-            $newPokemon->setHabitat(ucwords($row['habitat']));
+            $newPokemon->setHabitat(ucwords($row[ 'habitat' ]));
 
-            $newPokemon->setBaby((bool)$row['is_baby']);
+            $newPokemon->setBaby((bool)$row[ 'is_baby' ]);
 
-            $newPokemon->setEggCycles((int)$row['hatch_counter']);
+            $newPokemon->setEggCycles((int)$row[ 'hatch_counter' ]);
 
             $newPokemon->setGenderRatio(
-                ($row['gender_rate'] == -1) ?
+                ($row[ 'gender_rate' ] == -1) ?
                     -1 :
-                    (8 - $row['gender_rate']) / 8
+                    (8 - $row[ 'gender_rate' ]) / 8
             );
 
-            $pokemon[ $row['id'] ] = $newPokemon;
+            $pokemon[ $row[ 'id' ] ] = $newPokemon;
         }
 
         //	Populate names in all languages, as well as dex species ("genus")
         $name = $this->getName();
         foreach ($name as $row) {
-            $language = Language::fromName($row['language']);
-            $pokemon[ $row['pokemon_species_id'] ]
-                ->setName((string)$row['name'], $language);
+            $language = Language::fromName($row[ 'language' ]);
+            $pokemon[ $row[ 'pokemon_species_id' ] ]
+                ->setName((string)$row[ 'name' ], $language);
 
-            $pokemon[ $row['pokemon_species_id'] ]
-                ->setSpecies((string)$row['genus'], $language);
+            $pokemon[ $row[ 'pokemon_species_id' ] ]
+                ->setSpecies((string)$row[ 'genus' ], $language);
         }
 
         //	Populate egg breeding groups
         $eggGroup = $this->getEggGroup();
         foreach ($eggGroup as $row)
-            $pokemon[ $row['species_id'] ]
-                ->addEggGroup((string)$row['name']);
+            $pokemon[ $row[ 'species_id' ] ]
+                ->addEggGroup((string)$row[ 'name' ]);
 
         /*	Add entries for forms with stat/type changes
             Update these and base entries with height, weight, base experience, and dexnum	*/
         $pokemonRow = $this->getPokemonRow();
         foreach ($pokemonRow as $row) {
             //	Copy base info from main species for alts
-            if (!isset($pokemon[ $row['id'] ]))
-                $pokemon[ $row['id'] ] = clone $pokemon[ $row['species_id'] ];
+            if (!isset($pokemon[ $row[ 'id' ] ]))
+                $pokemon[ $row[ 'id' ] ] = clone $pokemon[ $row[ 'species_id' ] ];
 
             //	Alt pokemon, update main name to reflect that
-            if ($row['id'] > 10000) {
+            if ($row[ 'id' ] > 10000) {
                 #$pokemon[$row['id']]
                 #    ->setName(ucwords($row['identifier']), new Language(Language::English));
-                $pokemon[ $row['id'] ]
-                    ->setId($row['id']);
+                $pokemon[ $row[ 'id' ] ]
+                    ->setId($row[ 'id' ]);
             }
 
-            $pokemon[ $row['id'] ]
-                ->setHeight($row['height'] / 10);
-            $pokemon[ $row['id'] ]
-                ->setWeight($row['weight'] / 10);
-            $pokemon[ $row['id'] ]
-                ->setBaseExp((int)$row['base_experience']);
-            $pokemon[ $row['id'] ]
-                ->setDexNumber((int)$row['species_id'], $nationalDex);
+            $pokemon[ $row[ 'id' ] ]
+                ->setHeight($row[ 'height' ] / 10);
+            $pokemon[ $row[ 'id' ] ]
+                ->setWeight($row[ 'weight' ] / 10);
+            $pokemon[ $row[ 'id' ] ]
+                ->setBaseExp((int)$row[ 'base_experience' ]);
+            $pokemon[ $row[ 'id' ] ]
+                ->setDexNumber((int)$row[ 'species_id' ], $nationalDex);
         }
 
         //	Populate other alt forms (semantic changes), create references to all alts in main pokemon
         $alt = $this->getAlt();
         foreach ($alt as $row) {
             //	If form_identifier isn't blank, it is an actual alt form, not a row for base pokemon
-            if ($row['form_identifier']) {
-                $info = array(
-                    'name' => $row['identifier'],
-                    'form' => $row['form_identifier'],
-                    'id'   => $row['pokemon_id']
-                );
+            if ($row[ 'form_identifier' ]) {
+                $info = [
+                    'name' => $row[ 'identifier' ],
+                    'form' => $row[ 'form_identifier' ],
+                    'id'   => $row[ 'pokemon_id' ]
+                ];
 
                 //	References a form with its own 'pokemon' entry, meaning changed stats/type/etc, but we want a reference entry under the original pokemon
-                if ($row['pokemon_id'] > 10000)
-                    $pokemon[ $pokemon[ $row['pokemon_id'] ]->getDexNumber($nationalDex) ]
-                        ->addToAlternateForm($row['form_order'] - 1, $info);
+                if ($row[ 'pokemon_id' ] > 10000)
+                    $pokemon[ $pokemon[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
+                        ->addToAlternateForm($row[ 'form_order' ] - 1, $info);
 
                 //	Semantic form change, the pokemon_id will be the same as the original pokemon
                 else
-                    $pokemon[ $row['pokemon_id'] ]
-                        ->addToAlternateForm($row['form_order'] - 1, $info);
+                    $pokemon[ $row[ 'pokemon_id' ] ]
+                        ->addToAlternateForm($row[ 'form_order' ] - 1, $info);
             }
         }
 
         //	Populate names in all languages for alt forms
         $altName = $this->getAltName();
         foreach ($altName as $row) {
-            $language = Language::fromName($row['language']);
+            $language = Language::fromName($row[ 'language' ]);
 
             //	Compound form name with original pokemon name
-            if ($row['pokemon_id'] > 10000) {
-                $name = $row['pokemon_name'] ?? $row['form_name'];
-                $pokemon[ $row['pokemon_id'] ]
+            if ($row[ 'pokemon_id' ] > 10000) {
+                $name = $row[ 'pokemon_name' ] ?? $row[ 'form_name' ];
+                $pokemon[ $row[ 'pokemon_id' ] ]
                     ->setName($name, $language);
             }
 
             //	Save form name in original pokemon
             else
-                $pokemon[ $pokemon[ $row['pokemon_id'] ]->getDexNumber($nationalDex) ]
+                $pokemon[ $pokemon[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
                     ->addToAlternateForm(
-                        $row['form_order'] - 1,
-                        array(
-                            'names' =>
-                                array($language->getValue() => $row['form_name'])
-                        )
+                        $row[ 'form_order' ] - 1,
+                        [ 'names' => [ $language->getValue() => $row[ 'form_name' ] ] ]
                     );
         }
 
         //	Populate all dex numbers
         $dexnum = $this->getDexnum();
         foreach ($dexnum as $row)
-            $pokemon[ $row['species_id'] ]
-                ->setDexNumber((int)$row['pokedex_number'], new Dex(Dex::findValue($row['name'])));
+            $pokemon[ $row[ 'species_id' ] ]
+                ->setDexNumber((int)$row[ 'pokedex_number' ], new Dex(Dex::findValue($row[ 'name' ])));
 
         //	Populate evolution data
         $evoData       = $this->getEvolution();
-        $genderIds     = array(1 => "Female", 2 => "Male");
-        $relativeStats = array(-1 => "Atk<Def", 0 => "Atk=Def", 1 => "Atk>Def");
+        $genderIds     = [ 1 => "Female", 2 => "Male" ];
+        $relativeStats = [ -1 => "Atk<Def", 0 => "Atk=Def", 1 => "Atk>Def" ];
 
         foreach ($evoData as $row) {
 
-            $evoname = $row['evo'];
-            if ($pokeRow = $this->getNameFromId("pokemon_species", intval($row['evo'])))
-                $evoname = $pokeRow['name'];
+            $evoname = $row[ 'evo' ];
+            if ($pokeRow = $this->getNameFromId("pokemon_species", intval($row[ 'evo' ])))
+                $evoname = $pokeRow[ 'name' ];
 
-            $preevoname = $row['preevo'];
-            if ($pokeRow = $this->getNameFromId("pokemon_species", intval($row['preevo'])))
-                $preevoname = $pokeRow['name'];
+            $preevoname = $row[ 'preevo' ];
+            if ($pokeRow = $this->getNameFromId("pokemon_species", intval($row[ 'preevo' ])))
+                $preevoname = $pokeRow[ 'name' ];
 
             $evolution = new Evolution();
             $evolution->setFrom($preevoname);
             $evolution->setTo($evoname);
 
             $trigger = -1;
-            switch ($row['method']) {
+            switch ($row[ 'method' ]) {
                 case "level-up":
                     $trigger = new Method(Method::Level_Up);
                     break;
@@ -235,15 +235,15 @@ class VeekunDatabaseInterface extends DatabaseInterface {
                         case "trigger_item_id":
                             $useItem = $val;
                             if ($itemRow = $this->getNameFromId("item", intval($val)))
-                                $useItem = $itemRow['name'];
+                                $useItem = $itemRow[ 'name' ];
                             $evolution->addRequirement(new Requirement(Requirement::Use_Item), $useItem);
                             break;
 
                         case "location_id":
                             $location = $val;
                             if ($locationRow = $this->getNameFromId("location", intval($val))) {
-                                $location = $locationRow['name'];
-                                $evolution->addRequirement(new Requirement(Requirement::Generation), $locationRow['generation']);
+                                $location = $locationRow[ 'name' ];
+                                $evolution->addRequirement(new Requirement(Requirement::Generation), $locationRow[ 'generation' ]);
                             }
                             $evolution->addRequirement(new Requirement(Requirement::Location), $location);
                             break;
@@ -251,87 +251,88 @@ class VeekunDatabaseInterface extends DatabaseInterface {
                         case "held_item_id":
                             $holdItem = $val;
                             if ($itemRow = $this->getNameFromId("item", intval($val)))
-                                $holdItem = $itemRow['name'];
+                                $holdItem = $itemRow[ 'name' ];
                             $evolution->addRequirement(new Requirement(Requirement::Hold_Item), $holdItem);
                             break;
 
                         case "known_move_id":
                             $knowsMove = $val;
                             if ($moveRow = $this->getNameFromId("move", intval($val)))
-                                $knowsMove = $moveRow['name'];
+                                $knowsMove = $moveRow[ 'name' ];
                             $evolution->addRequirement(new Requirement(Requirement::Knows_Move), $knowsMove);
                             break;
 
                         case "known_move_type_id":
                             $knowsMoveType = $val;
                             if ($typeRow = $this->getNameFromId("type", intval($val)))
-                                $knowsMoveType = $typeRow['name'];
+                                $knowsMoveType = $typeRow[ 'name' ];
                             $evolution->addRequirement(new Requirement(Requirement::Knows_Move_Type), $knowsMoveType);
                             break;
 
                         case "party_species_id":
                             $partyPokemon = $val;
                             if ($pokeRow = $this->getNameFromId("pokemon_species", intval($val)))
-                                $partyPokemon = $pokeRow['name'];
+                                $partyPokemon = $pokeRow[ 'name' ];
                             $evolution->addRequirement(new Requirement(Requirement::Party_Pokemon), $partyPokemon);
                             break;
 
                         case "party_type_id":
                             $partyType = $val;
                             if ($typeRow = $this->getNameFromId("type", intval($val)))
-                                $partyType = $typeRow['name'];
+                                $partyType = $typeRow[ 'name' ];
                             $evolution->addRequirement(new Requirement(Requirement::Party_Type), $partyType);
                             break;
 
                         case "trade_species_id":
                             $tradeFor = $val;
                             if ($pokeRow = $this->getNameFromId("pokemon_species", intval($val)))
-                                $tradeFor = $pokeRow['name'];
+                                $tradeFor = $pokeRow[ 'name' ];
                             $evolution->addRequirement(new Requirement(Requirement::Trade_For), $tradeFor);
                             break;
                     }
                 }
             }
 
-            $pokemon[ $row['preevo'] ]->addEvolution(clone $evolution);
-            if (isset($pokemon[ $row['evo'] ]))
-                $pokemon[ $row['evo'] ]->addPreEvolution(clone $evolution);
+            $pokemon[ $row[ 'preevo' ] ]->addEvolution(clone $evolution);
+            if (isset($pokemon[ $row[ 'evo' ] ]))
+                $pokemon[ $row[ 'evo' ] ]->addPreEvolution(clone $evolution);
         }
 
         //	Populate type(s)
         $type = $this->getPokemonType();
         foreach ($type as $row)
-            $pokemon[ $row['pokemon_id'] ]
-                ->setType($row['slot'] - 1, $row['identifier']);
+            $pokemon[ $row[ 'pokemon_id' ] ]
+                ->setType($row[ 'slot' ] - 1, $row[ 'identifier' ]);
 
         //	Populate base stats and effort values rewarded
         $stats = $this->getPokemonStats();
         foreach ($stats as $row) {
-            $stat = new Stat(Stat::findValue($row['identifier']));
+            $stat = new Stat(Stat::findValue($row[ 'identifier' ]));
 
-            $pokemon[ $row['pokemon_id'] ]
-                ->setBaseStat($stat, $row['base_stat']);
-            $pokemon[ $row['pokemon_id'] ]
-                ->setEVYield($stat, $row['effort']);
+            $pokemon[ $row[ 'pokemon_id' ] ]
+                ->setBaseStat($stat, $row[ 'base_stat' ]);
+            $pokemon[ $row[ 'pokemon_id' ] ]
+                ->setEVYield($stat, $row[ 'effort' ]);
         }
 
         //	Populate abilities
         $ability = $this->getPokemonAbility();
         foreach ($ability as $row)
-            $pokemon[ $row['pokemon_id'] ]
-                ->setAbility($row['slot'] - 1, $row['name']);
+            $pokemon[ $row[ 'pokemon_id' ] ]
+                ->setAbility($row[ 'slot' ] - 1, $row[ 'name' ]);
 
         $dexEntries = $this->getPokemonDexEntries();
         foreach ($dexEntries as $row)
-            $pokemon[ $row['species_id'] ]
+            $pokemon[ $row[ 'species_id' ] ]
                 ->setDexEntry(
-                    preg_replace("/\s+/", " ", $row['flavor_text']),
-                    Version::fromName($row['version']),
-                    Language::fromName($row['language'])
+                    preg_replace("/\s+/", " ", $row[ 'flavor_text' ]),
+                    Version::fromName($row[ 'version' ]),
+                    Language::fromName($row[ 'language' ])
                 );
 
         return $pokemon;
     }
+
 
     public function getSpecies() {
         return $this->query(
@@ -342,6 +343,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getName() {
         return $this->query(
             "SELECT ln.name AS `language`, psn.*
@@ -350,6 +352,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY psn.pokemon_species_id ASC"
         );
     }
+
 
     public function getEggGroup() {
         return $this->query(
@@ -360,6 +363,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getPokemonRow() {
         return $this->query(
             "SELECT *
@@ -368,6 +372,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getAlt() {
         return $this->query(
             "SELECT *
@@ -375,6 +380,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY pokemon_id ASC"
         );
     }
+
 
     public function getAltName() {
         return $this->query(
@@ -385,6 +391,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getDexnum() {
         return $this->query(
             "SELECT pdn.species_id, pdn.pokedex_number, pp.name
@@ -393,6 +400,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY pdn.species_id ASC"
         );
     }
+
 
     public function getEvolution() {
         return $this->query(
@@ -403,8 +411,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getNameFromId(string $table, int $id) {
-        if (!in_array($table, array("item", "pokemon_species", "pokemon_form", "move", "ability", "location", "type", "language")))
+        if (!in_array($table, [ "item", "pokemon_species", "pokemon_form", "move", "ability", "location", "type", "language" ]))
             return false;
 
         if ($table == "location")
@@ -415,13 +424,14 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         else
             $query = "SELECT `name` FROM ${table}_names WHERE ${table}_id=? AND local_language_id=9 LIMIT 1";
 
-        $res = $this->query($query, [$id]);
+        $res = $this->query($query, [ $id ]);
 
         if (!$res)
             return false;
 
-        return $res[0];
+        return $res[ 0 ];
     }
+
 
     public function getPokemonType() {
         return $this->query(
@@ -432,6 +442,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getPokemonStats() {
         return $this->query(
             "SELECT ps.*, s.identifier
@@ -440,6 +451,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY ps.pokemon_id ASC"
         );
     }
+
 
     public function getPokemonAbility() {
         return $this->query(
@@ -450,6 +462,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getPokemonDexEntries() {
         return $this->query(
             "SELECT ln.name AS `language`, vn.name AS version, psft.*
@@ -459,46 +472,48 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getAbility() {
         /** @var Ability[] $abilities */
         $abilities = [ ];
 
         $names = $this->getAbilityNames();
         foreach ($names as $row) {
-            if (!isset($abilities[ $row['ability_id'] ])) {
-                $abilities[ $row['ability_id'] ] = new Ability();
+            if (!isset($abilities[ $row[ 'ability_id' ] ])) {
+                $abilities[ $row[ 'ability_id' ] ] = new Ability();
 
-                $abilities[ $row['ability_id'] ]
-                    ->setId((int)$row['ability_id']);
+                $abilities[ $row[ 'ability_id' ] ]
+                    ->setId((int)$row[ 'ability_id' ]);
 
-                $abilities[ $row['ability_id'] ]
-                    ->setGeneration((int)$row['generation_id']);
+                $abilities[ $row[ 'ability_id' ] ]
+                    ->setGeneration((int)$row[ 'generation_id' ]);
             }
 
-            $abilities[ $row['ability_id'] ]
-                ->setName((string)$row['name'], Language::fromName($row['language']));
+            $abilities[ $row[ 'ability_id' ] ]
+                ->setName((string)$row[ 'name' ], Language::fromName($row[ 'language' ]));
         }
 
         $text = $this->getAbilityText();
         foreach ($text as $row) {
-            $abilities[ $row['ability_id'] ]
+            $abilities[ $row[ 'ability_id' ] ]
                 ->setText(
-                    self::stripCodes($row['flavor_text']),
-                    Version::fromName($row['identifier']),
-                    Language::fromName($row['language'])
+                    self::stripCodes($row[ 'flavor_text' ]),
+                    Version::fromName($row[ 'identifier' ]),
+                    Language::fromName($row[ 'language' ])
                 );
         }
 
         $effect = $this->getAbilityEffect();
         foreach ($effect as $row) {
-            $abilities[ $row['ability_id'] ]
-                ->setEffect(self::stripCodes($row['effect']));
-            $abilities[ $row['ability_id'] ]
-                ->setShortEffect(self::stripCodes($row['short_effect']));
+            $abilities[ $row[ 'ability_id' ] ]
+                ->setEffect(self::stripCodes($row[ 'effect' ]));
+            $abilities[ $row[ 'ability_id' ] ]
+                ->setShortEffect(self::stripCodes($row[ 'short_effect' ]));
         }
 
         return $abilities;
     }
+
 
     public function getAbilityNames() {
         return $this->query(
@@ -509,6 +524,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getAbilityText() {
         return $this->query(
             "SELECT ln.name AS `language`, aft.*, vg.identifier
@@ -518,15 +534,16 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     private static function stripCodes($string) {
         $string = preg_replace_callback(
             '/\[([a-z0-9\- ]*)\]\{[a-z]+:([a-z0-9\-]+)\}/i',
 
             function ($match) {
-                if (strlen($match[1]))
-                    return $match[1];
+                if (strlen($match[ 1 ]))
+                    return $match[ 1 ];
 
-                return ucwords(str_replace("-", " ", $match[2]));
+                return ucwords(str_replace("-", " ", $match[ 2 ]));
             },
 
             $string);
@@ -535,6 +552,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
 
         return $string;
     }
+
 
     public function getAbilityEffect() {
         return $this->query(
@@ -545,6 +563,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getItem() {
         /** @var Item[] $items */
         $items = [ ];
@@ -553,53 +572,54 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         foreach ($itemRow as $row) {
             $item = new Item();
 
-            $item->setId((int)$row['id']);
+            $item->setId((int)$row[ 'id' ]);
 
-            $item->setCost((int)$row['cost']);
+            $item->setCost((int)$row[ 'cost' ]);
 
-            $item->setFlingPower((int)$row['fling_power']);
+            $item->setFlingPower((int)$row[ 'fling_power' ]);
 
-            $item->setCategory($row['category']);
+            $item->setCategory($row[ 'category' ]);
 
-            $item->setPocket($row['pocket'] - 1);
+            $item->setPocket($row[ 'pocket' ] - 1);
 
-            $items[ $row['id'] ] = $item;
+            $items[ $row[ 'id' ] ] = $item;
         }
 
         $fling = $this->getItemFling();
         foreach ($fling as $row)
-            $items[ $row['id'] ]
-                ->setFlingEffect($row['fling_effect'] - 1);
+            $items[ $row[ 'id' ] ]
+                ->setFlingEffect($row[ 'fling_effect' ] - 1);
 
         $names = $this->getItemNames();
         foreach ($names as $row)
-            $items[ $row['item_id'] ]
-                ->setName($row['name'], Language::fromName($row['language']));
+            $items[ $row[ 'item_id' ] ]
+                ->setName($row[ 'name' ], Language::fromName($row[ 'language' ]));
 
         $text = $this->getItemText();
         foreach ($text as $row) {
-            $items[ $row['item_id'] ]
+            $items[ $row[ 'item_id' ] ]
                 ->setText(
-                    self::stripCodes($row['flavor_text']),
-                    Version::fromName($row['identifier']),
-                    Language::fromName($row['language']));
+                    self::stripCodes($row[ 'flavor_text' ]),
+                    Version::fromName($row[ 'identifier' ]),
+                    Language::fromName($row[ 'language' ]));
         }
 
         $effect = $this->getItemEffect();
         foreach ($effect as $row) {
-            $items[ $row['item_id'] ]
-                ->setEffect(self::stripCodes($row['effect']));
-            $items[ $row['item_id'] ]
-                ->setShortEffect(self::stripCodes($row['short_effect']));
+            $items[ $row[ 'item_id' ] ]
+                ->setEffect(self::stripCodes($row[ 'effect' ]));
+            $items[ $row[ 'item_id' ] ]
+                ->setShortEffect(self::stripCodes($row[ 'short_effect' ]));
         }
 
         $flags = $this->getItemFlags();
         foreach ($flags as $row)
-            $items[ $row['item_id'] ]
-                ->addFlag(2 ** ($row['item_flag_id'] - 1));
+            $items[ $row[ 'item_id' ] ]
+                ->addFlag(2 ** ($row[ 'item_flag_id' ] - 1));
 
         return $items;
     }
+
 
     public function getItemRow() {
         return $this->query(
@@ -611,6 +631,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getItemFling() {
         return $this->query(
             "SELECT i.*, ifep.item_fling_effect_id as fling_effect
@@ -619,6 +640,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY i.id ASC"
         );
     }
+
 
     public function getItemNames() {
         return $this->query(
@@ -629,6 +651,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getItemText() {
         return $this->query(
             "SELECT ln.name AS `language`, ift.*, vg.identifier
@@ -637,6 +660,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY ift.item_id ASC"
         );
     }
+
 
     public function getItemEffect() {
         return $this->query(
@@ -647,6 +671,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getItemFlags() {
         return $this->query(
             "SELECT ifm.item_id, ifp.name, ifp.description, ifp.item_flag_id
@@ -656,6 +681,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getNature() {
         /** @var Nature[] $natures */
         $natures = [ ];
@@ -664,28 +690,29 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         foreach ($natureAttributes as $row) {
             $nature = new Nature();
 
-            $nature->setId((int)$row['id']);
+            $nature->setId((int)$row[ 'id' ]);
 
-            if ($row['increases'] != $row['decreases']) {
-                $nature->setIncreases(Stat::fromName($row['increases']));
-                $nature->setDecreases(Stat::fromName($row['decreases']));
+            if ($row[ 'increases' ] != $row[ 'decreases' ]) {
+                $nature->setIncreases(Stat::fromName($row[ 'increases' ]));
+                $nature->setDecreases(Stat::fromName($row[ 'decreases' ]));
 
-                $nature->setLikes(Attribute::fromName($row['likes']));
-                $nature->setDislikes(Attribute::fromName($row['dislikes']));
+                $nature->setLikes(Attribute::fromName($row[ 'likes' ]));
+                $nature->setDislikes(Attribute::fromName($row[ 'dislikes' ]));
 
-                $nature->setLikesFlavor(Flavor::fromName($row['likesFlavor']));
-                $nature->setDislikesFlavor(Flavor::fromName($row['dislikesFlavor']));
+                $nature->setLikesFlavor(Flavor::fromName($row[ 'likesFlavor' ]));
+                $nature->setDislikesFlavor(Flavor::fromName($row[ 'dislikesFlavor' ]));
             }
 
-            $natures[ $row['id'] ] = $nature;
+            $natures[ $row[ 'id' ] ] = $nature;
         }
 
         $natureNames = $this->getNatureNames();
         foreach ($natureNames as $row)
-            $natures[ $row['nature_id'] ]->setName($row['name'], Language::fromName($row['language']));
+            $natures[ $row[ 'nature_id' ] ]->setName($row[ 'name' ], Language::fromName($row[ 'language' ]));
 
         return $natures;
     }
+
 
     public function getNatureAttributes() {
         return $this->query(
@@ -702,6 +729,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getNatureNames() {
         return $this->query(
             "SELECT   `ln`.`name` AS `language`, `nn`.*
@@ -714,8 +742,10 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     public function getLocation($id) {
     }
+
 
     public function getMove($id = null) {
         /** @var Move[] $moves */
@@ -725,62 +755,63 @@ class VeekunDatabaseInterface extends DatabaseInterface {
         foreach ($moveRow as $row) {
             $move = new Move();
 
-            $move->setId((int)$row['id']);
+            $move->setId((int)$row[ 'id' ]);
 
-            $move->setGeneration((int)$row['generation_id']);
+            $move->setGeneration((int)$row[ 'generation_id' ]);
 
-            $move->setPower((int)$row['power']);
+            $move->setPower((int)$row[ 'power' ]);
 
-            $move->setPP((int)$row['pp']);
+            $move->setPP((int)$row[ 'pp' ]);
 
-            $move->setAccuracy((int)$row['accuracy']);
+            $move->setAccuracy((int)$row[ 'accuracy' ]);
 
-            $move->setPriority((int)$row['priority']);
+            $move->setPriority((int)$row[ 'priority' ]);
 
-            $move->setType(ucfirst($row['type']));
+            $move->setType(ucfirst($row[ 'type' ]));
 
-            $move->setDamageType(ucwords($row['damage']));
+            $move->setDamageType(ucwords($row[ 'damage' ]));
 
-            $move->setTarget(ucwords($row['target']));
+            $move->setTarget(ucwords($row[ 'target' ]));
 
-            $move->setEffect(str_replace("\$effect_chance", $row['effect_chance'], self::stripCodes($row['effect'])));
+            $move->setEffect(str_replace("\$effect_chance", $row[ 'effect_chance' ], self::stripCodes($row[ 'effect' ])));
 
-            $move->setShortEffect(str_replace("\$effect_chance", $row['effect_chance'], self::stripCodes($row['short_effect'])));
+            $move->setShortEffect(str_replace("\$effect_chance", $row[ 'effect_chance' ], self::stripCodes($row[ 'short_effect' ])));
 
-            $moves[ $row['id'] ] = $move;
+            $moves[ $row[ 'id' ] ] = $move;
         }
 
         $moveContest = $this->getMoveContest();
         foreach ($moveContest as $row) {
-            $moves[ $row['id'] ]
-                ->setContestType(ucwords($row['contestType']));
+            $moves[ $row[ 'id' ] ]
+                ->setContestType(ucwords($row[ 'contestType' ]));
 
-            $moves[ $row['id'] ]
-                ->setContestAppeal((int)$row['contestAppeal']);
+            $moves[ $row[ 'id' ] ]
+                ->setContestAppeal((int)$row[ 'contestAppeal' ]);
 
-            $moves[ $row['id'] ]
-                ->setContestJam((int)$row['jam']);
+            $moves[ $row[ 'id' ] ]
+                ->setContestJam((int)$row[ 'jam' ]);
 
-            $moves[ $row['id'] ]
-                ->setContestFlavorText($row['contestFlavor']);
+            $moves[ $row[ 'id' ] ]
+                ->setContestFlavorText($row[ 'contestFlavor' ]);
 
-            $moves[ $row['id'] ]
-                ->setContestEffect($row['contestEffect']);
+            $moves[ $row[ 'id' ] ]
+                ->setContestEffect($row[ 'contestEffect' ]);
 
-            $moves[ $row['id'] ]
-                ->setSuperContestAppeal((int)$row['superContestAppeal']);
+            $moves[ $row[ 'id' ] ]
+                ->setSuperContestAppeal((int)$row[ 'superContestAppeal' ]);
 
-            $moves[ $row['id'] ]
-                ->setSuperContestFlavorText($row['superContestFlavor']);
+            $moves[ $row[ 'id' ] ]
+                ->setSuperContestFlavorText($row[ 'superContestFlavor' ]);
         }
 
         $moveNames = $this->getMovesNames();
         foreach ($moveNames as $row)
-            $moves[ $row['move_id'] ]
-                ->setName($row['name'], Language::fromName($row['language']));
+            $moves[ $row[ 'move_id' ] ]
+                ->setName($row[ 'name' ], Language::fromName($row[ 'language' ]));
 
         return $moves;
     }
+
 
     public function getMoveRow() {
         return $this->query(
@@ -793,6 +824,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY  `m`.`id` ASC"
         );
     }
+
 
     public function getMoveContest() {
         return $this->query(
@@ -807,6 +839,7 @@ class VeekunDatabaseInterface extends DatabaseInterface {
             ORDER BY  `m`.`id` ASC"
         );
     }
+
 
     public function getMovesNames() {
         return $this->query(

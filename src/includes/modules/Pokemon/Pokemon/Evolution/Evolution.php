@@ -88,7 +88,7 @@ class Evolution {
      * @return string
      */
     public function format(): string {
-        $output = array(Method::findName($this->method->getValue()));
+        $output = [ Method::findName($this->method->getValue()) ];
 
         //  Check each available requirement to see if it's included
         for ($binary = decbin($this->requirement), $length = strlen($binary), $i = 0; $i < $length; $i++) {
