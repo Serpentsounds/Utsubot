@@ -18,6 +18,7 @@ use Utsubot\{
  * Class TypeChartException
  *
  * @package Utsubot\Pokemon\Types
+ *          ben wuz here
  */
 class TypeChartException extends EnumException {}
 
