@@ -36,7 +36,7 @@ class Misc extends ModuleWithPermission implements IHelp {
     use Timers;
 
     const NOW_PLAYING_INTERVAL = 60;
-    const NOW_PLAYING_FILE     = '\\\\GENSOU\drop\nowplaying.txt';
+    const NOW_PLAYING_FILE     = '\\\\GENSOU\\drop\\nowplaying.txt';
 
     protected $inCountdown    = [ ];
     private   $lastNowPlaying = 0;
@@ -113,6 +113,14 @@ class Misc extends ModuleWithPermission implements IHelp {
             }
         }
 
+        $db = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("soredemo"));
+        $song = $db->query("SELECT * FROM `radio`");
+
+        if (!$song)
+            throw new ModuleException("There is currently no music playing.");
+        $song = $song[0];
+
+        /*
         if (!file_exists(self::NOW_PLAYING_FILE))
             throw new ModuleException("Unable to locate song information.");
 
@@ -121,7 +129,7 @@ class Misc extends ModuleWithPermission implements IHelp {
         if ($song[ 0 ] == "not running" || $song[ 0 ] == "?" || !$song[ 0 ])
             throw new ModuleException("There is currently no music playing.");
 
-        list($codec, $artist, $title, $album, $date, $length, $bitrate, $composer, $performer, $time, $genre, $albumArtist, $path) = $song;
+        list($codec, $artist, $title, $album, $date, $length, $bitrate, $composer, $performer, $time, $genre, $albumArtist, $path) = $song;*/
 
         $white   = new Color(Color::White);
         $black   = new Color(Color::Black);
@@ -130,24 +138,25 @@ class Misc extends ModuleWithPermission implements IHelp {
         $fuchsia = new Color(Color::Fuchsia);
 
         $albumString = "";
-        if ($album != "?")
-            $albumString = colorText(" - ", $white, $black, false).colorText($album, $lime, $black, false);
+        if ($song[ 'album' ] != "?")
+            $albumString = colorText(" - ", $white, $black, false).colorText($song[ 'album' ], $lime, $black, false);
 
         $nowPlaying =
             colorText("Playing ", $white, $black, false).
-            colorText($codec, $yellow, $black, false).
+            colorText($song[ 'codec' ], $yellow, $black, false).
             colorText("@", $white, $black, false).
-            colorText($bitrate, $yellow, $black, false).
+            colorText($song[ 'bitrate' ], $yellow, $black, false).
             colorText(": ", $white, $black, false).
-            colorText($artist, $lime, $black, false).
+            colorText($song[ 'artist' ], $lime, $black, false).
             colorText(" - ", $white, $black, false).
-            colorText($title, $lime, $black, false).
+            colorText($song[ 'title' ], $lime, $black, false).
             $albumString.
-            colorText(" [$time/$length]", $fuchsia, $black, true);
+            colorText(" [{$song[ 'playback_time' ]}/{$song[ 'length' ]}]", $fuchsia, $black, true);
 
         $this->respond($msg, $nowPlaying);
         $this->respond($msg, "Tune in at http://radio.soredemo.net/ to listen along!");
         $this->lastNowPlaying = time();
+        $db = null;
     }
 
 

@@ -416,7 +416,7 @@ function pokemonMatchup($attacking, Pokemon $pokemon, $depth = 0) {
     }
 
     //	If all type names are valid, this will be numeric
-    if (is_numeric($effectiveness = typeMatchup($attacking, $pokemon->getTypes()))) {
+    if (is_numeric($effectiveness = typeMatchup($attacking, array_filter($pokemon->getTypes())))) {
         //	Can't have arrays as indexes, so form arrays (compound types) into slash/separated/strings
         $key            = (is_array($attacking) ? implode("/", $attacking) : $attacking);
         $result[ $key ] = $effectiveness;

@@ -349,6 +349,7 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
         if (!$commandInfo)
             throw new CommandCreatorException("Unable to retrieve format for command ID '$commandID'.");
+        $commandInfo = $commandInfo[ 0 ];
 
         $results = $this->interface->query(
             "SELECT * FROM `custom_commands_parameters` WHERE `custom_commands_id`=?",
@@ -443,7 +444,7 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
         if (!$results)
             throw new CommandCreatorException("ID lookup for command '$command' failed.");
 
-        return $results[ 'id' ];
+        return $results[ 0 ][ 'id' ];
     }
 
 

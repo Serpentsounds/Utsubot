@@ -68,7 +68,7 @@ class DatabaseInterface {
         //	Determine return type
         $return = false;
         $query  = trim($query);
-        if (stripos($query, "INSERT") === 0 || stripos($query, "DELETE") === 0)
+        if (stripos($query, "INSERT") === 0 || stripos($query, "DELETE") === 0 || stripos($query, "UPDATE") === 0)
             $return = $statement->rowCount();
         elseif (stripos($query, "SELECT") === 0)
             $return = $statement->fetchAll();

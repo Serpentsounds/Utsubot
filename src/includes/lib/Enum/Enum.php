@@ -151,4 +151,14 @@ abstract class Enum {
         throw new EnumException("Invalid ". get_called_class(). " item value '$value'.");
     }
 
+
+    /**
+     * Get the names of all valid constants as an array of strings
+     * 
+     * @return array
+     */
+    public static function listConstants(): array {
+        return array_keys((new \ReflectionClass(static::class))->getConstants());
+    }
+
 }

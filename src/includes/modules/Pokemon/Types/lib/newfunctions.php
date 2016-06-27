@@ -7,84 +7,90 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Types;
+
 use Utsubot\EnumException;
 use Utsubot\Pokemon\Pokemon\Pokemon;
 
+
 /**
- * Get the composite multiplier of one or more attacking types vs. one or more defending types
+ * Get the composite multiplier of an attacking type vs. one or more defending types
  *
- * @param array $attackingTypes
- * @param array $defendingTypes
+ * @param TypeChart $attacking
+ * @param TypeGroup $defending
  * @return float
  */
-function getCompoundEffectiveness(array $attackingTypes, array $defendingTypes): float {
+function getCompoundEffectiveness(TypeChart $attacking, TypeGroup $defending): float {
     $multiplier = 1;
 
-    foreach ($attackingTypes as $type1) {
-        /** @var TypeChart $typeChart */
-        if (!($typeChart instanceof TypeChart))
-            $typeChart = TypeChart::fromName($type1);
-
-        foreach ($defendingTypes as $type2) {
-            /** @var Type $type */
-            if (!($type instanceof Type))
-                $type = Type::fromName($type2);
-
-            $typeEffectiveness = $typeChart->getTypeEffectivenessMultiplier($type);
-            $multiplier *= $typeEffectiveness->getValue();
-        }
+    foreach ($defending as $type) {
+        $typeEffectiveness = $attacking->getTypeEffectivenessMultiplier($type);
+        $multiplier *= $typeEffectiveness->getValue();
     }
 
     return $multiplier;
 }
 
 /**
- * @param array   $attacking
- * @param Pokemon $pokemon
+ * @param TypeChart $attacking
+ * @param Pokemon   $pokemon
  * @return PokemonMatchupResult
  */
-function pokemonMatchup2(array $attacking, Pokemon $pokemon): PokemonMatchupResult {
+function pokemonMatchup2(TypeChart $attacking, Pokemon $pokemon): PokemonMatchupResult {
     $result = new PokemonMatchupResult(
         getCompoundEffectiveness(
             $attacking,
-            $pokemon->getTypes()
+            new TypeGroup($pokemon->getTypes())
         )
     );
 
-    $abilities = $pokemon->getAbilities();
+    try {
+        /*  Convert TypeChart to Type for use with ability classes, or throw an EnumException for non-Type charts
+            e.g. Freeze-dry and Flying Press */
+        /** @var Type $type */
+        $type = Type::fromName($attacking->getName());
 
-    foreach ($abilities as $ability) {
-        try {
-            /** @var BasicAbilityDefense $abilityDefense */
-            $abilityDefense = BasicAbilityDefense::fromName($ability);
+        $abilities = $pokemon->getAbilities();
 
-            foreach ($attacking as $typeName) {
-                /** @var Type $type */
-                $type = Type::fromName($typeName);
+        foreach ($abilities as $ability) {
+            try {
+                /** @var BasicAbilityDefense $abilityDefense
+                Throws an EnumException if the ability name doens't have special type interactions */
+                $abilityDefense = BasicAbilityDefense::fromName($ability);
+
+                //  Throws a BasicAbilityDefenseException if the ability doesn't affect the given type
                 $result->addBasicAbilityMultiplier($abilityDefense, $type, $result->getBaseMultiplier());
             }
-        }
 
-        //  Invalid trigger conditions for ability
-        catch (BasicAbilityDefenseException $e) {
-            continue;
-        }
-
-        //  Not a valid BasicAbilityDefense
-        catch (EnumException $e) {
-            try {
-                /** @var AdvancedAbilityDefense $abilityDefense */
-                $abilityDefense = AdvancedAbilityDefense::fromName($ability);
-                $result->addAdvancedAbilityMultiplier($abilityDefense, $result->getBaseMultiplier());
-            }
-
-            //  Not a valid AdvancedAbilityDefense, or invalid trigger conditions
-            catch (EnumException $e) {
+            //  Type not affected by ability, but it was a valid ability, so we can start the loop over
+            catch (BasicAbilityDefenseException $e) {
                 continue;
             }
 
+            //  Not a valid BasicAbilityDefense, attempt to match ability to AdvancedAbilityDefense
+            catch (EnumException $e) {
+                try {
+                    /** @var AdvancedAbilityDefense $abilityDefense
+                    Throws an EnumException if the ability name doesn't have special type interactions */
+                    $abilityDefense = AdvancedAbilityDefense::fromName($ability);
+
+                    //  Throws an AdvancedAbilityDefenseException if the ability doesn't affect this matchup
+                    $result->addAdvancedAbilityMultiplier($abilityDefense, $result->getBaseMultiplier());
+                }
+
+                /*  Not a valid AdvancedAbilityDefense, or invalid trigger conditions
+                    (AdvancedAbilityDefenseException extends EnumException) */
+                catch (EnumException $e) {
+                    continue;
+                }
+
+            }
+
         }
 
+    }
+
+    //  Invalid offensive Type name, continue to return base result without ability processing
+    catch (EnumException $e) {
     }
 
     return $result;
@@ -100,6 +106,7 @@ class PokemonMatchupResult {
     private $baseMultiplier;
     private $abilityMultipliers = [ ];
 
+
     /**
      * PokemonMatchupResult constructor.
      *
@@ -109,6 +116,7 @@ class PokemonMatchupResult {
         $this->baseMultiplier = $multiplier;
     }
 
+
     /**
      * @param BasicAbilityDefense $ability
      * @param Type                $type
@@ -117,11 +125,12 @@ class PokemonMatchupResult {
      */
     public function addBasicAbilityMultiplier(BasicAbilityDefense $ability, Type $type, float $value) {
         $abilityName = $ability->getName();
-        if (!isset($this->abilityMultipliers[$abilityName]))
-            $this->abilityMultipliers[$abilityName] = 1;
+        if (!isset($this->abilityMultipliers[ $abilityName ]))
+            $this->abilityMultipliers[ $abilityName ] = 1;
 
-        $this->abilityMultipliers[$abilityName] *= $ability->apply($type, $value);
+        $this->abilityMultipliers[ $abilityName ] *= $ability->apply($type, $value);
     }
+
 
     /**
      * @param AdvancedAbilityDefense $ability
@@ -130,11 +139,12 @@ class PokemonMatchupResult {
      */
     public function addAdvancedAbilityMultiplier(AdvancedAbilityDefense $ability, float $value) {
         $abilityName = $ability->getName();
-        if (!isset($this->abilityMultipliers[$abilityName]))
-            $this->abilityMultipliers[$abilityName] = 1;
+        if (!isset($this->abilityMultipliers[ $abilityName ]))
+            $this->abilityMultipliers[ $abilityName ] = 1;
 
-        $this->abilityMultipliers[$abilityName] *= $ability->apply($value);
+        $this->abilityMultipliers[ $abilityName ] *= $ability->apply($value);
     }
+
 
     /**
      * @return float
@@ -143,12 +153,14 @@ class PokemonMatchupResult {
         return $this->baseMultiplier;
     }
 
+
     /**
      * @return bool
      */
     public function hasAbilityMultiplier(): bool {
         return count($this->abilityMultipliers) > 0;
     }
+
 
     /**
      * @return array

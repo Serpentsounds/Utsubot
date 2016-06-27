@@ -38,7 +38,7 @@ class BasicAbilityDefense extends Enum {
     const Sap_Sipper    = [ Type::Grass     =>  0.0 ];
     const Heatproof     = [ Type::Fire      =>  0.5 ];
     const Thick_Fat     = [
-                            Type::Fire  =>  0.5,
+                            Type::Fire  => 0.5,
                             Type::Ice   => 0.5
                         ];
     const Dry_Skin      = [
@@ -53,10 +53,19 @@ class BasicAbilityDefense extends Enum {
      * @throws BasicAbilityDefenseException
      */
     public function apply(Type $type, float $value): float {
-        if (!isset($this->value[$type->getValue()]))
+        if (!$this->affects($type))
             throw new BasicAbilityDefenseException("This ability does not affect the given type");
 
         return $value * $this->value[$type->getValue()];
+    }
+
+
+    /**
+     * @param Type $type
+     * @return bool
+     */
+    public function affects(Type $type): bool {
+        return isset($this->value[$type->getValue()]);
     }
 
 }

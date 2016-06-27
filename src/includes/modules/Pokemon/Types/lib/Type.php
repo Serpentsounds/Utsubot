@@ -35,13 +35,5 @@ class Type extends Enum {
     const Rock      = 15;
     const Steel     = 16;
     const Water     = 17;
-
-    /**
-     * Get the names of all valid types as an array
-     * 
-     * @return array
-     */
-    public static function getTypeNames(): array {
-        return array_keys((new \ReflectionClass(static::class))->getConstants());
-    }
+    
 }

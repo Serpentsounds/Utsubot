@@ -583,8 +583,14 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $parameters = $msg->getCommandParameters();
 
         //	Cannot be logged in
-        if (is_int($this->getAccountIDByUser($user)))
-            throw new AccountsException("You are already registered!");
+        try {
+            $this->getAccountIDByUser($user);
+            throw new AccountsException("You are already registered!", 1);
+        }
+        catch (AccountsException $e) {
+            if ($e->getCode() == 1)
+                throw $e;
+        }
 
         //	Not enough parameters
         if (count($parameters) < 2)

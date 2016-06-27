@@ -21,7 +21,7 @@ use function Utsubot\{
 use Utsubot\Pokemon\PokemonBaseException;
 use function Utsubot\Pokemon\Types\{
     isType,
-    hasChart  
+    hasChart
 };
 
 
@@ -148,7 +148,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
     /**
      * Format a Pokedex entry for output
-     * 
+     *
      * @param Version  $version
      * @param Language $language
      * @return string
@@ -173,7 +173,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
     /**
      * Format the most recent pokedex entry
-     * 
+     *
      * @param Language $language
      * @return string
      * @throws PokemonException
@@ -222,7 +222,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
     /**
      * Get all abilities as an array
-     * 
+     *
      * @return array
      */
     public function getAbilities(): array {
@@ -241,8 +241,8 @@ class Pokemon extends PokemonBase implements Manageable {
     }
 
     /**
-     * Get all base stat values as an array 
-     * 
+     * Get all base stat values as an array
+     *
      * @return array
      */
     public function getBaseStats(): array {
@@ -295,7 +295,7 @@ class Pokemon extends PokemonBase implements Manageable {
      * @return array
      */
     public function getTypes(): array {
-        return $this->types;
+        return array_filter($this->types);
     }
 
     /**
@@ -321,7 +321,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
     /**
      * Get all evolutions as an array
-     * 
+     *
      * @return array
      */
     public function getEvolutions(): array {
@@ -479,7 +479,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function getEggGroups(): array {
         return $this->eggGroups;
     }
-    
+
 
     /**
      * Sets a dex number for this pokemon
@@ -625,7 +625,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
     /**
      * Append a pre-evolution
-     * 
+     *
      * @param Evolution $evolution
      */
     public function addPreEvolution(Evolution $evolution) {
@@ -797,10 +797,10 @@ class Pokemon extends PokemonBase implements Manageable {
 
         $this->eggGroups[$index] = $eggGroup;
     }
-    
+
     /**
      * Append an egg group without specifying the index
-     * 
+     *
      * @param string $eggGroup
      * @throws PokemonException
      */

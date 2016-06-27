@@ -24,8 +24,8 @@ class CalculatedChart {
      * @param ChartMode $mode
      */
     public function __construct(array $typeCharts, ChartMode $mode) {
-        $typeNames = Type::getTypeNames();
-        
+        $typeNames = Type::listConstants();
+
         foreach ($typeNames as $name) {
             switch ($mode) {
                 case ChartMode::Offensive:
@@ -37,7 +37,7 @@ class CalculatedChart {
                     break;
             }
         }
-        
+
     }
 
     /**
