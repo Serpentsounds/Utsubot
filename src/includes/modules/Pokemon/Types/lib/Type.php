@@ -35,5 +35,13 @@ class Type extends Enum {
     const Rock      = 15;
     const Steel     = 16;
     const Water     = 17;
-    
+
+
+    /**
+     * Get the equivalent TypeChart object for this Type
+     * @return TypeChart
+     */
+    public function toChart(): TypeChart {
+        return TypeChart::fromName($this->getName());
+    }
 }

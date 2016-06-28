@@ -8,8 +8,7 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Types;
 
-use Iterator;
-
+use Utsubot\TypedArray;
 
 /**
  * Class TypeGroupException
@@ -25,78 +24,21 @@ class TypeGroupException extends \Exception {
  *
  * @package Utsubot\Pokemon\Types
  */
-class TypeGroup implements Iterator {
+class TypeGroup extends TypedArray {
 
-    private $list  = [ ];
-    private $index = 0;
-
+    protected static $contains = "Utsubot\\Pokemon\\Types\\Type";
 
     /**
-     * TypeGroup constructor.
-     *
-     * @param array $types
-     * @throws TypeGroupException
+     * @param array $typeNames
+     * @return TypeGroup
+     * @throws \Utsubot\EnumException If any type name is invalid
      */
-    public function __construct(array $types) {
-        foreach ($types as $type)
-            if (!($type instanceof Type))
-                throw new TypeGroupException("Invalid Type object.");
+    public static function fromStrings(array $typeNames): TypeGroup {
+        $types = [ ];
+        foreach ($typeNames as $name)
+            $types[ ] = Type::fromName($name);
 
-        $this->list = array_values($types);
-    }
-
-
-    /**
-     * @return array
-     */
-    public function getArray(): array {
-        return $this->list;
-    }
-
-
-    /**
-     * Reset Iterator position
-     */
-    public function rewind() {
-        $this->index = 0;
-    }
-
-
-    /**
-     * Get current object from Iterator
-     *
-     * @return Type
-     */
-    public function current(): Type {
-        return $this->list[ $this->index ];
-    }
-
-
-    /**
-     * Get current position from Iterator
-     *
-     * @return int
-     */
-    public function key() {
-        return $this->index;
-    }
-
-
-    /**
-     * Advance Iterator to next position
-     */
-    public function next() {
-        ++$this->index;
-    }
-
-
-    /**
-     * Check if Iterator has a valid item to give
-     *
-     * @return bool
-     */
-    public function valid(): bool {
-        return isset($this->list[ $this->index ]);
+        return new static($types);
     }
 
 }

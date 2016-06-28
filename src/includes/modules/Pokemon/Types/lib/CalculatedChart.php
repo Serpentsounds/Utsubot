@@ -20,21 +20,24 @@ class CalculatedChart {
     /**
      * CalculatedChart constructor.
      *
-     * @param array     $typeCharts Array of valid Type or TypeChart constant names
+     * @param TypeChart $typeChart
      * @param ChartMode $mode
      */
-    public function __construct(array $typeCharts, ChartMode $mode) {
-        $typeNames = Type::listConstants();
+    public function __construct(TypeGroup $types, ChartMode $mode) {
+        $allTypes = TypeGroup::fromStrings(Type::listConstants());
+        
+        foreach ($types as $type1) {
+            foreach ($allTypes as $type2) {
+                
+                switch ($mode->getValue()) {
+                    case ChartMode::Offensive:
+                        $this->multipliers[ $type2->getValue() ] *= getCompoundEffectiveness($type1->toChart(), new TypeGroup([ $type2 ]));
+                        break;
 
-        foreach ($typeNames as $name) {
-            switch ($mode) {
-                case ChartMode::Offensive:
-                    $this->multipliers[ $name ] = getCompoundEffectiveness($typeCharts, [ $name ]);
-                    break;
-
-                case ChartMode::Defensive:
-                    $this->multipliers[ $name ] = getCompoundEffectiveness([ $name ], $typeCharts);
-                    break;
+                    case ChartMode::Defensive:
+                        $this->multipliers[ $type2->getValue() ] *= getCompoundEffectiveness($type2->toChart(), new TypeGroup([ $type1 ]));
+                        break;
+                }
             }
         }
 
