@@ -8,6 +8,6 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Types;
 
-class TypeChartGroup extends TypeGroup {
+class TypeEffectivenessChartGroup extends TypeGroup {
 
 }

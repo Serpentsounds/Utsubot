@@ -39,9 +39,10 @@ class Type extends Enum {
 
     /**
      * Get the equivalent TypeChart object for this Type
-     * @return TypeChart
+     * 
+*@return TypeEffectivenessChart
      */
-    public function toChart(): TypeChart {
-        return TypeChart::fromName($this->getName());
+    public function toChart(): TypeEffectivenessChart {
+        return TypeEffectivenessChart::fromName($this->getName());
     }
 }

@@ -15,11 +15,11 @@ use Utsubot\Pokemon\Pokemon\Pokemon;
 /**
  * Get the composite multiplier of an attacking type vs. one or more defending types
  *
- * @param TypeChart $attacking
- * @param TypeGroup $defending
+ * @param TypeEffectivenessChart $attacking
+ * @param TypeGroup              $defending
  * @return float
  */
-function getCompoundEffectiveness(TypeChart $attacking, TypeGroup $defending): float {
+function getCompoundEffectiveness(TypeEffectivenessChart $attacking, TypeGroup $defending): float {
     $multiplier = 1;
 
     foreach ($defending as $type) {
@@ -31,11 +31,11 @@ function getCompoundEffectiveness(TypeChart $attacking, TypeGroup $defending): f
 }
 
 /**
- * @param TypeChart $attacking
- * @param Pokemon   $pokemon
+ * @param TypeEffectivenessChart $attacking
+ * @param Pokemon                $pokemon
  * @return PokemonMatchupResult
  */
-function pokemonMatchup2(TypeChart $attacking, Pokemon $pokemon): PokemonMatchupResult {
+function pokemonMatchup2(TypeEffectivenessChart $attacking, Pokemon $pokemon): PokemonMatchupResult {
     $result = new PokemonMatchupResult(
         getCompoundEffectiveness(
             $attacking,
@@ -61,12 +61,12 @@ function pokemonMatchup2(TypeChart $attacking, Pokemon $pokemon): PokemonMatchup
                 $result->addBasicAbilityMultiplier($abilityDefense, $type, $result->getBaseMultiplier());
             }
 
-            //  Type not affected by ability, but it was a valid ability, so we can start the loop over
+                //  Type not affected by ability, but it was a valid ability, so we can start the loop over
             catch (BasicAbilityDefenseException $e) {
                 continue;
             }
 
-            //  Not a valid BasicAbilityDefense, attempt to match ability to AdvancedAbilityDefense
+                //  Not a valid BasicAbilityDefense, attempt to match ability to AdvancedAbilityDefense
             catch (EnumException $e) {
                 try {
                     /** @var AdvancedAbilityDefense $abilityDefense
@@ -77,8 +77,8 @@ function pokemonMatchup2(TypeChart $attacking, Pokemon $pokemon): PokemonMatchup
                     $result->addAdvancedAbilityMultiplier($abilityDefense, $result->getBaseMultiplier());
                 }
 
-                /*  Not a valid AdvancedAbilityDefense, or invalid trigger conditions
-                    (AdvancedAbilityDefenseException extends EnumException) */
+                    /*  Not a valid AdvancedAbilityDefense, or invalid trigger conditions
+                        (AdvancedAbilityDefenseException extends EnumException) */
                 catch (EnumException $e) {
                     continue;
                 }
@@ -89,7 +89,7 @@ function pokemonMatchup2(TypeChart $attacking, Pokemon $pokemon): PokemonMatchup
 
     }
 
-    //  Invalid offensive Type name, continue to return base result without ability processing
+        //  Invalid offensive Type name, continue to return base result without ability processing
     catch (EnumException $e) {
     }
 
