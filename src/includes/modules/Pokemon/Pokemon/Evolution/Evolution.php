@@ -88,7 +88,10 @@ class Evolution {
      * @return string
      */
     public function format(): string {
-        $output = [ Method::findName($this->method->getValue()) ];
+        $output = [ ];
+
+        if ($this->method instanceof Method)
+            $output[ ] = Method::findName($this->method->getValue());
 
         //  Check each available requirement to see if it's included
         for ($binary = decbin($this->requirement), $length = strlen($binary), $i = 0; $i < $length; $i++) {
@@ -107,7 +110,9 @@ class Evolution {
 
         //  Change output format depending on if this is set as a pre-evolution or not
         $name = ($this->isPre) ? $this->from : $this->to;
-        return bold($name). "/". implode(" ", $output);
+        $details = implode(" ", $output);
+
+        return bold($name). ($details ? "/". $details : "");
     }
 
 }
