@@ -7,6 +7,7 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
+
 use Utsubot\{
     IRCBot,
     Module
@@ -20,7 +21,7 @@ use Utsubot\{
  */
 class WebLoader extends Module {
 
-    const Modules = array(
+    const Modules = [
         "APIKeys",
         "Google",
         "URLParser",
@@ -29,13 +30,19 @@ class WebLoader extends Module {
         "DNS",
         "UrbanDictionary",
         "YouTube"
-    );
+    ];
 
+
+    /**
+     * WebLoader constructor.
+     *
+     * @param IRCBot $IRCBot
+     */
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
 
         foreach (self::Modules as $module) {
-            $this->IRCBot->loadModule(__NAMESPACE__. "\\$module");
+            $this->IRCBot->loadModule(__NAMESPACE__."\\$module");
         }
     }
 }

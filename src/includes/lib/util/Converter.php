@@ -9,11 +9,24 @@ declare(strict_types = 1);
 
 namespace Utsubot\Converter;
 
-class ConverterException extends \Exception {}
 
+/**
+ * Class ConverterException
+ *
+ * @package Utsubot\Converter
+ */
+class ConverterException extends \Exception {
+
+}
+
+/**
+ * Class Converter
+ *
+ * @package Utsubot\Converter
+ */
 class Converter {
-    
-    const METRIC_PREFIXES = array(
+
+    const METRIC_PREFIXES = [
         'yocto' => -24,
         'zepto' => -21,
         'atto'  => -18,
@@ -34,9 +47,9 @@ class Converter {
         'kilo'  => 3,
         'hecto' => 2,
         'deca'  => 1
-    );
+    ];
 
-    const METRIC_SHORT = array(
+    const METRIC_SHORT = [
         //  Deca must be first for proper regex parsing
         'deca'  => "da",
         'yocto' => "y",
@@ -58,11 +71,11 @@ class Converter {
         'mega'  => "M",
         'kilo'  => "k",
         'hecto' => "h"
-    );
+    ];
 
-    const MEASURES = array(
+    const MEASURES = [
 
-        'distance' => array(
+        'distance' => [
             'meter'             => 1.0,
             'metre'             => 1.0,
             'planck length'     => 1.61619997E-35,
@@ -76,9 +89,9 @@ class Converter {
             'astronomical unit' => 1.495978707E11,
             'light-year'        => 9.4607304725808E15,
             'parsec'            => 3.0856776E16
-        ),
+        ],
 
-        'mass' => array(
+        'mass' => [
             'gram'             => 1.0,
             'atomic mass unit' => 1.66053892173E-24,
             'dalton'           => 1.66053892173E-24,
@@ -92,13 +105,13 @@ class Converter {
             'tonne'            => 1E6,
             'troy ounce'       => 31.1034768,
             'troy pound'       => 373.2417216
-        )
+        ]
 
-    );
+    ];
 
-    const MEASURES_SHORT = array(
+    const MEASURES_SHORT = [
 
-        'distance' => array(
+        'distance' => [
             'meter'             => "m",
             'metre'             => "m",
             'plank length'      => "lp",
@@ -112,9 +125,9 @@ class Converter {
             'astronomical unit' => "au",
             'light-year'        => "ly",
             'parsec'            => "pc"
-        ),
+        ],
 
-        'mass' => array(
+        'mass' => [
             'gram'             => "g",
             'atomic mass unit' => "amu",
             "dalton"           => "Da",
@@ -128,10 +141,9 @@ class Converter {
             'tonne'            => "t",
             'troy ounce'       => "oz t",
             'troy pound'       => "lb t"
-        )
+        ]
 
-    );
-
+    ];
 
     /** @var string $measure */
     protected $measure;
@@ -140,23 +152,24 @@ class Converter {
     /** @var ParsedUnit $unitsOut */
     protected $unitsOut;
 
+
     /**
      * Converter constructor.
      *
-     * @param string $measure The aspect to be measured (e.g., length)
+     * @param string $measure   The aspect to be measured (e.g., length)
      * @param string $unitsFrom The starting units
-     * @param string $unitsTo The units to convert to
+     * @param string $unitsTo   The units to convert to
      * @throws ConverterException Invalid measure or units
      */
     public function __construct(string $measure, string $unitsFrom, string $unitsTo) {
-        $this->measure  = strtolower($measure);
+        $this->measure = strtolower($measure);
         if (!array_key_exists($this->measure, self::MEASURES) || !array_key_exists($this->measure, self::MEASURES_SHORT))
             throw new ConverterException("Invalid measure '$measure'.");
-
 
         $this->unitsIn  = $this->parseUnits($unitsFrom);
         $this->unitsOut = $this->parseUnits($unitsTo);
     }
+
 
     /**
      * Perform a conversion between two units of measure
@@ -166,9 +179,9 @@ class Converter {
      */
     public function convert(float $value): float {
         //	Convert to base units, e.g. meters
-        $base = $value * self::MEASURES[$this->measure][$this->unitsIn->getUnit()] * pow(10, $this->unitsIn->getPower());
+        $base = $value * self::MEASURES[ $this->measure ][ $this->unitsIn->getUnit() ] * pow(10, $this->unitsIn->getPower());
 
-        $out  = $base / self::MEASURES[$this->measure][$this->unitsOut->getUnit()] / pow(10, $this->unitsOut->getPower());
+        $out = $base / self::MEASURES[ $this->measure ][ $this->unitsOut->getUnit() ] / pow(10, $this->unitsOut->getPower());
 
         return (float)$out;
     }
@@ -184,8 +197,8 @@ class Converter {
      */
     protected function parseUnits(string $string): ParsedUnit {
         //  Readability
-        $measures = self::MEASURES[$this->measure];
-        $measuresShort = self::MEASURES_SHORT[$this->measure];
+        $measures      = self::MEASURES[ $this->measure ];
+        $measuresShort = self::MEASURES_SHORT[ $this->measure ];
 
         //  Initial values
         $power = 0;
@@ -196,8 +209,8 @@ class Converter {
         $unitsString  = implode("|", $measuresShort);
 
         if (preg_match("/^($prefixString)($unitsString)$/", $string, $match)) {
-            $power = self::METRIC_PREFIXES[array_search($match[1], self::METRIC_SHORT)];
-            $unit  = array_search($match[2], $measuresShort);
+            $power = self::METRIC_PREFIXES[ array_search($match[ 1 ], self::METRIC_SHORT) ];
+            $unit  = array_search($match[ 2 ], $measuresShort);
         }
 
         //	Check if only short unit is used with no prefix
@@ -212,9 +225,9 @@ class Converter {
         //	Check if full unit name is used with full prefix with a regex
         else {
             $prefixString = implode("|", array_keys(self::METRIC_PREFIXES));
-            if (preg_match("/^($prefixString)(.+)/", $string, $match) && array_key_exists($match[2], $measures)) {
-                $power = self::METRIC_PREFIXES[$match[1]];
-                $unit  = $match[2];
+            if (preg_match("/^($prefixString)(.+)/", $string, $match) && array_key_exists($match[ 2 ], $measures)) {
+                $power = self::METRIC_PREFIXES[ $match[ 1 ] ];
+                $unit  = $match[ 2 ];
             }
         }
 
@@ -226,26 +239,42 @@ class Converter {
     }
 }
 
-
 /**
  * Class ParsedUnit
  *
  * Intermediate data structure for conversion methods
  */
 class ParsedUnit {
+
     private $unit;
     private $power;
 
+
+    /**
+     * ParsedUnit constructor.
+     *
+     * @param string $unit
+     * @param int    $power
+     */
     public function __construct(string $unit, int $power) {
         $this->unit  = $unit;
         $this->power = $power;
     }
 
+
+    /**
+     * @return string
+     */
     public function getUnit(): string {
         return $this->unit;
     }
 
+
+    /**
+     * @return int
+     */
     public function getPower(): int {
         return $this->power;
     }
+
 }

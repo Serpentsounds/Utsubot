@@ -11,7 +11,7 @@ namespace Utsubot\Pokemon\Stats;
  */
 class HiddenPowerCalculator {
 
-    private static $types = array("Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark");
+    private static $types = [ "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost", "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon", "Dark" ];
 
     private $IVs;
 
@@ -27,7 +27,7 @@ class HiddenPowerCalculator {
      */
     public function __construct(int $hp, int $attack, int $defense, int $specialAttack, int $specialDefense, int $speed) {
         //  Reorder speed IV to streamline binary calculations
-        $this->IVs = array($hp, $attack, $defense, $speed, $specialAttack, $specialDefense);
+        $this->IVs = [ $hp, $attack, $defense, $speed, $specialAttack, $specialDefense ];
     }
 
     /**

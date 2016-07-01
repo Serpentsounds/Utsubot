@@ -7,6 +7,7 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
+
 use Utsubot\{
     IRCBot,
     IRCMessage,
@@ -20,7 +21,9 @@ use function Utsubot\bold;
  *
  * @package Utsubot\Web
  */
-class APIKeysException extends WebModuleException {}
+class APIKeysException extends WebModuleException {
+
+}
 
 /**
  * Class APIKeys
@@ -44,8 +47,9 @@ class APIKeys extends WebModule {
 
         $this->loadAPIKeys();
 
-        $this->addTrigger(new Trigger("apikeys", array($this, "APIKeys")));
+        $this->addTrigger(new Trigger("apikeys", [ $this, "APIKeys" ]));
     }
+
 
     /**
      * @param IRCMessage $msg
@@ -62,7 +66,7 @@ class APIKeys extends WebModule {
         $this->requireParameters($msg, 1);
 
         $parameters = $msg->getCommandParameters();
-        $mode = array_shift($parameters);
+        $mode       = array_shift($parameters);
 
         switch ($mode) {
             case "add":
@@ -90,19 +94,20 @@ class APIKeys extends WebModule {
 
             case "reload":
                 $this->loadAPIKeys();
-                
+
                 $return = "API keys have been successfully reloaded.";
                 break;
-            
+
             default:
                 throw new APIKeysException("Unknown mode '$mode'. Valid modes are 'add', 'remove', and 'reload'.");
                 break;
         }
-        
+
         if ($return)
             $this->respond($msg, $return);
 
     }
+
 
     /**
      * @param string $service
@@ -114,6 +119,7 @@ class APIKeys extends WebModule {
         $this->loadAPIKeys();
     }
 
+
     /**
      * @param string $service
      * @throws APIKeysDatabaseInterfaceException
@@ -123,16 +129,18 @@ class APIKeys extends WebModule {
         $this->loadAPIKeys();
     }
 
+
     /**
      * Reload web service API keys from the database
      */
     private function loadAPIKeys() {
-        $results = $this->interface->getAPIKeys();
-        $this->APIKeys = array();
-        
+        $results       = $this->interface->getAPIKeys();
+        $this->APIKeys = [ ];
+
         foreach ($results as $row)
-            $this->APIKeys[$row['service']] = $row['key'];
+            $this->APIKeys[ $row[ 'service' ] ] = $row[ 'key' ];
     }
+
 
     /**
      * Return an API key from the cache
@@ -142,9 +150,9 @@ class APIKeys extends WebModule {
      * @throws APIKeysException Key not loaded
      */
     public function getAPIKey(string $service): string {
-        if (!isset($this->APIKeys[$service]))
+        if (!isset($this->APIKeys[ $service ]))
             throw new APIKeysException("No API key cached for '$service'.");
-        
-        return $this->APIKeys[$service];
+
+        return $this->APIKeys[ $service ];
     }
 }

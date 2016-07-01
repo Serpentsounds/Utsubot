@@ -37,7 +37,7 @@ class CalculatorModule extends Module implements IHelp {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $calculate = new Trigger("calculate", array($this, "calculate"));
+        $calculate = new Trigger("calculate", [$this, "calculate"]);
         $calculate->addAlias("calc");
         $calculate->addAlias("c");
         $this->addTrigger($calculate);

@@ -31,7 +31,7 @@ class IRCBot {
     private $nickname = "";
     private $address = "";
 
-    private $modules = array();
+    private $modules = [];
 
     /**
      * Load up the config for this IRCBot
@@ -74,6 +74,7 @@ class IRCBot {
             $nickname = $this->IRCNetwork->getNicknameCycle()->get();
             $this->raw("USER Utsubot 0 * :$nickname");
             $this->raw("NICK :$nickname");
+            $this->setNickname($nickname);
             return true;
         }
     }
@@ -114,7 +115,7 @@ class IRCBot {
      * @return string The line or an empty string
      */
     public function read() {
-        $arr = array($this->socket);
+        $arr = [ $this->socket ];
         $write = $except = null;
         if (($changed = stream_select($arr, $write, $except, 0, self::SOCKET_POLL_TIME)) > 0)
             return trim(fgets($this->socket, 512));
@@ -247,7 +248,7 @@ class IRCBot {
     public function loadModule($class) {
         if (!is_subclass_of("$class", "Utsubot\\Module"))
             throw new IRCBotException("$class does not exist or does not extend Utsubot\\Module.");
-        
+
         $module = new $class($this, $class);
         $this->modules[$class] = $module;
     }
@@ -260,7 +261,7 @@ class IRCBot {
      */
     public function sendToModules($function, $msg = null) {
         //	These modules will receive the information first, if any relevant pre-processing needs to be done
-        $priority = array("Core");
+        $priority = [ "Core" ];
 
         try {
             //	Send event to priority modules
@@ -292,7 +293,7 @@ class IRCBot {
      */
     private function sendToModule($module, $function, $msg = null) {
         //	These events don't require an IRCMessage
-        $noParameters = array("connect", "shutdown");
+        $noParameters = [ "connect", "shutdown" ];
 
         //	Attempt to call the method while handling errors
         if (method_exists($module, $function)) {
@@ -428,7 +429,12 @@ class IRCBot {
      */
     private static function getNextLinePrefix($message) {
         //	Bold, reverse, italic, underline respectively
-        $controlCodes = array(2 => false, 22 => false, 29 => false, 31 => false);
+        $controlCodes = [
+            2   => false,
+            22  => false,
+            29  => false,
+            31  => false
+        ];
         //	Denotes colored text
         $colorCode = chr(3);
         //	Clears all formatting

@@ -8,7 +8,11 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
-
+/**
+ * Class MySQLDatabaseCredentialsException
+ *
+ * @package Utsubot
+ */
 class MySQLDatabaseCredentialsException extends \Exception {}
 
 /**
@@ -18,7 +22,7 @@ class MySQLDatabaseCredentialsException extends \Exception {}
  */
 class MySQLDatabaseCredentials extends DatabaseCredentials {
 
-    protected static $requiredFields = array("host", "username", "password");
+    protected static $requiredFields = [ "host", "username", "password" ];
     protected static $driver = "mysql";
 
     /**
@@ -31,7 +35,7 @@ class MySQLDatabaseCredentials extends DatabaseCredentials {
         //  These aren't used in the DSN for MySQL
         unset($config['username'], $config['password']);
 
-        $dsnComponents = array();
+        $dsnComponents = [ ];
         foreach ($config as $key => $value)
             $dsnComponents[] = "$key=$value";
 

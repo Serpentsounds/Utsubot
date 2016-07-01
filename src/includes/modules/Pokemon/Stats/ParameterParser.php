@@ -7,25 +7,33 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Stats;
+
 use Utsubot\Manager;
 use Utsubot\Pokemon\Language;
 use Utsubot\Pokemon\Pokemon\Pokemon;
 use Utsubot\Pokemon\Nature\Nature;
 
-class ParameterParserException extends \Exception {}
+
+class ParameterParserException extends \Exception {
+
+}
 
 class ParameterParser {
+
     /** @var $managers Manager[] */
     private $managers;
 
-    private static $statList = array("HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed");
+    private static $statList = [ "HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed" ];
 
-    public function __construct() {}
+
+    public function __construct() {
+    }
+
 
     /**
      * Inject a manager into the object if a parsing subroutine needs to use it for a lookup
      *
-     * @param string $name Manager name, must match beginning of class name
+     * @param string  $name Manager name, must match beginning of class name
      * @param Manager $manager
      * @throws ParameterParserException If the name and class don't match
      */
@@ -37,8 +45,9 @@ class ParameterParser {
         if (!($manager instanceof $class))
             throw new ParameterParserException("Manager '$name' must be of class '$class'.");
 
-        $this->managers[$name] = $manager;
+        $this->managers[ $name ] = $manager;
     }
+
 
     /**
      * Get one of the injected managers
@@ -51,29 +60,30 @@ class ParameterParser {
         //  Normalize name
         $name = ucfirst(strtolower($name));
 
-        if (isset($this->managers[$name]))
-            return $this->managers[$name];
+        if (isset($this->managers[ $name ]))
+            return $this->managers[ $name ];
 
         throw new ParameterParserException("Manager '$name' not found in array.");
     }
+
 
     /**
      * Given a string, searches for a valid pokemon name at the beginning
      *
      * @param string $type
-     * @param array $parameters
-     * @param int $maxWords Maximum number of consecutive words to search
+     * @param array  $parameters
+     * @param int    $maxWords Maximum number of consecutive words to search
      * @return Object An item of the respective manager
      * @throws ParameterParserException
      */
     public function getValid(string $type, array $parameters, int $maxWords = 3) {
-        $object = null;
+        $object  = null;
         $manager = $this->getManager($type);
         $manages = $manager->getManages();
 
         for ($words = 1; $words <= $maxWords; $words++) {
             //	Add 1 word at a time
-            $name = implode(" ", array_slice($parameters, 0, $words));
+            $name   = implode(" ", array_slice($parameters, 0, $words));
             $object = $manager->search($name);
 
             //	Object found
@@ -88,6 +98,7 @@ class ParameterParser {
 
         return $object;
     }
+
 
     /**
      * Parse user input for !piv or !pstat into separate parameters
@@ -113,54 +124,54 @@ class ParameterParser {
         $level = intval($level);
 
         /** @var $nature Nature */
-        $nature = $this->getValid("Nature", array(array_shift($parameters)), 1);
+        $nature = $this->getValid("Nature", [ array_shift($parameters) ], 1);
 
         //	Initialize nature information
         $natureMultipliers = array_combine(self::$statList, array_fill(0, count(self::$statList), 1));
-        $increases = $nature->getIncreases();
-        $decreases = $nature->getDecreases();
+        $increases         = $nature->getIncreases();
+        $decreases         = $nature->getDecreases();
 
         //	Update nature multipliers
-        if (isset($natureMultipliers[$increases]))
-            $natureMultipliers[$increases] = 1.1;
-        if (isset($natureMultipliers[$decreases]))
-            $natureMultipliers[$decreases] = 0.9;
+        if (isset($natureMultipliers[ $increases ]))
+            $natureMultipliers[ $increases ] = 1.1;
+        if (isset($natureMultipliers[ $decreases ]))
+            $natureMultipliers[ $decreases ] = 0.9;
 
         //	Normalize array
         $natureMultipliers = array_values($natureMultipliers);
 
         //	Check each parameter individually
-        $statValues = $EVs = array(0, 0, 0, 0, 0, 0);
+        $statValues = $EVs = [ 0, 0, 0, 0, 0, 0 ];
         for ($i = 0; $i <= 5; $i++) {
 
             //	Effort values specified
-            if (strpos($parameters[$i], ':') !== FALSE) {
-                list($stat, $EV) = explode(':', $parameters[$i]);
+            if (strpos($parameters[ $i ], ':') !== false) {
+                list($stat, $EV) = explode(':', $parameters[ $i ]);
                 //	Stat and EV minimum values
                 if (!($stat >= 0 && $EV >= 0 && $EV <= 255))
                     throw new ParameterParserException("Invalid stat or EV parameter.");
 
-
-                $statValues[$i] = intval($stat);
-                $EVs[$i] = intval($EV);
+                $statValues[ $i ] = intval($stat);
+                $EVs[ $i ]        = intval($EV);
             }
             //	No effort value specified
             else {
                 //	Stat minimum value
-                if (!($parameters[$i] >= 0))
+                if (!($parameters[ $i ] >= 0))
                     throw new ParameterParserException("Invalid stat or EV parameter.");
 
-                $statValues[$i] = intval($parameters[$i]);
+                $statValues[ $i ] = intval($parameters[ $i ]);
             }
         }
 
         return new IVStatParameterResult($pokemon, $level, $increases, $decreases, $natureMultipliers, $statValues, $EVs);
     }
 
+
     /**
      * Parse parameters for !basetomax and !maxtobase family of commands
      *
-     * @param array $parameters
+     * @param array  $parameters
      * @param string $command
      * @return baseMaxParameterResult
      * @throws ParameterParserException Invalid parameters
@@ -170,21 +181,21 @@ class ParameterParser {
             throw new ParameterParserException("No base given.");
 
         //	Stat must be a positive integer
-        if (!is_numeric($parameters[0]) || ($stat = intval($parameters[0])) != $parameters[0] || $stat < 0)
+        if (!is_numeric($parameters[ 0 ]) || ($stat = intval($parameters[ 0 ])) != $parameters[ 0 ] || $stat < 0)
             throw new ParameterParserException("Invalid stat value.");
-        
-        $HP = false;
-        $level = 100;
-        $match = array();
+
+        $HP     = false;
+        $level  = 100;
+        $match  = [ ];
         $switch = "";
         do {
             if ($switch) {
-                switch (strtolower($match[1])) {
+                switch (strtolower($match[ 1 ])) {
                     case "hp":
                         $HP = true;
                         break;
                     case "level":
-                        if (!empty($match[2]) && is_numeric($match[2]) && ($value = intval($match[2])) == $match[2] && $value >= 1 && $value <= 100)
+                        if (!empty($match[ 2 ]) && is_numeric($match[ 2 ]) && ($value = intval($match[ 2 ])) == $match[ 2 ] && $value >= 1 && $value <= 100)
                             $level = $value;
                         break;
                     default:
@@ -194,27 +205,26 @@ class ParameterParser {
             }
 
             $switch = array_shift($parameters);
-        }
-        while (preg_match("/^-([^:]+)(?:\\:(.+))?/", $switch, $match));
+        } while (preg_match("/^-([^:]+)(?:\\:(.+))?/", $switch, $match));
 
         switch ($command) {
             case "b2m":
             case "btom":
             case "basetomax":
                 $from = "base";
-                $to = "max";
-            break;
+                $to   = "max";
+                break;
 
             case "m2b":
             case "mtob":
             case "maxtobase":
                 $from = "max";
-                $to = "base";
-            break;
+                $to   = "base";
+                break;
 
             default:
                 throw new ParameterParserException("Invalid command.");
-            break;
+                break;
         }
 
         return new baseMaxParameterResult($stat, $level, $from, $to, $HP);
@@ -228,6 +238,7 @@ class ParameterParser {
  * @package Pokemon
  */
 class IVStatParameterResult {
+
     private $pokemon;
     private $level;
     private $natureIncreases;
@@ -237,23 +248,24 @@ class IVStatParameterResult {
     private $EVs;
 
     const NUMBER_OF_STATS = 6;
-    private static $statList = array("HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed");
+    private static $statList = [ "HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed" ];
+
 
     /**
      * IVStatParameterResult constructor.
      *
      * @param Pokemon $pokemon
-     * @param int $level
-     * @param string $natureIncreases Stat name
-     * @param string $natureDecreases Stat name
-     * @param array $natureMultipliers One for each 6 stats
-     * @param array $statValues One for each 6 stats
-     * @param array $EVs One for each 6 stats
+     * @param int     $level
+     * @param string  $natureIncreases   Stat name
+     * @param string  $natureDecreases   Stat name
+     * @param array   $natureMultipliers One for each 6 stats
+     * @param array   $statValues        One for each 6 stats
+     * @param array   $EVs               One for each 6 stats
      * @throws ParameterParserException Validation failed
      */
     public function __construct(Pokemon $pokemon, int $level, string $natureIncreases, string $natureDecreases, array $natureMultipliers, array $statValues, array $EVs) {
         $this->pokemon = $pokemon;
-        $this->level = $level;
+        $this->level   = $level;
 
         //  Validate names of stats affected by nature
         if (array_search($natureIncreases, self::$statList) === false)
@@ -275,12 +287,14 @@ class IVStatParameterResult {
         $this->EVs = $EVs;
     }
 
+
     /**
      * @return Pokemon
      */
     public function getPokemon(): Pokemon {
         return $this->pokemon;
     }
+
 
     /**
      * @return int
@@ -289,12 +303,14 @@ class IVStatParameterResult {
         return $this->level;
     }
 
+
     /**
      * @return string
      */
     public function getNatureIncreases(): string {
         return $this->natureIncreases;
     }
+
 
     /**
      * @return string
@@ -303,12 +319,14 @@ class IVStatParameterResult {
         return $this->natureDecreases;
     }
 
+
     /**
      * @return array
      */
     public function getNatureMultipliers(): array {
         return $this->natureMultipliers;
     }
+
 
     /**
      * @return array
@@ -317,12 +335,14 @@ class IVStatParameterResult {
         return $this->statValues;
     }
 
+
     /**
      * @return array
      */
     public function getEVs(): array {
         return $this->EVs;
     }
+
 
     /**
      * Internal utility to normalize stat names to indexes
@@ -331,7 +351,7 @@ class IVStatParameterResult {
      * @return int $stat converted to index
      */
     private function getKey($stat): int {
-        if (isset(self::$statList[$stat]))
+        if (isset(self::$statList[ $stat ]))
             return $stat;
         elseif (($key = array_search($stat, self::$statList)) !== false)
             return $key;
@@ -339,14 +359,17 @@ class IVStatParameterResult {
         return -1;
     }
 
+
     /**
      * @param mixed $stat Stat name or index
      * @return int Nature multiplier value, or -1 on failure
      */
     public function getNatureMultiplier($stat): int {
         $key = $this->getKey($stat);
-        return $this->natureMultipliers[$key] ?? $key;
+
+        return $this->natureMultipliers[ $key ] ?? $key;
     }
+
 
     /**
      * @param mixed $stat Stat name or index
@@ -354,8 +377,10 @@ class IVStatParameterResult {
      */
     public function getStatValue($stat): int {
         $key = $this->getKey($stat);
-        return $this->statValues[$key] ?? $key;
+
+        return $this->statValues[ $key ] ?? $key;
     }
+
 
     /**
      * @param mixed $stat Stat name or index
@@ -363,7 +388,8 @@ class IVStatParameterResult {
      */
     public function getEV($stat): int {
         $key = $this->getKey($stat);
-        return $this->EVs[$key] ?? $key;
+
+        return $this->EVs[ $key ] ?? $key;
     }
 
 }
@@ -374,18 +400,20 @@ class IVStatParameterResult {
  * @package Pokemon
  */
 class baseMaxParameterResult {
+
     private $stat;
     private $level;
     private $from;
     private $to;
     private $hp;
 
+
     public function __construct(int $stat, int $level, string $from, string $to, bool $hp) {
-        $this->stat = $stat;
+        $this->stat  = $stat;
         $this->level = $level;
 
         //  Whitelist conversion parameters
-        $valid = array("max", "base");
+        $valid = [ "max", "base" ];
         if (!in_array($from, $valid))
             throw new ParameterParserException("Invalid 'from' category '$from'.");
         $this->from = $from;
@@ -396,12 +424,14 @@ class baseMaxParameterResult {
         $this->hp = $hp;
     }
 
+
     /**
      * @return int
      */
     public function getStat() {
         return $this->stat;
     }
+
 
     /**
      * @return int
@@ -410,6 +440,7 @@ class baseMaxParameterResult {
         return $this->level;
     }
 
+
     /**
      * @return string
      */
@@ -417,12 +448,14 @@ class baseMaxParameterResult {
         return $this->from;
     }
 
+
     /**
      * @return string
      */
     public function getTo() {
         return $this->to;
     }
+
 
     /**
      * @return boolean

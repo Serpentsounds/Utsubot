@@ -16,7 +16,7 @@ use Iterator;
  * @package Utsubot\Pokemon
  */
 class PokemonObjectResult implements Iterator {
-    private $items = array();
+    private $items = [ ];
     private $index = 0;
 
     /**
@@ -68,7 +68,7 @@ class PokemonObjectResult implements Iterator {
      */
     public function getSuggestions(): array {
         if (count($this->items) <= 1)
-            return array();
+            return [ ];
 
         //  Call __toString on all items
         return array_map(

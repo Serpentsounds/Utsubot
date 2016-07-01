@@ -33,7 +33,7 @@ abstract class ModuleWithPermission extends ModuleWithAccounts {
      */
     public function hasPermission(IRCMessage $msg, string $trigger): bool {
         /** @var $permission Permission */
-        $permission = $this->externalModule("Utsubot\\Permission\\Permission");
+        $permission = $this->getModule("Utsubot\\Permission\\Permission");
         return $permission->hasPermission($msg, $trigger);
     }
 

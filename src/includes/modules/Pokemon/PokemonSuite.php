@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Pokemon;
+
 use Utsubot\Help\HelpEntry;
 use Utsubot\{
     IRCBot,
@@ -39,7 +40,9 @@ use function Utsubot\Pokemon\Types\{
  *
  * @package Utsubot\Pokemon
  */
-class PokemonSuiteException extends ModuleException {}
+class PokemonSuiteException extends ModuleException {
+
+}
 
 /**
  * Class PokemonSuite
@@ -47,8 +50,9 @@ class PokemonSuiteException extends ModuleException {}
  * @package Utsubot\Pokemon
  */
 class PokemonSuite extends ModuleWithPokemon {
-    
-    const Modules = array("Pokemon", "Ability", "Item", "Nature", "Move", "Types");
+
+    const Modules = [ "Pokemon", "Ability", "Item", "Nature", "Move", "Types" ];
+
 
     /**
      * PokemonSuite constructor.
@@ -60,18 +64,16 @@ class PokemonSuite extends ModuleWithPokemon {
         $this->_require("Utsubot\\Pokemon\\MetaPokemonDatabaseInterface");
 
         parent::__construct($IRCBot);
-        
-        foreach (self::Modules as $module)
-            $this->IRCBot->loadModule(__NAMESPACE__. "\\$module\\{$module}Module");
 
-        
+        foreach (self::Modules as $module)
+            $this->IRCBot->loadModule(__NAMESPACE__."\\$module\\{$module}Module");
+
         //  Command triggers
-        $psearch = new Trigger("psearch", array($this, "search"));
+        $psearch = new Trigger("psearch", [ $this, "search" ]);
         $this->addTrigger($psearch);
-        $mgdb = new Trigger("mgdb", array($this, "updateMetagameDatabase"));
+        $mgdb = new Trigger("mgdb", [ $this, "updateMetagameDatabase" ]);
         $this->addTrigger($mgdb);
-        
-        
+
         //  Help entries
         $psearchHelp = new HelpEntry("Pokemon", $psearch);
         $psearchHelp->addParameterTextPair("CATEGORY PARAMETERS", "Search CATEGORY using any number of custom search PARAMETERS.");
@@ -94,8 +96,8 @@ class PokemonSuite extends ModuleWithPokemon {
         $parameters = $msg->getCommandParameters();
 
         //	Parse user-selected search category
-        $categories = array("pokemon", "ability", "move", "nature", "item");
-        $category = strtolower(array_shift($parameters));
+        $categories = [ "pokemon", "ability", "move", "nature", "item" ];
+        $category   = strtolower(array_shift($parameters));
         if (!in_array($category, $categories))
             throw new PokemonSuiteException("Invalid search category '$category'. Valid categories are: ".implode(", ", $categories).".");
 
@@ -105,34 +107,33 @@ class PokemonSuite extends ModuleWithPokemon {
         //	Grab relevant Manager and include custom operators, if applicable
         $manager = $this->getOutsideManager(ucfirst($category));
 
-        $customOperators = $manager::getCustomOperators();
-        $customOperatorRegex = '/^('. preg_replace('/([\/\\*?+().{}])/', '\\\\$1', implode("|", $customOperators)). '):(.+)$/';
+        $customOperators     = $manager::getCustomOperators();
+        $customOperatorRegex = '/^('.preg_replace('/([\/\\*?+().{}])/', '\\\\$1', implode("|", $customOperators)).'):(.+)$/';
 
         //  Filter and merge operators to one collection
         $operators = array_unique(array_merge($operators, $customOperators));
         /*	Make longer operators appear earlier in the array, so the resulting regex will match them before shorter ones that might begin the same
             e.g., > will prevent >= from ever matching if it appears first in the capture group */
-        usort($operators, function($a, $b) {
+        usort($operators, function ($a, $b) {
             return strlen($b) - strlen($a);
         });
         //	Regex to parse user input
-        $regex = '/^(.*?)('. preg_replace('/([\/\\*?+().{}])/', '\\\\$1', implode("|", $operators)). ')(.+)$/';
-
+        $regex = '/^(.*?)('.preg_replace('/([\/\\*?+().{}])/', '\\\\$1', implode("|", $operators)).')(.+)$/';
 
         //  Default to return all results
         $return = 0;
         //  Default English
         $language = new Language(Language::English);
-        $criteria = array();
+        $criteria = [ ];
         foreach ($parameters as $parameter) {
 
             //	Customize number of results returned
             if (preg_match('/^return:(\d+)$/', $parameter, $match))
-                $return = $match[1];
+                $return = $match[ 1 ];
 
             //	Customize language of result set
             elseif (preg_match('/^language:(.+)$/', $parameter, $match))
-                $language = Language::fromName($match[1]);
+                $language = Language::fromName($match[ 1 ]);
 
             //  Apply a new criterion with a custom operator
             elseif (preg_match($customOperatorRegex, $parameter, $match)) {
@@ -159,40 +160,40 @@ class PokemonSuite extends ModuleWithPokemon {
 
         //	Convert objects to strings in given language
         foreach ($results as $key => $result)
-            $results[$key] = $result->getName($language);
+            $results[ $key ] = $result->getName($language);
 
         if (!$results)
             throw new PokemonSuiteException("No results found.");
 
         $this->respond($msg, implode(", ", $results));
     }
-    
 
 
     public function updateMetagameDatabase(IRCMessage $msg) {
         $this->requireLevel($msg, 100);
 
-        $mode = @$msg->getCommandParameters()[0];
+        $mode = @$msg->getCommandParameters()[ 0 ];
         switch ($mode) {
             case "download":
                 $this->downloadMetagameDatabase($msg);
-            break;
+                break;
 
             case "insert":
                 $this->insertMetagameDatabase($msg);
-            break;
+                break;
         }
     }
 
+
     private function downloadMetagameDatabase(IRCMessage $msg) {
-        $base = "http://www.smogon.com/stats/";
+        $base  = "http://www.smogon.com/stats/";
         $index = resourceBody($base);
         if (!preg_match_all('/^<a href="(\d{4}-\d{2}\/)">/m', $index, $match, PREG_PATTERN_ORDER))
             throw new PokemonSuiteException("Unable to find latest metagame stats.");
-        $latest = $match[1][count($match[1]) - 1];
+        $latest = $match[ 1 ][ count($match[ 1 ]) - 1 ];
 
-        $files = array("ubers-0", "ou-0", "uu-0", "nu-0", "doublesubers-0", "doublesou-0", "doublesuu-0", "vgc2015-0");
-        $jsonDir = $base. $latest. "chaos/";
+        $files   = [ "ubers-0", "ou-0", "uu-0", "nu-0", "doublesubers-0", "doublesou-0", "doublesuu-0", "vgc2015-0" ];
+        $jsonDir = $base.$latest."chaos/";
         if (!is_dir("metagame"))
             mkdir("metagame");
         else {
@@ -209,6 +210,7 @@ class PokemonSuite extends ModuleWithPokemon {
         $this->respond($msg, "Download complete.");
     }
 
+
     private function insertMetagameDatabase(IRCMessage $msg) {
         if (!is_dir("metagame"))
             throw new PokemonSuiteException("There are no metagame statistics to insert. Download them first.");
@@ -219,74 +221,77 @@ class PokemonSuite extends ModuleWithPokemon {
 
         $interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
 
-        $tiers = $interface->query("SELECT * FROM `metagame_tiers` ORDER BY `id` ASC");
-        $tierIds = array();
+        $tiers   = $interface->query("SELECT * FROM `metagame_tiers` ORDER BY `id` ASC");
+        $tierIds = [ ];
         foreach ($tiers as $id => $row)
-            $tierIds[strtolower(str_replace(" ", "", $row['name']))] = $id;
+            $tierIds[ strtolower(str_replace(" ", "", $row[ 'name' ])) ] = $id;
 
-        $fields = $interface->query("SELECT * FROM `metagame_fields` ORDER BY `id` ASC");
-        $fieldIds = array();
+        $fields   = $interface->query("SELECT * FROM `metagame_fields` ORDER BY `id` ASC");
+        $fieldIds = [ ];
         foreach ($fields as $id => $row)
-            $fieldIds[$row['name']] = $id;
+            $fieldIds[ $row[ 'name' ] ] = $id;
 
-        $collections = array(
-            'pokemon'		=> $this->PokemonManager->collection(),
-            'items' 		=> $this->ItemManager->collection(),
-            'abilities' 	=> $this->AbilityManager->collection(),
-            'moves' 		=> $this->MoveManager->collection()
-        );
-        $cache = array();
+        $collections = [
+            'pokemon'   => $this->PokemonManager->collection(),
+            'items'     => $this->ItemManager->collection(),
+            'abilities' => $this->AbilityManager->collection(),
+            'moves'     => $this->MoveManager->collection()
+        ];
+        $cache       = [ ];
         foreach ($collections as $key => $collection) {
             foreach ($collection as $currentObject) {
                 /** @var $currentObject PokemonBase */
                 $index = $name = $currentObject->getName();
                 if (substr_count($index, " ") > 1)
                     $index = implode(" ", array_slice(explode(" ", $index), 0, 2));
-                $index = strtolower(str_replace(array(" ", "-"), "", $index));
-                $cache[$key][$index] = array($currentObject->getId(), $currentObject->getName());
+                $index                   = strtolower(str_replace([ " ", "-" ], "", $index));
+                $cache[ $key ][ $index ] = [ $currentObject->getId(), $currentObject->getName() ];
             }
         }
 
         $this->respond($msg, "Clearing out old data...");
         $interface->query("TRUNCATE TABLE `metagame_data`");
 
-        $table = "`metagame_data`";
-        $columns = array("`pokemon_id`", "`tier_id`", "`field_id`", "`entry`", "`value`");
+        $table       = "`metagame_data`";
+        $columns     = [ "`pokemon_id`", "`tier_id`", "`field_id`", "`entry`", "`value`" ];
         $columnCount = count($columns);
-        $insertRows = 500;
-        $maxData = $columnCount * $insertRows;
-        $statement = $interface->prepare(
-            "INSERT INTO $table (". implode(", ", $columns). ") VALUES ". implode(", ", array_fill(0, $insertRows, "(". implode(", ", array_fill(0, $columnCount, "?")). ")"))
+        $insertRows  = 500;
+        $maxData     = $columnCount * $insertRows;
+        $statement   = $interface->prepare(
+            "INSERT INTO $table (".
+            implode(", ", $columns).
+            ") VALUES ".
+            implode(", ", array_fill(0, $insertRows, "(".implode(", ", array_fill(0, $columnCount, "?")).")"))
         );
 
-        $fieldNameTranslation = array("raw count" => "count", "checks and counters" => "counters");
+        $fieldNameTranslation = [ "raw count" => "count", "checks and counters" => "counters" ];
 
         foreach ($files as $file) {
             $this->respond($msg, "Beginning to process $file...");
 
-            $data = json_decode(file_get_contents($file), true);
-            $tierId = $tierIds[$data['info']['metagame']];
-            $battleCount = $data['info']['number of battles'];
+            $data        = json_decode(file_get_contents($file), true);
+            $tierId      = $tierIds[ $data[ 'info' ][ 'metagame' ] ];
+            $battleCount = $data[ 'info' ][ 'number of battles' ];
 
-            $queryData = array();
+            $queryData      = [ ];
             $queryDataCount = 0;
-            foreach ($data['data'] as $pokemon => $stats) {
-                $pokemonIndex = strtolower(str_replace(array(" ", "-"), "", $pokemon));
-                if (!isset($cache['pokemon'][$pokemonIndex]))
+            foreach ($data[ 'data' ] as $pokemon => $stats) {
+                $pokemonIndex = strtolower(str_replace([ " ", "-" ], "", $pokemon));
+                if (!isset($cache[ 'pokemon' ][ $pokemonIndex ]))
                     continue;
-                $pokemonId = $cache['pokemon'][$pokemonIndex][0];
+                $pokemonId = $cache[ 'pokemon' ][ $pokemonIndex ][ 0 ];
 
-                $total = $stats['Raw count'];
+                $total = $stats[ 'Raw count' ];
                 foreach ($stats as $field => $entries) {
 
                     $fieldName = strtolower($field);
-                    if (isset($fieldNameTranslation[$fieldName]))
-                        $fieldName = $fieldNameTranslation[$fieldName];
+                    if (isset($fieldNameTranslation[ $fieldName ]))
+                        $fieldName = $fieldNameTranslation[ $fieldName ];
 
-                    if (!isset($fieldIds[$fieldName]))
+                    if (!isset($fieldIds[ $fieldName ]))
                         continue;
 
-                    $fieldId = $fieldIds[$fieldName];
+                    $fieldId = $fieldIds[ $fieldName ];
 
                     if ($fieldName == "count") {
                         array_push($queryData, $pokemonId, $tierId, $fieldId, $battleCount, $entries);
@@ -297,8 +302,12 @@ class PokemonSuite extends ModuleWithPokemon {
                         continue;
 
                     if ($fieldName == "teammates") {
-                        $lower = array_filter($entries, function($item) { return $item < 0; });
-                        $upper = array_filter($entries, function($item) { return $item > 0; });
+                        $lower = array_filter($entries, function ($item) {
+                            return $item < 0;
+                        });
+                        $upper = array_filter($entries, function ($item) {
+                            return $item > 0;
+                        });
 
                         arsort($upper);
                         $upper = array_slice($upper, 0, 10);
@@ -315,31 +324,31 @@ class PokemonSuite extends ModuleWithPokemon {
                     }
 
                     foreach ($entries as $entry => $frequency) {
-                        if (in_array($fieldName, array("items", "moves", "spreads")) && ($frequency / $total) < 0.05)
+                        if (in_array($fieldName, [ "items", "moves", "spreads" ]) && ($frequency / $total) < 0.05)
                             continue;
 
-                        if (in_array($fieldName, array("abilities", "items", "moves", "teammates", "counters"))) {
+                        if (in_array($fieldName, [ "abilities", "items", "moves", "teammates", "counters" ])) {
                             $cacheKey = null;
                             switch ($fieldName) {
                                 case "abilities":
                                 case "items":
                                 case "moves":
                                     $cacheKey = $fieldName;
-                                break;
+                                    break;
                                 case "teammates":
                                 case "counters":
                                     $cacheKey = "pokemon";
-                                break;
+                                    break;
                                 default:
                                     continue;
-                                break;
+                                    break;
                             }
-                            $cacheKey2 = strtolower(str_replace(array(" ", "-"), "", $entry));
+                            $cacheKey2 = strtolower(str_replace([ " ", "-" ], "", $entry));
 
-                            if ($entry != "nothing" && !isset($cache[$cacheKey][$cacheKey2]))
+                            if ($entry != "nothing" && !isset($cache[ $cacheKey ][ $cacheKey2 ]))
                                 continue;
                             elseif ($entry != "nothing")
-                                $entry = $cache[$cacheKey][$cacheKey2][1];
+                                $entry = $cache[ $cacheKey ][ $cacheKey2 ][ 1 ];
                         }
 
                         array_push($queryData, $pokemonId, $tierId, $fieldId, $entry, $frequency);
@@ -347,7 +356,7 @@ class PokemonSuite extends ModuleWithPokemon {
 
                         if ($queryDataCount >= $maxData) {
                             $statement->execute($queryData);
-                            $queryData = array();
+                            $queryData      = [ ];
                             $queryDataCount = 0;
                         }
                     }
@@ -359,7 +368,7 @@ class PokemonSuite extends ModuleWithPokemon {
 
             if ($queryDataCount) {
                 $tempStatement = $interface->prepare(
-                    "INSERT INTO $table (" . implode(", ", $columns) . ") VALUES " . implode(", ", array_fill(0, floor($queryDataCount / $columnCount), "(" . implode(", ", array_fill(0, $columnCount, "?")) . ")"))
+                    "INSERT INTO $table (".implode(", ", $columns).") VALUES ".implode(", ", array_fill(0, floor($queryDataCount / $columnCount), "(".implode(", ", array_fill(0, $columnCount, "?")).")"))
                 );
                 $tempStatement->execute($queryData);
                 $tempStatement = null;
@@ -368,7 +377,7 @@ class PokemonSuite extends ModuleWithPokemon {
         }
 
         $this->respond($msg, "All done.");
-        $interface->disconnect($statements = array($statement));
+        $interface->disconnect($statements = [ $statement ]);
     }
 
 }

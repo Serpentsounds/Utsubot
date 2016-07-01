@@ -6,10 +6,7 @@
  */
 
 namespace Utsubot\Pokemon\Nature;
-use Utsubot\{
-	Manageable,
-	IRCFormattingException
-};
+use Utsubot\Manageable;
 use Utsubot\Pokemon\{
     Attribute,
     Flavor,
@@ -133,7 +130,6 @@ class Nature extends PokemonBase implements Manageable {
 	 *
 	 * @param Attribute $attribute Name of contest move category
 	 * @return string The attribute colored, or the original string if it's not a valid attribute
-	 * @throws IRCFormattingException If a non-string is given
 	 */
 	public static function colorAttribute(Attribute $attribute) {
         $colors = $attribute->getColors();

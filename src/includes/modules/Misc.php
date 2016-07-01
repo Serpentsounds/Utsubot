@@ -21,7 +21,9 @@ use function Utsubot\colorText;
  *
  * @package Utsubot
  */
-class MiscException extends ModuleException {}
+class MiscException extends ModuleException {
+
+}
 
 /**
  * Class Misc
@@ -34,10 +36,11 @@ class Misc extends ModuleWithPermission implements IHelp {
     use Timers;
 
     const NOW_PLAYING_INTERVAL = 60;
-    const NOW_PLAYING_FILE = '\\\\GENSOU\drop\nowplaying.txt';
+    const NOW_PLAYING_FILE     = '\\\\GENSOU\\drop\\nowplaying.txt';
 
-    protected $inCountdown = array();
-    private $lastNowPlaying = 0;
+    protected $inCountdown    = [ ];
+    private   $lastNowPlaying = 0;
+
 
     /**
      * Misc constructor.
@@ -47,42 +50,41 @@ class Misc extends ModuleWithPermission implements IHelp {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-
         //  Command triggers
-        $triggers = array();
+        $triggers = [ ];
 
-        $triggers['hug']        = new Trigger("hug",        array($this, "hug"          ));
+        $triggers[ 'hug' ] = new Trigger("hug", [ $this, "hug" ]);
 
-        $triggers['nowplaying'] = new Trigger("nowplaying", array($this, "nowPlaying"   ));
-        $triggers['nowplaying']->addAlias("np");
+        $triggers[ 'nowplaying' ] = new Trigger("nowplaying", [ $this, "nowPlaying" ]);
+        $triggers[ 'nowplaying' ]->addAlias("np");
 
-        $triggers['countdown']  = new Trigger("countdown",   array($this, "countdown"    ));
+        $triggers[ 'countdown' ] = new Trigger("countdown", [ $this, "countdown" ]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
 
-
         //  Help entries
-        $help = array();
+        $help = [ ];
 
-        $help['hug'] = new HelpEntry("Misc", $triggers['hug']);
-        $help['hug']->addParameterTextPair("", "Get a free hug!");
+        $help[ 'hug' ] = new HelpEntry("Misc", $triggers[ 'hug' ]);
+        $help[ 'hug' ]->addParameterTextPair("", "Get a free hug!");
 
-        $help['nowplayiying'] = new HelpEntry("Misc", $triggers['nowplaying']);
-        $help['nowplayiying']->addParameterTextPair("", "See what song I'm currently listening to. You were just dying to know, right?");
+        $help[ 'nowplayiying' ] = new HelpEntry("Misc", $triggers[ 'nowplaying' ]);
+        $help[ 'nowplayiying' ]->addParameterTextPair("", "See what song I'm currently listening to. You were just dying to know, right?");
 
-        $help['countdown'] = new HelpEntry("Misc", $triggers['countdown']);
-        $help['countdown']->addParameterTextPair("", "Play a countdown to the channel. By default, counts down from 3 to 1 after a 5 second delay.");
-        $help['countdown']->addParameterTextPair(
+        $help[ 'countdown' ] = new HelpEntry("Misc", $triggers[ 'countdown' ]);
+        $help[ 'countdown' ]->addParameterTextPair("", "Play a countdown to the channel. By default, counts down from 3 to 1 after a 5 second delay.");
+        $help[ 'countdown' ]->addParameterTextPair(
             "OPTIONS",
             "Manually alter countdown options. Multiple options can be specified, in the form field:value for numbers or field:\"value\" for strings."
         );
-        $help['countdown']->addNotes("Valid options are from, delay, interval (numbers) and ready, end (strings).");
+        $help[ 'countdown' ]->addNotes("Valid options are from, delay, interval (numbers) and ready, end (strings).");
 
         foreach ($help as $entry)
             $this->addHelp($entry);
 
     }
+
 
     /**
      * Give the user a hug.
@@ -92,6 +94,7 @@ class Misc extends ModuleWithPermission implements IHelp {
     public function hug(IRCMessage $msg) {
         $this->IRCBot->action($msg->getResponseTarget(), "gives {$msg->getNick()} a hug!");
     }
+
 
     /**
      * Show currently playing song information
@@ -110,15 +113,23 @@ class Misc extends ModuleWithPermission implements IHelp {
             }
         }
 
+        $db = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("soredemo"));
+        $song = $db->query("SELECT * FROM `radio`");
+
+        if (!$song)
+            throw new ModuleException("There is currently no music playing.");
+        $song = $song[0];
+
+        /*
         if (!file_exists(self::NOW_PLAYING_FILE))
             throw new ModuleException("Unable to locate song information.");
 
-        $song = explode("|", file(self::NOW_PLAYING_FILE)[0]);
+        $song = explode("|", file(self::NOW_PLAYING_FILE)[ 0 ]);
 
-        if ($song[0] == "not running" || $song[0] == "?" || !$song[0])
+        if ($song[ 0 ] == "not running" || $song[ 0 ] == "?" || !$song[ 0 ])
             throw new ModuleException("There is currently no music playing.");
 
-        list($codec, $artist, $title, $album, $date, $length, $bitrate, $composer, $performer, $time, $genre, $albumArtist, $path) = $song;
+        list($codec, $artist, $title, $album, $date, $length, $bitrate, $composer, $performer, $time, $genre, $albumArtist, $path) = $song;*/
 
         $white   = new Color(Color::White);
         $black   = new Color(Color::Black);
@@ -127,25 +138,27 @@ class Misc extends ModuleWithPermission implements IHelp {
         $fuchsia = new Color(Color::Fuchsia);
 
         $albumString = "";
-        if ($album != "?")
-            $albumString = colorText(" - ", $white, $black, false).colorText($album, $lime, $black, false);
+        if ($song[ 'album' ] != "?")
+            $albumString = colorText(" - ", $white, $black, false).colorText($song[ 'album' ], $lime, $black, false);
 
         $nowPlaying =
             colorText("Playing ", $white, $black, false).
-            colorText($codec, $yellow, $black, false).
+            colorText($song[ 'codec' ], $yellow, $black, false).
             colorText("@", $white, $black, false).
-            colorText($bitrate, $yellow, $black, false).
+            colorText($song[ 'bitrate' ], $yellow, $black, false).
             colorText(": ", $white, $black, false).
-            colorText($artist, $lime, $black, false).
+            colorText($song[ 'artist' ], $lime, $black, false).
             colorText(" - ", $white, $black, false).
-            colorText($title, $lime, $black, false).
+            colorText($song[ 'title' ], $lime, $black, false).
             $albumString.
-            colorText(" [$time/$length]", $fuchsia, $black, true);
+            colorText(" [{$song[ 'playback_time' ]}/{$song[ 'length' ]}]", $fuchsia, $black, true);
 
         $this->respond($msg, $nowPlaying);
         $this->respond($msg, "Tune in at http://radio.soredemo.net/ to listen along!");
         $this->lastNowPlaying = time();
+        $db = null;
     }
+
 
     /**
      * @param IRCMessage $msg
@@ -153,10 +166,10 @@ class Misc extends ModuleWithPermission implements IHelp {
      */
     public function countdown(IRCMessage $msg) {
         $target = $msg->getResponseTarget();
-        if (isset($this->inCountdown[$target]))
+        if (isset($this->inCountdown[ $target ]))
             throw new ModuleException("A countdown is already in progress.");
 
-        $this->inCountdown[$target] = true;
+        $this->inCountdown[ $target ] = true;
 
         //  Default settings
         $countdownFrom     = 3;
@@ -170,8 +183,8 @@ class Misc extends ModuleWithPermission implements IHelp {
         foreach ($match as $entry) {
             list(, $option, $value) = $entry;
             //  Prefer latter capture group
-            if (isset($entry[3]))
-                $value = $entry[3];
+            if (isset($entry[ 3 ]))
+                $value = $entry[ 3 ];
 
             switch ($option) {
                 //  Number to start counting down from
@@ -208,20 +221,20 @@ class Misc extends ModuleWithPermission implements IHelp {
         }
 
         //  Timers for intermediate numbers
-        $counted  = 0;
+        $counted = 0;
         while ($countdownFrom > 0) {
-            
+
             $this->addTimer(
                 new Timer(
                     $countdownDelay + $counted++ * $countdownInterval,
-                    array($this->IRCBot, "message"),
-                    array($target, $countdownFrom)
+                    [ $this->IRCBot, "message" ],
+                    [ $target, $countdownFrom ]
                 )
             );
 
             $countdownFrom -= $countdownInterval;
         }
-        
+
         /*	$countdownDelay + $counted * $countdownInterval = time last number was sent
          * 	$countdownFrom + $countdownInterval = remaining time	*/
         $finalTime = $countdownDelay + --$counted * $countdownInterval + $countdownFrom + $countdownInterval;
@@ -230,8 +243,8 @@ class Misc extends ModuleWithPermission implements IHelp {
         $this->addTimer(
             new Timer(
                 $finalTime,
-                array($this->IRCBot, "message"),
-                array($target, $endingMessage)
+                [ $this->IRCBot, "message" ],
+                [ $target, $endingMessage ]
             )
         );
 
@@ -240,9 +253,9 @@ class Misc extends ModuleWithPermission implements IHelp {
             new Timer(
                 $finalTime,
                 function ($target) {
-                    unset($this->inCountdown[$target]);
+                    unset($this->inCountdown[ $target ]);
                 },
-                array($target)
+                [ $target ]
             )
         );
 

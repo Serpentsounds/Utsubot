@@ -28,7 +28,7 @@ class UrbanDictionary extends WebModule {
         parent::__construct($IRCBot);
         
         //  Command triggers
-        $urbanDictionary = new Trigger("urbandictionary", array($this, "define"));
+        $urbanDictionary = new Trigger("urbandictionary", [$this, "define"]);
         $urbanDictionary->addAlias("urban");
         $urbanDictionary->addAlias("ud");
         $this->addTrigger($urbanDictionary);

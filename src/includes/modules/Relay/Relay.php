@@ -38,7 +38,7 @@ class Relay extends ModuleWithPermission implements IHelp {
     use THelp;
 
     /** @var ActiveRelay[] $relays */
-    protected $relays = array();
+    protected $relays = [ ];
 
     /**
      * Relay constructor.
@@ -50,17 +50,17 @@ class Relay extends ModuleWithPermission implements IHelp {
 
         
         //  Command triggers
-        $triggers = array();        
-        $triggers['relay']      = new Trigger("relay",      array($this, "newRelay"     ));
-        $triggers['unrelay']    = new Trigger("unrelay",    array($this, "removeRelay"  ));
-        $triggers['relays']     = new Trigger("relays",     array($this, "listRelays"   ));
+        $triggers = [ ];        
+        $triggers['relay']      = new Trigger("relay",      [$this, "newRelay"     ]);
+        $triggers['unrelay']    = new Trigger("unrelay",    [$this, "removeRelay"  ]);
+        $triggers['relays']     = new Trigger("relays",     [$this, "listRelays"   ]);
         
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);        
         
         
         //  Help entries
-        $help = array();
+        $help = [ ];
         $category = "Relay Module";
         
         $help['relay'] = new HelpEntry($category, $triggers['relay']);

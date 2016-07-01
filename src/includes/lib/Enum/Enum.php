@@ -25,7 +25,7 @@ class EnumException extends Exception {}
  */
 abstract class Enum {
 
-    protected static $constants = array();
+    protected static $constants = [ ];
     protected $value = null;
 
     /**
@@ -37,7 +37,7 @@ abstract class Enum {
     public function __construct($value) {
         if (!static::isValidValue($value))
             throw new EnumException("Unable to create ". get_called_class(). " with value '$value'.");
-        
+
         $this->value = $value;
     }
 
@@ -47,7 +47,7 @@ abstract class Enum {
     public function __toString(): string {
         return (string)$this->getValue();
     }
-    
+
     /**
      * @return mixed
      */
@@ -96,7 +96,7 @@ abstract class Enum {
 
     /**
      * Check if a value can be validly used as an instance
-     * 
+     *
      * @param mixed $value
      * @return bool
      */
@@ -118,7 +118,7 @@ abstract class Enum {
 
         //  Anonymous function to apply to searches for a loose comparison
         $normalize = function($item) {
-            return strtolower(str_replace(array("_", "-", " "), "", $item));
+            return strtolower(str_replace([ "_", "-", " " ], "", $item));
         };
 
         //  Grab and normalize keys
@@ -149,6 +149,16 @@ abstract class Enum {
             return str_replace("_", " ", $key);
 
         throw new EnumException("Invalid ". get_called_class(). " item value '$value'.");
+    }
+
+
+    /**
+     * Get the names of all valid constants as an array of strings
+     * 
+     * @return array
+     */
+    public static function listConstants(): array {
+        return array_keys((new \ReflectionClass(static::class))->getConstants());
     }
 
 }

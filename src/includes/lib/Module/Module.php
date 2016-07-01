@@ -14,16 +14,16 @@ class ModuleException extends \Exception {}
 abstract class Module {
 
     protected $IRCBot;
-    
+
     /** @var Trigger[] $triggers */
-    private $triggers = array();
+    private $triggers = [ ];
 
     /**
      * Module constructor.
      *
      * @param IRCBot $IRCBot
      */
-    public function __construct(IRCBot $IRCBot) {		
+    public function __construct(IRCBot $IRCBot) {
         $this->IRCBot = $IRCBot;
     }
 
@@ -68,7 +68,7 @@ abstract class Module {
     protected function requireParameters(IRCMessage $msg, int $count = 1, string $errorMessage = "") {
         if ($errorMessage === "")
             $errorMessage = "This command requires at least $count parameter(s).";
-        
+
         if (count($msg->getCommandParameters()) < $count)
             throw new ModuleException($errorMessage);
     }
@@ -80,7 +80,7 @@ abstract class Module {
      * @return Module
      * @throws ModuleException If the specified module is not loaded
      */
-    protected function externalModule(string $module): Module {
+    protected function getModule(string $module): Module {
         if (class_exists($module) && ($instance = $this->IRCBot->getModule($module)) instanceof $module)
             return $instance;
 

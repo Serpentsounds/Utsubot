@@ -8,7 +8,6 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
-
 /**
  * Class Timers
  *
@@ -17,16 +16,18 @@ namespace Utsubot;
 trait Timers {
 
     /** @var Timer[] */
-    private $timers = array();
+    private $timers = [ ];
+
 
     /**
      * Add a timer to the queue
-     * 
+     *
      * @param Timer $timer
      */
     protected function addTimer(Timer $timer) {
         $this->timers[] = $timer;
     }
+
 
     /**
      * Overwrite Module time tick function to call timer functions
@@ -39,16 +40,16 @@ trait Timers {
             //  Attempt to activate timer and remove it from queue
             try {
                 $timer->activate();
-                unset($this->timers[$key]);
+                unset($this->timers[ $key ]);
             }
-            //  Error activating timer
+                //  Error activating timer
             catch (TimerException $e) {
                 //  Timer was already activated by another routine, remove it from queue
                 if ($e->getCode() === Timer::TimerActivated)
-                    unset($this->timers[$key]);
+                    unset($this->timers[ $key ]);
                 //  Otherwise, the error is because it is too early for the timer to activate, so no action is taken
             }
         }
     }
-    
+
 }

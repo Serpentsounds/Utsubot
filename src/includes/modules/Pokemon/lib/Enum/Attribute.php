@@ -27,22 +27,22 @@ class Attribute extends Enum {
     const Smart    = 3;
     const Tough    = 4;
 
-    protected static $colors = array(
-        self::Cool     => array(Color::Red,     Color::Clear),
-        self::Beauty   => array(Color::Blue,    Color::Clear),
-        self::Cute     => array(Color::Fuchsia, Color::Clear),
-        self::Smart    => array(Color::Green,   Color::Clear),
-        self::Tough    => array(Color::Yellow,  Color::Black)
-    );
+    protected static $colors = [
+        self::Cool     => [ Color::Red,     Color::Clear ],
+        self::Beauty   => [ Color::Blue,    Color::Clear ],
+        self::Cute     => [ Color::Fuchsia, Color::Clear ],
+        self::Smart    => [ Color::Green,   Color::Clear ],
+        self::Tough    => [ Color::Yellow,  Color::Black ]
+    ];
 
     /**
      * @return array
      */
     public function getColors(): array {
         $values = self::$colors[$this->getValue()];
-        return array(
+        return [
             new Color($values[0]),
             new Color($values[1])
-        );
+        ];
     }
 }

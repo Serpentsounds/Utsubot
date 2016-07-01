@@ -30,13 +30,13 @@ class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
         if ($slot3 === null)
             return $this->query(
                 sprintf("INSERT INTO `%s` (`$column`, `%s`, `%s`, `%s`) VALUES (?, ?, ?, ?)", self::$table, self::$typeColumn, self::$slot1Column, self::$slot2Column),
-                array($user, $type, $slot1, $slot2)
+                [ $user, $type, $slot1, $slot2 ]
             );
 
         else
             return $this->query(
                 sprintf("INSERT INTO `%s` (`$column`, `%s`, `%s`, `%s`, `%s`) VALUES (?, ?, ?, ?, ?)", self::$table, self::$typeColumn, self::$slot1Column, self::$slot2Column, self::$slot3Column),
-                array($user, $type, $slot1, $slot2, $slot3)
+                [ $user, $type, $slot1, $slot2, $slot3 ]
         );
     }
 
@@ -52,14 +52,14 @@ class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
             if ($slot1 === null || $slot2 === null)
                 return $this->query(
                     sprintf("DELETE FROM `%s` WHERE `$column`=?", self::$table),
-                    array($user)
+                    [ $user ]
                 );
 
             //	Only slot 3 null, remove exact 2-pokemon entry
             else
                 return $this->query(
                     sprintf("DELETE FROM `%s` WHERE `$column`=? AND `%s`=? AND `%s`=? AND `%s` IS NULL LIMIT 1", self::$table, self::$slot1Column, self::$slot2Column, self::$slot3Column),
-                    array($user, $slot1, $slot2)
+                    [ $user, $slot1, $slot2 ]
                 );
         }
 
@@ -67,7 +67,7 @@ class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
             //	No nulls, remove exact 3-pokemon entry
             return $this->query(
                 sprintf("DELETE FROM `%s` WHERE `$column`=? AND `%s`=? AND `%s`=? AND `%s`=? LIMIT 1", self::$table, self::$slot1Column, self::$slot2Column, self::$slot3Column),
-                array($user, $slot1, $slot2, $slot3)
+                [ $user, $slot1, $slot2, $slot3 ]
             );
     }
 
@@ -81,14 +81,14 @@ class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
             if ($slot1 === null || $slot2 === null)
                 return $this->query(
                     sprintf("SELECT * FROM `%s` WHERE `$column`=?", self::$table),
-                    array($user)
+                    [ $user ]
                 );
 
             //	Only slot 3 null, select exact 2-pokemon entry
             else
                 return $this->query(
                     sprintf("SELECT * FROM `%s` WHERE `$column`=? AND `%s`=? AND `%s`=? AND `%s` IS NULL LIMIT 1", self::$table, self::$slot1Column, self::$slot2Column, self::$slot3Column),
-                    array($user, $slot1, $slot2)
+                    [ $user, $slot1, $slot2 ]
                 );
         }
 
@@ -96,7 +96,7 @@ class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
             //	No nulls, select exact 3-pokemon entry
             return $this->query(
                 sprintf("SELECT * FROM `%s` WHERE `$column`=? AND `%s`=? AND `%s`=? AND `%s`=? LIMIT 1", self::$table, self::$slot1Column, self::$slot2Column, self::$slot3Column),
-                array($user, $slot1, $slot2, $slot3)
+                [ $user, $slot1, $slot2, $slot3 ]
             );
 
     }

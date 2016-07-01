@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Permission;
+
 use Utsubot\Accounts\AccountsException;
 use Utsubot\Help\{
     HelpEntry,
@@ -28,7 +29,9 @@ use Utsubot\{
  *
  * @package Utsubot\Permission
  */
-class PermissionException extends ModuleException {}
+class PermissionException extends ModuleException {
+
+}
 
 /**
  * Class Permission
@@ -40,9 +43,10 @@ class Permission extends ModuleWithPermission implements IHelp {
     use THelp;
 
     const PERMISSION_ALLOW = 0;
-    const PERMISSION_DENY = 1;
+    const PERMISSION_DENY  = 1;
 
     private $interface;
+
 
     /**
      * Create interface upon construct
@@ -57,33 +61,31 @@ class Permission extends ModuleWithPermission implements IHelp {
 
         $this->interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
 
-
         //  Command triggers
-        $triggers = array();
-        $triggers['allow']      = new Trigger("allow",      array($this, "allow"    ));
-        $triggers['deny']       = new Trigger("deny",       array($this, "deny"     ));
-        $triggers['unallow']    = new Trigger("unallow",    array($this, "unallow"  ));
-        $triggers['undeny']     = new Trigger("undeny",     array($this, "undeny"   ));
+        $triggers              = [ ];
+        $triggers[ 'allow' ]   = new Trigger("allow", [ $this, "allow" ]);
+        $triggers[ 'deny' ]    = new Trigger("deny", [ $this, "deny" ]);
+        $triggers[ 'unallow' ] = new Trigger("unallow", [ $this, "unallow" ]);
+        $triggers[ 'undeny' ]  = new Trigger("undeny", [ $this, "undeny" ]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
 
-
         //  Help entries
-        $help = array();
+        $help     = [ ];
         $category = "Permission";
 
-        $help['allow'] = new HelpEntry($category, $triggers['allow']);
-        $help['allow']->addParameterTextPair("COMMAND CONSTRAINTS", "Allow COMMAND to be used under CONSTRAINTS, even if it is denied.");
+        $help[ 'allow' ] = new HelpEntry($category, $triggers[ 'allow' ]);
+        $help[ 'allow' ]->addParameterTextPair("COMMAND CONSTRAINTS", "Allow COMMAND to be used under CONSTRAINTS, even if it is denied.");
 
-        $help['unallow'] = new HelpEntry($category, $triggers['unallow']);
-        $help['unallow']->addParameterTextPair("COMMAND CONSTRAINTS", "Remove an existing allow. COMMAND and CONSTRAINTS must exactly match the allow's parameters.");
+        $help[ 'unallow' ] = new HelpEntry($category, $triggers[ 'unallow' ]);
+        $help[ 'unallow' ]->addParameterTextPair("COMMAND CONSTRAINTS", "Remove an existing allow. COMMAND and CONSTRAINTS must exactly match the allow's parameters.");
 
-        $help['deny'] = new HelpEntry($category, $triggers['deny']);
-        $help['deny']->addParameterTextPair("COMMAND CONSTRAINTS", "Prevent COMMAND from working under CONSTRAINTS.");
+        $help[ 'deny' ] = new HelpEntry($category, $triggers[ 'deny' ]);
+        $help[ 'deny' ]->addParameterTextPair("COMMAND CONSTRAINTS", "Prevent COMMAND from working under CONSTRAINTS.");
 
-        $help['undeny'] = new HelpEntry($category, $triggers['undeny']);
-        $help['undeny']->addParameterTextPair("COMMAND CONSTRAINTS", "Remove an existing deny. COMMAND and CONSTRAINTS must exactly match the deny's parameters.");
+        $help[ 'undeny' ] = new HelpEntry($category, $triggers[ 'undeny' ]);
+        $help[ 'undeny' ]->addParameterTextPair("COMMAND CONSTRAINTS", "Remove an existing deny. COMMAND and CONSTRAINTS must exactly match the deny's parameters.");
 
         /** @var HelpEntry $entry */
         foreach ($help as $entry) {
@@ -99,6 +101,7 @@ class Permission extends ModuleWithPermission implements IHelp {
 
     }
 
+
     /**
      * Add an allow line
      *
@@ -109,6 +112,7 @@ class Permission extends ModuleWithPermission implements IHelp {
         $this->requireLevel($msg, 75);
         $this->addPermission(self::PERMISSION_ALLOW, $msg);
     }
+
 
     /**
      * Add a deny line
@@ -121,6 +125,7 @@ class Permission extends ModuleWithPermission implements IHelp {
         $this->addPermission(self::PERMISSION_DENY, $msg);
     }
 
+
     /**
      * Remove an allow line
      *
@@ -131,6 +136,7 @@ class Permission extends ModuleWithPermission implements IHelp {
         $this->requireLevel($msg, 75);
         $this->removePermission(self::PERMISSION_ALLOW, $msg);
     }
+
 
     /**
      * Remove a deny line
@@ -143,13 +149,14 @@ class Permission extends ModuleWithPermission implements IHelp {
         $this->removePermission(self::PERMISSION_DENY, $msg);
     }
 
+
     /**
      * Internal function to translate a user-supplied parameter string into database values
      *
-     * @param int $type allow or deny
+     * @param int   $type       allow or deny
      * @param array $parameters Array of command parameters (words)
      * @return array array(array of query parameters matching up with values, array of sql statement values as either
-     *               "?" or null)
+     *                          "?" or null)
      * @throws PermissionException
      * @throws \Exception
      */
@@ -158,17 +165,17 @@ class Permission extends ModuleWithPermission implements IHelp {
         switch ($type) {
             case self::PERMISSION_ALLOW:
                 $type = "allow";
-            break;
+                break;
             case self::PERMISSION_DENY:
                 $type = "deny";
-            break;
+                break;
             default:
                 throw new PermissionException("Invalid permission type constant '$type'.");
-            break;
+                break;
         }
 
         //	Grab command in question from the front of parameters
-        $trigger = array_shift($parameters);
+        $trigger      = array_shift($parameters);
         $channelField = $userField = $nickField = $addressField = $parametersField = "";
 
         foreach ($parameters as $parameter) {
@@ -193,7 +200,7 @@ class Permission extends ModuleWithPermission implements IHelp {
 
                     //	Access Users to get account name
                     $users = $this->IRCBot->getUsers();
-                    $user = $users->search($value);
+                    $user  = $users->search($value);
 
                     //	Find account User is logged into
                     if ($user instanceof User) {
@@ -207,66 +214,66 @@ class Permission extends ModuleWithPermission implements IHelp {
                     else
                         throw new PermissionException("'$value' is not a logged in user.");
 
-                break;
+                    break;
 
                 //	Restrict based on nickname
                 case "nickname":
                     $nickField = $value;
-                break;
+                    break;
                 //	Restrict based on address
                 case "address":
                     $addressField = $value;
-                break;
+                    break;
                 //	Restrict based on parameters
                 case "parameters":
                     $parametersField = $value;
-                break;
+                    break;
 
                 //	Abort if any parameters are invalid
                 default:
                     throw new PermissionException("Not all constraints are valid.");
-                break;
+                    break;
             }
         }
 
         //	Start with all parameters, and weed out blank ones
-        $queryParameters = array($trigger, $type);
-        $values = array("?", "?", "?", "?", "?", "?", "?");
+        $queryParameters = [ $trigger, $type ];
+        $values          = [ "?", "?", "?", "?", "?", "?", "?" ];
 
         //	For every field, either replace the sql query placeholder if blank, or add a value to the parameters if it's there
         if (!$channelField)
-            $values[2] = null;
+            $values[ 2 ] = null;
         else
             $queryParameters[] = $channelField;
 
         if (!strlen($userField))
-            $values[3] = null;
+            $values[ 3 ] = null;
         else
             $queryParameters[] = $userField;
 
         if (!strlen($nickField))
-            $values[4] = null;
+            $values[ 4 ] = null;
         else
             $queryParameters[] = $nickField;
 
         if (!$addressField)
-            $values[5] = null;
+            $values[ 5 ] = null;
         else
             $queryParameters[] = $addressField;
 
         if (!$parametersField)
-            $values[6] = null;
+            $values[ 6 ] = null;
         else
             $queryParameters[] = $parametersField;
 
-
-        return array($queryParameters, $values);
+        return [ $queryParameters, $values ];
     }
+
 
     /**
      * Used by allow() and deny() to add a row to the db
      *
-     * @param int $type
+     * @param int        $type
      * @param IRCMessage $msg
      * @throws PermissionException If any parameters are invalid, or if line exists
      */
@@ -274,7 +281,7 @@ class Permission extends ModuleWithPermission implements IHelp {
         list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
         //	Replace null values with "null" to put into database
-        array_walk($values, function(&$element) {
+        array_walk($values, function (&$element) {
             if ($element === null)
                 $element = "null";
         });
@@ -291,10 +298,11 @@ class Permission extends ModuleWithPermission implements IHelp {
         $this->respond($msg, "Permission has been added.");
     }
 
+
     /**
      * Used by unallow() and undeny() to remove a row from the db
      *
-     * @param int $type
+     * @param int        $type
      * @param IRCMessage $msg
      * @throws PermissionException If any parameters are invalid, or if line doesn't exist
      */
@@ -302,12 +310,12 @@ class Permission extends ModuleWithPermission implements IHelp {
         list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
         //	Form conditionals for each column
-        $columns = array("`trigger`", "`type`", "`channel`", "`user_id`", "`nickname`", "`address`", "`parameters`");
-        array_walk($values, function(&$element, $key) use ($columns) {
+        $columns = [ "`trigger`", "`type`", "`channel`", "`user_id`", "`nickname`", "`address`", "`parameters`" ];
+        array_walk($values, function (&$element, $key) use ($columns) {
             if ($element === null)
-                $element = $columns[$key]. " IS NULL";
+                $element = $columns[ $key ]." IS NULL";
             else
-                $element = $columns[$key]. "=?";
+                $element = $columns[ $key ]."=?";
         });
         $value = implode(" AND ", $values);
 
@@ -322,11 +330,12 @@ class Permission extends ModuleWithPermission implements IHelp {
         $this->respond($msg, "Permission has been removed.");
     }
 
+
     /**
      * Check if a user (determined through an IRCMessage) has permission to use a command
      *
      * @param IRCMessage $msg
-     * @param string $trigger Command function name
+     * @param string     $trigger Command function name
      * @return bool True or false
      */
     public function hasPermission(IRCMessage $msg, string $trigger): bool {
@@ -334,7 +343,7 @@ class Permission extends ModuleWithPermission implements IHelp {
 
         $results = $this->interface->query(
             "SELECT * FROM `command_permission` WHERE `trigger`=?",
-            array($trigger)
+            [ $trigger ]
         );
 
         //	No rows affecting this command
@@ -342,24 +351,25 @@ class Permission extends ModuleWithPermission implements IHelp {
             return $permission;
 
         //	Sort results to put allows at the end, so they trump denies
-        usort($results, function($row1, $row2) {
-            if ($row1['type'] == $row2['type'])
+        usort($results, function ($row1, $row2) {
+            if ($row1[ 'type' ] == $row2[ 'type' ])
                 return 0;
-            elseif ($row1['type'] == "allow")
+            elseif ($row1[ 'type' ] == "allow")
                 return 1;
+
             return -1;
         });
 
         //	Info from IRCMessage
-        $inChannel = $msg->inChannel();
-        $channel = $msg->getResponseTarget();
-        $nick = $msg->getNick();
-        $address = "$nick!{$msg->getIdent()}@{$msg->getFullHost()}";
+        $inChannel  = $msg->inChannel();
+        $channel    = $msg->getResponseTarget();
+        $nick       = $msg->getNick();
+        $address    = "$nick!{$msg->getIdent()}@{$msg->getFullHost()}";
         $parameters = $msg->getParameterString();
 
         //	Attempt to grab user ID for comparison
         $users = $this->IRCBot->getUsers();
-        $user = $users->createIfAbsent($address);
+        $user  = $users->createIfAbsent($address);
         try {
             $id = $this->getAccountIDByUser($user);
         }
@@ -367,30 +377,29 @@ class Permission extends ModuleWithPermission implements IHelp {
             $id = null;
         }
 
-
         //	Apply rows 1 by 1
         foreach ($results as $row) {
             //	All of these must be true for the rule to apply. If the db value is NULL, it will automatically apply
             $channelMatch = $userMatch = $nickMatch = $addressMatch = $parameterMatch = false;
 
             //  Channel name (exact match)
-            if (!$row['channel'] || ($inChannel && $row['channel'] == $channel))
+            if (!$row[ 'channel' ] || ($inChannel && $row[ 'channel' ] == $channel))
                 $channelMatch = true;
 
             //  Nickname (wildcard match)
-            if (!$row['nickname'] || fnmatch(strtolower($row['nickname']), strtolower($nick)))
+            if (!$row[ 'nickname' ] || fnmatch(strtolower($row[ 'nickname' ]), strtolower($nick)))
                 $nickMatch = true;
 
             //  Address (wildcard match)
-            if (!$row['address'] || fnmatch($row['address'], $address))
+            if (!$row[ 'address' ] || fnmatch($row[ 'address' ], $address))
                 $addressMatch = true;
 
             //  Account id (exact match)
-            if (!$row['user_id'] || $row['user_id'] == $id)
+            if (!$row[ 'user_id' ] || $row[ 'user_id' ] == $id)
                 $userMatch = true;
 
             //  Command parameters (wildcard match)
-            if (!$row['parameters'] || fnmatch(strtolower($row['parameters']), strtolower($parameters)))
+            if (!$row[ 'parameters' ] || fnmatch(strtolower($row[ 'parameters' ]), strtolower($parameters)))
                 $parameterMatch = true;
 
             //	Enforce passing of all checks
@@ -398,9 +407,9 @@ class Permission extends ModuleWithPermission implements IHelp {
                 continue;
 
             //	Adjust permission accordingly
-            if ($row['type'] == "allow")
+            if ($row[ 'type' ] == "allow")
                 $permission = true;
-            elseif ($row['type'] == "deny")
+            elseif ($row[ 'type' ] == "deny")
                 $permission = false;
         }
 

@@ -10,7 +10,8 @@ namespace Utsubot\Web;
 use Utsubot\{
     DatabaseInterface,
     DatabaseInterfaceException,
-    MySQLDatabaseCredentials
+    MySQLDatabaseCredentials,
+    SQLiteDatbaseCredentials
 };
 
 
@@ -32,7 +33,8 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
      * APIKeysDatabaseInterface constructor.
      */
     public function __construct() {
-        parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        #parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
         
         $this->createAPIKeyTable();
     }
@@ -43,12 +45,12 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
     private function createAPIKeyTable() {
         try {
             $this->query(
-                "CREATE TABLE `apikeys`
+                'CREATE TABLE "apikeys"
                 (
-	              `service` varchar(64) NOT NULL,
-	              `key` varchar(256) NOT NULL,
-	              PRIMARY KEY (`service`)
-                )"
+                  "service" varchar(64) NOT NULL,
+                  "key" varchar(256) NOT NULL,
+                  PRIMARY KEY ("service")
+                )'
             );
 
             echo "APIKey database table successfully created.\n\n";
@@ -68,20 +70,20 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
     public function insertAPIKey(string $service, string $key) {
         try {
             $this->query(
-                "INSERT INTO `apikeys` (`service`, `key`)
-                VALUES (?, ?)",
-                array($service, $key)
+                'INSERT INTO "apikeys" ("service", "key")
+                VALUES (?, ?)',
+                [ $service, $key ]
             );
         }
         
         //  Duplicate service, attempt update
         catch (\PDOException $e) {
             $rowCount = $this->query(
-                "UPDATE `apikeys`
-                SET `key`=?
-                WHERE `service`=?
-                LIMIT 1",
-                array($key, $service)
+                'UPDATE "apikeys"
+                SET "key"=?
+                WHERE "service"=?
+                LIMIT 1',
+                [ $key, $service ]
             );
 
             //  Update failed, key matches existing database value
@@ -98,10 +100,10 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
      */
     public function deleteAPIKey(string $service) {
         $rowCount = $this->query(
-            "DELETE FROM `apikeys`
-            WHERE `service`=?
-            LIMIT 1",
-            array($service)
+            'DELETE FROM "apikeys"
+            WHERE "service"=?
+            LIMIT 1',
+            [ $service ]
         );
 
         //  No rows deleted
@@ -116,9 +118,9 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
      */
     public function getAPIKeys(): array {
         return $this->query(
-            "SELECT *
-             FROM `apikeys`
-        ");
+            'SELECT *
+             FROM "apikeys"'
+        );
     }
 
 }

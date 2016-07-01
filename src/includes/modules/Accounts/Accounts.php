@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Accounts;
+
 use Utsubot\Help\{
     HelpEntry,
     IHelp,
@@ -28,7 +29,9 @@ use function Utsubot\bold;
  *
  * @package Utsubot\Accounts
  */
-class AccountsException extends ModuleException {}
+class AccountsException extends ModuleException {
+
+}
 
 /**
  * Class Accounts
@@ -36,7 +39,7 @@ class AccountsException extends ModuleException {}
  * @package Utsubot\Accounts
  */
 class Accounts extends ModuleWithAccounts implements IHelp {
-    
+
     use THelp;
     use Timers;
 
@@ -45,9 +48,10 @@ class Accounts extends ModuleWithAccounts implements IHelp {
     /** @var Setting[] $settings */
     private $settings;
 
-    private $autoLoginCache   = array();
-    private $loggedIn         = array();
-    private $defaultNickCheck = array();
+    private $autoLoginCache   = [ ];
+    private $loggedIn         = [ ];
+    private $defaultNickCheck = [ ];
+
 
     /**
      * Accounts constructor.
@@ -59,113 +63,73 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $this->interface = new AccountsDatabaseInterface();
 
         //  Account settings
-        $this->registerSetting(new Setting($this, "nick",           "Default Nickname",                 1));
-        $this->registerSetting(new Setting($this, "disablenotify",  "Disable Auto Login Notification",  1));
-        $this->registerSetting(new Setting($this, "autologin",      "Auto Login Host",                  5));
+        $this->registerSetting(new Setting($this, "nick", "Default Nickname", 1));
+        $this->registerSetting(new Setting($this, "disablenotify", "Disable Auto Login Notification", 1));
+        $this->registerSetting(new Setting($this, "autologin", "Auto Login Host", 5));
 
-
-        
         //  Command triggers
-        $triggers = array();
-        $triggers['login']      = new Trigger("login",      array($this, "login"    ));
-        $triggers['logout']     = new Trigger("logout",     array($this, "logout"   ));
-        $triggers['register']   = new Trigger("register",   array($this, "register" ));
-        $triggers['set']        = new Trigger("set",        array($this, "set"      ));
-        $triggers['unset']      = new Trigger("unset",      array($this, "_unset"   ));
-        $triggers['settings']   = new Trigger("settings",   array($this, "settings" ));
-        $triggers['access']     = new Trigger("access",     array($this, "access"   ));
-        
+        $triggers               = [ ];
+        $triggers[ 'login' ]    = new Trigger("login", [ $this, "login" ]);
+        $triggers[ 'logout' ]   = new Trigger("logout", [ $this, "logout" ]);
+        $triggers[ 'register' ] = new Trigger("register", [ $this, "register" ]);
+        $triggers[ 'set' ]      = new Trigger("set", [ $this, "set" ]);
+        $triggers[ 'unset' ]    = new Trigger("unset", [ $this, "_unset" ]);
+        $triggers[ 'settings' ] = new Trigger("settings", [ $this, "settings" ]);
+        $triggers[ 'access' ]   = new Trigger("access", [ $this, "access" ]);
+
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
 
-
         //  Help entries
         /** @var HelpEntry[] $help */
-        $help = array();
+        $help     = [ ];
         $category = "Account";
 
-        $help['login'] = new HelpEntry($category, $triggers['login']);
-        $help['login']->addParameterTextPair("USERNAME PASSWORD",       "Logs you into your account USERNAME using PASSWORD.");
+        $help[ 'login' ] = new HelpEntry($category, $triggers[ 'login' ]);
+        $help[ 'login' ]->addParameterTextPair("USERNAME PASSWORD", "Logs you into your account USERNAME using PASSWORD.");
 
-        $help['logout'] = new HelpEntry($category, $triggers['logout']);
-        $help['logout']->addParameterTextPair("",                       "Logs you out of your account.");
-        
-        $help['register'] = new HelpEntry($category, $triggers['register']);
-        $help['register']->addParameterTextPair("USERNAME PASSWORD",    "Register a new account with the bot.");
+        $help[ 'logout' ] = new HelpEntry($category, $triggers[ 'logout' ]);
+        $help[ 'logout' ]->addParameterTextPair("", "Logs you out of your account.");
 
-        $help['set'] = new HelpEntry($category, $triggers['set']);
-        $help['set']->addParameterTextPair("OPTION [VALUE]",            "Enable OPTION or set OPTION to VALUE on your account.");
+        $help[ 'register' ] = new HelpEntry($category, $triggers[ 'register' ]);
+        $help[ 'register' ]->addParameterTextPair("USERNAME PASSWORD", "Register a new account with the bot.");
 
-        $help['unset'] = new HelpEntry($category, $triggers['unset']);
-        $help['unset']->addParameterTextPair("OPTION [VALUE]",          "Remove the OPTION setting from your account. If OPTION accepts multiple simultaneous values, you must specify which to remove using VALUE.");
-        
-        $help['settings'] = new HelpEntry($category, $triggers['settings']);
-        $help['settings']->addParameterTextPair("OPTION",               "View your current settings for OPTION.");
-        $help['settings']->addParameterTextPair("",                     "View all of your account settings.");
+        $help[ 'set' ] = new HelpEntry($category, $triggers[ 'set' ]);
+        $help[ 'set' ]->addParameterTextPair("OPTION [VALUE]", "Enable OPTION or set OPTION to VALUE on your account.");
 
-        $help['access'] = new HelpEntry($category, $triggers['access']);
-        $help['access']->addParameterTextPair("add USER LEVEL",         "Give USER's account access level LEVEL.");
-        $help['access']->addParameterTextPair("remove USER",            "Remove USER's account's access (set to level 0).");
-        $help['access']->addParameterTextPair("list [USER]",            "Show the access level for USER's account. If USER is omitted, show your own access level.");
-        $help['access']->addParameterTextPair("",                       "Shortcut to list your own access level.");
-        $help['access']->addNotes("All USER parameters must be nicknames, as account names are private.");
-        $help['access']->addNotes("The add and remove commands require access level 90.");
-        $help['access']->addNotes("You can only modify access on someone whose level is lower than yours, and can only give a lower access level than you have.");
+        $help[ 'unset' ] = new HelpEntry($category, $triggers[ 'unset' ]);
+        $help[ 'unset' ]->addParameterTextPair("OPTION [VALUE]", "Remove the OPTION setting from your account. If OPTION accepts multiple simultaneous values, you must specify which to remove using VALUE.");
+
+        $help[ 'settings' ] = new HelpEntry($category, $triggers[ 'settings' ]);
+        $help[ 'settings' ]->addParameterTextPair("OPTION", "View your current settings for OPTION.");
+        $help[ 'settings' ]->addParameterTextPair("", "View all of your account settings.");
+
+        $help[ 'access' ] = new HelpEntry($category, $triggers[ 'access' ]);
+        $help[ 'access' ]->addParameterTextPair("add USER LEVEL", "Give USER's account access level LEVEL.");
+        $help[ 'access' ]->addParameterTextPair("remove USER", "Remove USER's account's access (set to level 0).");
+        $help[ 'access' ]->addParameterTextPair("list [USER]", "Show the access level for USER's account. If USER is omitted, show your own access level.");
+        $help[ 'access' ]->addParameterTextPair("", "Shortcut to list your own access level.");
+        $help[ 'access' ]->addNotes("All USER parameters must be nicknames, as account names are private.");
+        $help[ 'access' ]->addNotes("The add and remove commands require access level 90.");
+        $help[ 'access' ]->addNotes("You can only modify access on someone whose level is lower than yours, and can only give a lower access level than you have.");
 
         //  Add common properties for help entries
         foreach ($help as $key => $entry) {
             $entry->addNotes("This command can only be used in a private message.");
             $this->addHelp($entry);
         }
-        
 
         //  Initialization
         //  Create a timer to add notes to the 'set' help entry after all modules have registered
         $this->addTimer(new Timer(
-            0,  //  No delay necessary, all modules must finish loading before the next Module time() tick occurs
-            array($this, "updateSettingsHelp"),
-            array($help['set'])
-        ));
+                            0,  //  No delay necessary, all modules will finish loading before the next Module time() tick occurs
+                            [ $this, "updateSettingsHelp" ],
+                            [ $help[ 'set' ] ]
+                        ));
 
         $this->updateAutoLoginCache();
     }
 
-    /**
-     * Update notes in the 'set' command to show all settings. Called on a timer to allow all modules to load their settings first
-     *
-     * @param HelpEntry $entry
-     * @throws AccountsException
-     */
-    public function updateSettingsHelp(HelpEntry $entry) {
-
-        //  Only the 'set' command needs the settings list
-        if (!$entry->matches("set"))
-            throw new AccountsException("Help entry does not correspond to the 'set' command.");
-        
-        $info = array();
-        foreach ($this->settings as $setting) {
-            $info[] = sprintf(
-                "%s (%s)%s",
-                $setting->getName(),
-                $setting->getDisplay(),
-                ($setting->getMaxEntries() > 1) ? " [Up to {$setting->getMaxEntries()} entries]" : ""
-            );
-        }
-        
-        $entry->addNotes("Available settings: ". implode(", ", $info));
-    }
-
-    /**
-     * Cache auto login information from the database
-     *
-     * @throws AccountsException
-     */
-    private function updateAutoLoginCache() {
-        $autoLogin = $this->interface->getGlobalSettings($this->getSettingObject("autologin"));
-
-        foreach ($autoLogin as $row)
-            $this->autoLoginCache[ intval($row['id']) ][] = $row['value'];
-    }
 
     /**
      * Register a setting upon module initialization for use with the 'set' command
@@ -177,6 +141,20 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $this->settings[] = $setting;
         $this->interface->registerSetting($setting);
     }
+
+
+    /**
+     * Cache auto login information from the database
+     *
+     * @throws AccountsException
+     */
+    private function updateAutoLoginCache() {
+        $autoLogin = $this->interface->getEntriesForSetting($this->getSettingObject("autologin"));
+
+        foreach ($autoLogin as $row)
+            $this->autoLoginCache[ intval($row[ 'id' ]) ][] = $row[ 'value' ];
+    }
+
 
     /**
      * Get a registered setting object by matching the name field
@@ -192,6 +170,34 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
         throw new AccountsException("No setting has been registered with name '$name'.");
     }
+
+
+    /**
+     * Update notes in the 'set' command to show all settings. Called on a timer to allow all modules to load their
+     * settings first
+     *
+     * @param HelpEntry $entry
+     * @throws AccountsException
+     */
+    public function updateSettingsHelp(HelpEntry $entry) {
+
+        //  Only the 'set' command needs the settings list
+        if (!$entry->matches("set"))
+            throw new AccountsException("Help entry does not correspond to the 'set' command.");
+
+        $info = [ ];
+        foreach ($this->settings as $setting) {
+            $info[] = sprintf(
+                "%s (%s)%s",
+                $setting->getName(),
+                $setting->getDisplay(),
+                ($setting->getMaxEntries() > 1) ? " [Up to {$setting->getMaxEntries()} entries]" : ""
+            );
+        }
+
+        $entry->addNotes("Available settings: ".implode(", ", $info));
+    }
+
 
     /**
      * @param Setting $setting
@@ -211,12 +217,14 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         }
     }
 
+
     /**
      * @return AccountsDatabaseInterface
      */
     public function getInterface() {
         return $this->interface;
     }
+
 
     /**
      * Fetch the User object currently logged in to an account
@@ -236,6 +244,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         return $users->get($index);
     }
 
+
     /**
      * React to raw messages by verifying NickServ logins for user settings
      *
@@ -249,7 +258,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
             case 330:
                 $parameters = $msg->getParameters();
                 //	Adjust to format for different raws
-                $nick = ($msg->getRaw() == 307) ? $parameters[0] : $parameters[1];
+                $nick = ($msg->getRaw() == 307) ? $parameters[ 0 ] : $parameters[ 1 ];
 
                 //	Make sure user is in the verification process
                 if (isset($this->defaultNickCheck[ $nick ])) {
@@ -258,9 +267,9 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                     unset($this->defaultNickCheck[ $nick ]);
 
                     //	Make sure that this response corresponds to the recent request, but allow 5 seconds for server latency
-                    if (time() - $info['time'] <= 5) {
+                    if (time() - $info[ 'time' ] <= 5) {
                         try {
-                            $this->interface->setSetting($info['accountID'], $this->getSettingObject("nick"), $nick);
+                            $this->interface->setUserSetting($info[ 'accountID' ], $this->getSettingObject("nick"), $nick);
                             $this->IRCBot->message($nick, "Your default nickname has been saved as ".bold($nick).".");
                         }
                         catch (\Exception $e) {
@@ -275,7 +284,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
              *	End of /WHOIS, report default nickname verification failure
              */
             case 318:
-                $nick = $msg->getParameters()[0];
+                $nick = $msg->getParameters()[ 0 ];
                 //	Make sure user is in the verification process
                 if (isset($this->defaultNickCheck[ $nick ])) {
                     unset($this->defaultNickCheck[ $nick ]);
@@ -284,6 +293,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                 break;
         }
     }
+
 
     /**
      * Search for auto-login entries that can be applied to a User when one is created, and attempt to log them in
@@ -299,7 +309,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
             $this->loginUser($user, $accountID);
             $this->status("{$user->getNick()} has automatically logged in to account ID $accountID.");
 
-            $this->interface->getSetting($accountID, $this->getSettingObject("disablenotify"));
+            $this->interface->getUserSetting($accountID, $this->getSettingObject("disablenotify"));
         }
 
             //  No matching auto login entries, do nothing
@@ -319,6 +329,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         }
     }
 
+
     /**
      * Given a hostname, return an account which permits autologins on that host
      *
@@ -327,7 +338,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
      * @throws AccountsException If no entries exist
      */
     private function getAutoLogin(string $host) {
-        $results = array();
+        $results = [ ];
 
         //	Test wildcard match vs every host
         foreach ($this->autoLoginCache as $id => $wildcardHosts) {
@@ -335,7 +346,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                 if (fnmatch($wildcardHost, $host)) {
                     /*	Associate the account with the number of non-wildcard characters in a host. In the event that more than 1 host matches, the account with the highest value is logged in to
                         This is to help prevent a user from accidentally being logged into someone else's account, if that person has an ambiguous auto-login mask	*/
-                    $significantCharacters = strlen(str_replace(array("*", "?", "[", "]"), "", $wildcardHost));
+                    $significantCharacters = strlen(str_replace([ "*", "?", "[", "]" ], "", $wildcardHost));
 
                     //	Only overwrite the same account's entry with a higher value
                     if (!isset($results[ $id ]) || $results[ $id ] < $significantCharacters)
@@ -350,8 +361,9 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         //	Place the highest value of significant characters at the front of the array
         arsort($results);
 
-        return (int)(array_keys($results)[0]);
+        return (int)(array_keys($results)[ 0 ]);
     }
+
 
     /**
      * Mark a User as being logged in to an account
@@ -362,6 +374,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
     private function loginUser(User $user, $accountID) {
         $this->loggedIn[ $user->getId() ] = $accountID;
     }
+
 
     /**
      * Update account settings
@@ -402,12 +415,13 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                 $value         = implode(" ", $parameters);
                 $settingObject->validate($value);
 
-                $this->interface->setSetting($accountID, $settingObject, $value);
+                $this->interface->setUserSetting($accountID, $settingObject, $value);
                 $value = (strlen($value)) ? $value : "enabled";
                 $this->respond($msg, "'{$settingObject->getDisplay()}' has been set to '$value'.");
                 break;
         }
     }
+
 
     /**
      * Helper function to begin the default nickname verification upon registration or manual setting
@@ -416,9 +430,10 @@ class Accounts extends ModuleWithAccounts implements IHelp {
      * @param $nick
      */
     public function setDefaultNick(int $accountID, string $nick) {
-        $this->defaultNickCheck[ $nick ] = array('time' => time(), 'accountID' => $accountID);
+        $this->defaultNickCheck[ $nick ] = [ 'time' => time(), 'accountID' => $accountID ];
         $this->IRCBot->raw("WHOIS $nick");
     }
+
 
     /**
      * Remove account settings
@@ -437,10 +452,11 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $value         = implode(" ", $parameters);
 
         //	Exception thrown if settings are invalid or unsuccessful
-        $this->interface->removeSetting($accountID, $settingObject, $value);
+        $this->interface->removeUserSetting($accountID, $settingObject, $value);
 
         $this->respond($msg, "'{$settingObject->getDisplay()}' settings have been removed.");
     }
+
 
     /**
      * View current account settings
@@ -462,26 +478,27 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
             //	Exception thrown if all settings are invalid
             $settingObject = $this->getSettingObject($settingName);
-            $settings      = $this->interface->getSetting($accountID, $settingObject);
+            $settings      = $this->interface->getUserSetting($accountID, $settingObject);
         }
         else
-            $settings = $this->interface->getAllSettings($accountID);
+            $settings = $this->interface->getSettingsForUser($accountID);
 
         //	Construct reply
-        $response = $responseString = array();
-        
+        $response = $responseString = [ ];
+
         //	List each setting under name of setting
         foreach ($settings as $setting) {
             $key                = "{$setting['name']} ({$setting['display']})";
-            $response[ $key ][] = (strlen($setting['value'])) ? $setting['value'] : "enabled";
+            $response[ $key ][] = (strlen($setting[ 'value' ])) ? $setting[ 'value' ] : "enabled";
         }
-        
+
         //	Convert name => settings[] entries into readable format
         foreach ($response as $setting => $values)
             $responseString[] = "$setting: ".implode(", ", $values);
 
         $this->respond($msg, implode("\n", $responseString));
     }
+
 
     /**
      * Fetch the account ID of a User
@@ -497,6 +514,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
         return $this->loggedIn[ $id ];
     }
+
 
     /**
      * Attempt to log user in with given credentials
@@ -522,6 +540,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $this->respond($msg, "Login successful. Your access level is $level.");
     }
 
+
     /**
      * Log out of current account
      *
@@ -535,6 +554,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $this->logoutUser($user);
         $this->respond($msg, "You have logged out of your account.");
     }
+
 
     /**
      * Logs a User out of their account
@@ -550,6 +570,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         unset($this->loggedIn[ $id ]);
     }
 
+
     /**
      * Register a new account
      *
@@ -562,8 +583,14 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $parameters = $msg->getCommandParameters();
 
         //	Cannot be logged in
-        if (is_int($this->getAccountIDByUser($user)))
-            throw new AccountsException("You are already registered!");
+        try {
+            $this->getAccountIDByUser($user);
+            throw new AccountsException("You are already registered!", 1);
+        }
+        catch (AccountsException $e) {
+            if ($e->getCode() == 1)
+                throw $e;
+        }
 
         //	Not enough parameters
         if (count($parameters) < 2)
@@ -585,19 +612,19 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         //	Add autologin host
         $autoLogin = "*!*{$msg->getIdent()}@{$msg->getFullHost()}";
         $accountID = $this->interface->getAccountIDByUsername($username);
-        $this->interface->setSetting($accountID, $this->getSettingObject("autologin"), $autoLogin);
+        $this->interface->setUserSetting($accountID, $this->getSettingObject("autologin"), $autoLogin);
         //	Automatically login upon registration
         $this->loginUser($user, $accountID);
         $this->respond($msg, "$autoLogin has been added as an autologin host for this account. You will automatically be logged in when connecting from this host. To remove this, please use 'unset autologin'.");
 
-
         //	Attempt to automatically set nickname, if it's not already set
-        $settings = $this->interface->searchSettings($this->getSettingObject("nick"), $msg->getNick());
+        $settings = $this->interface->getUsersWithSetting($this->getSettingObject("nick"), $msg->getNick());
         if ($settings)
             $this->respond($msg, "Your nickname could not be linked to your account because it is already linked to another account.");
         else
             $this->setDefaultNick($accountID, $msg->getNick());
     }
+
 
     /**
      * Manage or view account access
@@ -696,6 +723,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         }
     }
 
+
     /**
      * Get the access level for a User object. Default 0, unregistered has a level of -1
      *
@@ -709,6 +737,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
         return $this->interface->getAccessByID($accountID);
     }
+
 
     /**
      * Given an IRCMessage and command triggers, call the necessary methods and process errors

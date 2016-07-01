@@ -43,16 +43,18 @@ class MoveModule extends ModuleWithPokemon {
         parent::__construct($IRCBot);
 
         //  Create and register manager with base module
-        $moveManager = new MoveManager(new VeekunDatabaseInterface());
-        $moveManager->load();
+        $moveManager = new MoveManager();
+        $moveManager->addPopulator(new VeekunDatabaseInterface());
+        $moveManager->populate();
+        
         $this->registerManager("Move", $moveManager);
 
         //  Command triggers
-        $move = new Trigger("pmove",      array($this, "move"));
+        $move = new Trigger("pmove",      [$this, "move"]);
         $move->addAlias("pattack");
         $move->addAlias("patk");
         $this->addTrigger($move);
-        
+
         //  Help entries
         $help = new HelpEntry("Pokemon", $move);
         $help->addParameterTextPair("MOVE",             "Look up information about the Pokemon move MOVE.");

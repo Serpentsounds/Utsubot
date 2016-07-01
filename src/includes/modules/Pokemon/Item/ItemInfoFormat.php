@@ -6,6 +6,7 @@
  */
 
 namespace Utsubot\Pokemon\Item;
+
 use Utsubot\Pokemon\{
     InfoFormat,
     PokemonBaseException,
@@ -25,69 +26,79 @@ class ItemInfoFormat extends InfoFormat {
     /** @var $object Item */
     protected $object;
 
-	protected static $defaultFormat =
-"[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {shortEffect}]";
+    protected static $defaultFormat =
+        "[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {shortEffect}]";
 
-	protected static $verboseFormat =
-"[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {effect}]";
+    protected static $verboseFormat =
+        "[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {effect}]";
 
-	protected static $validFields = array(
-		"english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
-		"xy", "bw", "bw2", "dp", "p", "hgss", "rs", "e", "frlg",
-		"effect", "shortEffect",
-		"cost", "flingPower", "flingEffect", "flags", "pocket", "category"
-	);
+    protected static $validFields = [
+        "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
+        "xy", "bw", "bw2", "dp", "p", "hgss", "rs", "e", "frlg",
+        "effect", "shortEffect",
+        "cost",
+        "flingPower", "flingEffect",
+        "flags",
+        "pocket",
+        "category"
+    ];
 
-	public static function getVerboseFormat() {
-		return self::$verboseFormat;
-	}
+
+    /**
+     * @return string
+     */
+    public static function getVerboseFormat(): string {
+        return self::$verboseFormat;
+    }
+
 
     /**
      * @param string $field
-     * @param $fieldValue
+     * @param        $fieldValue
      * @return string
      */
-	protected function formatField(string $field, $fieldValue): string {
-		if ($field != "effect" && $field != "shortEffect" && $field != "flags" && $field != "flingEffect")
-			$fieldValue = bold($fieldValue);
+    protected function formatField(string $field, $fieldValue): string {
+        if ($field != "effect" && $field != "shortEffect" && $field != "flags" && $field != "flingEffect")
+            $fieldValue = bold($fieldValue);
 
-		return (string)$fieldValue;
-	}
+        return (string)$fieldValue;
+    }
+
 
     /**
      * @param string $field
      * @return string
      */
-	protected function getField(string $field): string {
+    protected function getField(string $field): string {
 
         if ($return = parent::getField($field))
             return $return;
 
-		switch ($field) {
-			case "cost":
+        switch ($field) {
+            case "cost":
                 return (string)$this->object->getCost();
                 break;
-			case "effect":
+            case "effect":
                 return $this->object->getEffect();
                 break;
-			case "shortEffect":
+            case "shortEffect":
                 return $this->object->getShortEffect();
                 break;
-			case "flingPower":
+            case "flingPower":
                 return (string)$this->object->getFlingPower();
                 break;
             case "flingEffect":
                 return $this->object->getFlingEffectDisplay();
                 break;
-			case "pocket":
+            case "pocket":
                 return $this->object->getPocketDisplay();
                 break;
-			case "category":
-				return $this->object->getCategory();
-			    break;
-			case "flags":
-				return $this->object->formatFlags();
-			    break;
+            case "category":
+                return $this->object->getCategory();
+                break;
+            case "flags":
+                return $this->object->formatFlags();
+                break;
 
             case "oras":
             case "xy":
@@ -112,6 +123,6 @@ class ItemInfoFormat extends InfoFormat {
                 break;
         }
 
-		return "";
-	}
+        return "";
+    }
 }

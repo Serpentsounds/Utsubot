@@ -18,7 +18,7 @@ namespace Utsubot\Includes;
 class ItemList {
 
     /** @var string[] $list */
-    protected $list = array();
+    protected $list = [ ];
 
     /**
      * ItemList constructor.

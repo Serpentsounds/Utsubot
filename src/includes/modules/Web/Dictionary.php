@@ -43,7 +43,7 @@ class Dictionary extends WebModule {
         parent::__construct($IRCBot);
         
         //  Command triggers
-        $dictionary = new Trigger("dictionary",     array($this, "dictionary"));
+        $dictionary = new Trigger("dictionary",     [$this, "dictionary"]);
         $dictionary->addAlias("dic");
         $dictionary->addAlias("define");
         $dictionary->addAlias("def");
@@ -108,7 +108,7 @@ class Dictionary extends WebModule {
             if (isset($indices['SUGGESTION'])) {
 
                 $count = 0;
-                $suggestions = array();
+                $suggestions = [ ];
                 //	Loop through and save suggestions
                 foreach ($indices['SUGGESTION'] as $index) {
                     $suggestions[] = $values[$index]['value'];
@@ -140,7 +140,7 @@ class Dictionary extends WebModule {
 
         //	Search for definitions within range
         $definitionIndices = array_slice($indices['DT'], $lowerIndex, $upperIndex - $lowerIndex);
-        $return = array();
+        $return = [ ];
 
         foreach ($definitionIndices as $key => $index) {
             $definitionInfo = $values[$index];

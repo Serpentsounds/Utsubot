@@ -2,7 +2,7 @@
 /**
  * Utsubot - Japanese.php
  * Date: 04/03/2016
- * 
+ *
  * Function for converting Japanese kana to roman characters
  */
 
@@ -10,8 +10,7 @@ declare(strict_types = 1);
 
 namespace Utsubot\Japanese;
 
-
-define("Hiragana", array(
+define("Hiragana", [
     'きゃ', 'きゅ', 'きょ',
     'しゃ', 'しゅ', 'しょ',
     'ちゃ', 'ちゅ', 'ちょ',
@@ -40,10 +39,9 @@ define("Hiragana", array(
     'ば', 'び', 'ぶ', 'べ', 'ぼ',
     'ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ',
     'ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ'
-));
+]);
 
-
-define("Katakana", array(
+define("Katakana", [
     'キャ', 'キュ', 'キョ',
     'シャ', 'シュ', 'ショ',
     'チャ', 'チュ', 'チョ',
@@ -72,9 +70,9 @@ define("Katakana", array(
     'バ', 'ビ', 'ブ', 'ベ', 'ボ',
     'パ', 'ピ', 'プ', 'ペ', 'ポ',
     'ァ', 'ィ', 'ゥ', 'ェ', 'ォ'
-));
+]);
 
-define("Extra_Katakana", array(
+define("Extra_Katakana", [
     'ヴァ', 'ヴィ', 'ヴ', 'ヴェ', 'ヴォ',
     'ウィ', 'ウェ', 'ウォ',
     'ファ', 'フィ', 'フェ', 'フォ',
@@ -82,9 +80,9 @@ define("Extra_Katakana", array(
     'トゥ', 'ドゥ',
     'チェ',
     'シェ'
-));
+]);
 
-define("Romanization", array(
+define("Romanization", [
     'kya', 'kyu', 'kyo',
     'sha', 'shu', 'sho',
     'cha', 'chu', 'cho',
@@ -113,9 +111,9 @@ define("Romanization", array(
     'ba', 'bi', 'bu', 'be', 'bo',
     'pa', 'pi', 'pu', 'pe', 'po',
     'a', 'i', 'u', 'e', 'o'
-));
+]);
 
-define("Extra_Katakana_Romanization", array(
+define("Extra_Katakana_Romanization", [
     'va', 'vi', 'vu', 've', 'vo',
     'wi', 'we', 'wo',
     'fa', 'fi', 'fe', 'fo',
@@ -123,7 +121,7 @@ define("Extra_Katakana_Romanization", array(
     'tou', 'dou',
     'che',
     'she'
-));
+]);
 
 /**
  * Transform a string of kana into romaji
@@ -153,4 +151,3 @@ function romanizeKana(string $kana): string {
 
     return $kana;
 }
-

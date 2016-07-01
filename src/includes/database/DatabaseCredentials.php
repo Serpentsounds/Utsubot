@@ -31,7 +31,7 @@ abstract class DatabaseCredentials {
      * @var array $requiredFields
      * Optionally specify a list of required fields in config file to proceed with creation.
      */
-    protected static $requiredFields = array();
+    protected static $requiredFields = [ ];
 
     /**
      * @var string $driver
@@ -70,13 +70,12 @@ abstract class DatabaseCredentials {
 
         //  Read config into memory
         $configFile = parse_ini_file(static::$configFile, true);
-        $config = array();
+        $config = [ ];
         //	Start with global config, then override as necessary
         if (isset($configFile['global']))
             $config = $configFile['global'];
         if (isset($configFile[$database]))
             $config = array_merge($config, $configFile[$database]);
-        $config['dbname'] = $database;
 
         //  Class driver variable should match the driver value in config file section
         if (!isset($config['driver']) || $config['driver'] != static::$driver)
@@ -96,9 +95,9 @@ abstract class DatabaseCredentials {
         $password = $config['password'] ?? "";
         $dsn = static::$driver. ":". static::getDSNFromConfig($config);
 
-        //  Most likely getDSNFromConfig was not overridden
+        //  Empty DSN returned
         if (!strlen($dsn))
-            throw new DatabaseCredentialsException("DSN string is empty, check your getDSNFromConfig() implementation.");
+            throw new DatabaseCredentialsException("DSN string is empty.");
 
         return new static($dsn, $username, $password);
     }
@@ -108,8 +107,11 @@ abstract class DatabaseCredentials {
      *
      * @param array $config
      * @return string
+     * @throws DatabaseCredentialsException
      */
-    abstract protected static function getDSNFromConfig(array $config): string;
+    protected static function getDSNFromConfig(array $config): string {
+        throw new DatabaseCredentialsException("Please override getDSNFromConfig() in ". get_called_class(). ".");
+    }
 
     /**
      * @return string

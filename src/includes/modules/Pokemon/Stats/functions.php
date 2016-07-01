@@ -66,7 +66,7 @@ function calculateBase(int $stat, int $IV, int $EV, int $level, float $natureMod
 }
 
 function getIVRange(int $baseStat, int $statValue, int $EV, int $level, float $natureModifier, bool $HP = false): array {
-    $IVRange = array();
+    $IVRange = [ ];
 
     if ($statValue < calculateStat($baseStat, 0, $EV, $level, $natureModifier, $HP))
         throw new StatCalculatorException("Stat value '$statValue' is too low for the given parameters.'", 0);
@@ -92,7 +92,7 @@ function getIVRange(int $baseStat, int $statValue, int $EV, int $level, float $n
 }
 
 function calculateIVs(array $baseStats, array $statValues, array $EVs, int $level, array $natureModifiers): array {
-	$IVRange = array();
+	$IVRange = [ ];
 	for ($i = 0; $i <= 5; $i++) {
         try {
             $IVRange[ $i ] = getIVRange($baseStats[ $i ], $statValues[ $i ], $EVs[ $i ], $level, $natureModifiers[ $i ], $i == 0);

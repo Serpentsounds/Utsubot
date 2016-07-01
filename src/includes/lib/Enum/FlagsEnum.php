@@ -13,7 +13,7 @@ class FlagsEnumException extends EnumException {}
 
 abstract class FlagsEnum extends Enum {
 
-    protected static $highestPowers = array();
+    protected static $highestPowers = [ ];
 
     /**
      * Check if this object has a given flag set
@@ -31,20 +31,20 @@ abstract class FlagsEnum extends Enum {
 
     /**
      * Get a comma separated list of the field names contained in the object's value
-     * 
+     *
      * @return string
      * @throws EnumException
      */
     public function getName(): string {
-        
+
         //  Attempt to match exact value
         try {
             return parent::getName();
         }
-        
+
         //  Value is a composite, list all flags instead
         catch (EnumException $e) {
-            $flags = array();
+            $flags = [ ];
             $class = get_called_class();
 
             //  Loop through powers of two
@@ -54,7 +54,7 @@ abstract class FlagsEnum extends Enum {
             }
 
             return implode(", ", $flags);
-        }        
+        }
     }
 
     /**

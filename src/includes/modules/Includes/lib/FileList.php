@@ -18,7 +18,7 @@ namespace Utsubot\Includes;
 class FileList extends ItemList {
 
     /** @var File[] $list */
-    protected $list = array();
+    protected $list = [ ];
 
     /**
      * Add a new file to the collection

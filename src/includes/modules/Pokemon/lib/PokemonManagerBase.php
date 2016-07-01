@@ -6,108 +6,135 @@
  */
 
 namespace Utsubot\Pokemon;
+
+
 use Utsubot\{
-	Manager,
-    ManagerException,
-    Manageable,
-    ManagerFilter,
-    DatabaseInterface
+    Manager,
+    ManagerException
 };
 
 
-class JaroFilter extends ManagerFilter {
-    const MINIMUM_SIMILARITY = 0.80;
-    
-    protected $search;
-    protected $language;
-    
-    public function __construct(\Iterator $iterator, $search, Language $language) {
-        parent::__construct($iterator, $search);
+/**
+ * Class PokemonManagerBaseException
+ *
+ * @package Utsubot\Pokemon
+ */
+class PokemonManagerBaseException extends \Exception {
 
-        $this->language = $language;
-    }
-    
-    public function accept(): bool {
-        $obj = $this->current();
-        if ($obj instanceof PokemonBase)
-            return self::MINIMUM_SIMILARITY <= $obj->jaroSearch($this->search, $this->language);
-
-        return false;
-    }
 }
 
+
+/**
+ * Class PokemonManagerBase
+ *
+ * @package Utsubot\Pokemon
+ */
 abstract class PokemonManagerBase extends Manager {
 
-    /** @var VeekunDatabaseInterface $interface */
-	protected $interface;
+    /** @var PokemonObjectPopulator[] $populators */
+    protected $populators;
+    protected $populatorCollections = [ ];
 
-	/**
-	 * Create the Manager and save the database interface for later use
-	 *
-	 * @param VeekunDatabaseInterface $interface An instance of a class extending DatabaseInteface
-	 */
-	public function __construct(VeekunDatabaseInterface $interface) {
-		parent::__construct();
-		$this->interface = $interface;
-	}
-    
+    protected static $populatorMethod;
+
+
     /**
-     * @param string $search
+     * PokemonManagerBase constructor.
+     *
+     * @throws PokemonManagerBaseException
+     */
+    public function __construct() {
+        if (!strlen(static::$populatorMethod))
+            throw new PokemonManagerBaseException("Populator method not configured in for class '".get_class($this)."'.");
+
+        parent::__construct();
+    }
+
+
+    /**
+     * Add a new interface to load items from
+     *
+     * @param PokemonObjectPopulator $populator
+     * @return int The assigned index of the added interface
+     * @throws PokemonManagerBaseException
+     */
+    public function addPopulator(PokemonObjectPopulator $populator): int {
+        if (!method_exists($populator, static::$populatorMethod))
+            throw new PokemonManagerBaseException(
+                "The populator supplied to '".get_class($this).
+                "' does not support the populator method '".static::$populatorMethod."'.");
+
+        $this->populators[] = $populator;
+
+        return count($this->populators) - 1;
+    }
+
+
+    /**
+     * @param int|null $index
+     * @throws PokemonManagerBaseException
+     */
+    public function populate(int $index = null) {
+        //  Populate for single index
+        if (is_int($index)) {
+            if (!isset($this->populators[ $index ]))
+                throw new PokemonManagerBaseException("There is no PokemonObjectPopulator set at index $index.");
+
+            $this->doPopulate($index);
+        }
+
+        //  Null passed, populate all indexes
+        else {
+            for ($i = 0, $numberOfPopulators = count($this->populators); $i < $numberOfPopulators; $i++)
+                $this->doPopulate($i);
+        }
+
+        //  Update main manager collection with composite array
+        $collection = [ ];
+        foreach ($this->populatorCollections as $populatorCollection)
+            //  Array addition to preserve indexes
+            $collection = $collection + $populatorCollection;
+
+        $this->collection = $collection;
+    }
+
+
+    /**
+     * Populator helper method
+     *
+     * @param int $index
+     * @throws PokemonManagerBaseException
+     */
+    protected function doPopulate(int $index) {
+        $collection = call_user_func([ $this->populators[ $index ], static::$populatorMethod ]);
+
+        if ($collection instanceof \ArrayObject)
+            $collection = $collection->getArrayCopy();
+
+        if (!is_array($collection))
+            throw new PokemonManagerBaseException("Populator method '".static::$populatorMethod."' did not return an array.");
+
+        $this->populatorCollections[ $index ] = $collection;
+    }
+
+
+    /**
+     * @param string   $search
      * @param Language $language
      * @return array
      * @throws ManagerException
      */
     public function jaroSearch(string $search, Language $language): array {
         $filter = new JaroFilter(new \ArrayIterator($this->collection), $search, $language);
-        
-        $return = array();
+
+        $return = [ ];
         foreach ($filter as $item)
             $return[] = $item;
-        
+
         if (!$return)
-            throw new ManagerException("No results found for item $search in ". get_class($this). ".");
-        
+            throw new ManagerException("No results found for item $search in ".get_class($this).".");
+
         return $return;
     }
-
-	abstract public function load();
-	
-	/**
-	 * Load objects from the database into the collection, if needed
-	 *
-	 * @param null|int|array $item The id of a the collection item to load, an array of ids, or null to load all available items form the database
-	 * @throws ManagerException If $this->manages does not resolve to a class, or the interface doesn't have a get function for $this->manages
-	 */
-	public function oldload($item = null) {
-		//	Mandate definition of class in $this->manages (include namespace), and make sure the database interface has the method to retrieve the relevant information
-		$class = (strpos(static::$manages, "\\") !== false) ? substr(strrchr(static::$manages, "\\"), 1) : static::$manages;
-        $fullClass = static::$manages;
-		if (!class_exists($fullClass))
-			throw new ManagerException("(".get_class($this).") $class is not a defined class.");
-		elseif (!method_exists($this->interface, "get$class"))
-			throw new ManagerException("(". get_class($this).") Interface does not have a get$class method.");
-
-		$load = array();
-		$method = "get$class";
-		//	Load a single object
-		if (is_int($item))
-			$load = $this->interface->{$method}($item);
-
-		//	Load a set of objects
-		elseif (is_array($item)) {
-			foreach ($item as $id) {
-				if (is_int($id))
-					$load[$id] = $this->interface->{$method}($id);
-			}
-		}
-
-		//	Load all available objects
-		elseif (!$item)
-			$load = $this->interface->{$method}();
-
-		//	Create and save objects
-		foreach ($load as $id => $array)
-			$this->collection[$id] = new $fullClass($array);
-	}
 
 }

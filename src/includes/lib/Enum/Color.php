@@ -8,7 +8,11 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
-
+/**
+ * Class Color
+ *
+ * @package Utsubot
+ */
 class Color extends Enum {
     
     const Clear         = "";

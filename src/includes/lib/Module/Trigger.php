@@ -24,7 +24,7 @@ class TriggerException extends \Exception {}
 class Trigger {
 
     private $trigger;
-    private $aliases = array();
+    private $aliases = [ ];
     private $method;
 
     /**
