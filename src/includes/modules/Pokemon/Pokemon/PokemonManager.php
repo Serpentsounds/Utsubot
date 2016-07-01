@@ -7,27 +7,36 @@
 
 namespace Utsubot\Pokemon\Pokemon;
 
+
 use Utsubot\{
-    Manageable,
     ManagerException,
     ManagerSearchObject
 };
-use Utsubot\Pokemon\{
-    PokemonManagerBase,
-    VeekunDatabaseInterface
-};
+use Utsubot\Pokemon\PokemonManagerBase;
 
 
+/**
+ * Class PokemonManagerException
+ *
+ * @package Utsubot\Pokemon\Pokemon
+ */
 class PokemonManagerException extends ManagerException {
 
 }
 
+
+/**
+ * Class PokemonManager
+ *
+ * @package Utsubot\Pokemon\Pokemon
+ */
 class PokemonManager extends PokemonManagerBase {
 
-    protected static $manages = "Utsubot\\Pokemon\\Pokemon\\Pokemon";
+    protected static $manages         = "Utsubot\\Pokemon\\Pokemon\\Pokemon";
     protected static $customOperators = [ "hasabl" ];
 
     protected static $populatorMethod = "getPokemon";
+
 
     /**
      * Given a $field to search against, this function returns info on how to get the field from a pokemon
@@ -117,6 +126,14 @@ class PokemonManager extends PokemonManagerBase {
     }
 
 
+    /**
+     * @param mixed $pokemon
+     * @param mixed $field
+     * @param mixed $operator
+     * @param mixed $value
+     * @return bool
+     * @throws PokemonManagerException
+     */
     protected function customComparison($pokemon, $field, $operator, $value) {
         if (!($pokemon instanceof $pokemon))
             throw new PokemonManagerException("Comparison object is not a Pokemon.");

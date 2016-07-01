@@ -40,14 +40,14 @@ class PokemonInfoFormat extends InfoFormat {
     private $units = "imperial";
 
     protected static $defaultFormat = <<<EOF
-[^Name^: {english}/{japanese}] [^Dex^: #{national}] [^Type^: {type1}{/type2}] [^Abilities^: {ability1}{/ability2}{/ability3}]
+[^Name^: {english}/{japanese}] {[^Dex^: #national]} [^Type^: {type1}{/type2}] [^Abilities^: {ability1}{/ability2}{/ability3}]
 {[^Evolves from^: preevolution]} {[^Evolution^: evolution]}
-[^Stats^: {hp}HP, {atk}Atk, {def}Def, {spa}SpA, {spd}SpD, {spe}Spe, {total}Total]
+{[^Stats^: hpHP, atkAtk, defDef, spaSpA, spdSpD, speedSpe, totalTotal]}
 EOF;
 
     protected static $semanticFormat = <<<EOF
-[^Name^: {english}/{japanese}] [^Species^: {species}] {[^Color^: color]} {[^Habitat^: habitat]} [^Gender^: {male} Male/{female} Female]
-[^Height^: {height}] [^Weight^: {weight}] [^EVs^: {evs}] [^Catch Rate^: {catchRate}] [^Base Exp^: {baseExp}] [^Base Happiness^: {baseHappiness}] {[^Egg Group^: eggGroup]} {[^Egg Steps^: eggSteps]}
+[^Name^: {english}/{japanese}] {[^Species^: species]} {[^Color^: color]} {[^Habitat^: habitat]} [^Gender^: {male} Male/{female} Female]
+{[^Height^: height]} {[^Weight^: weight]} {[^EVs^: evs]} {[^Catch Rate^: catchRate]} {[^Base Exp^: baseExp]} {[^Base Happiness^: baseHappiness]} {[^Egg Group^: eggGroup]} {[^Egg Steps^: eggSteps]}
 EOF;
 
     protected static $namesFormat = <<<EOF
@@ -79,7 +79,7 @@ EOF;
         "generation",
         "type1", "type2",
         "ability1", "ability2", "ability3",
-        "hp", "atk", "def", "spa", "spd", "spe", "total",
+        "hp", "atk", "def", "spa", "spd", "speed", "total",
         "preevolution", "evolution",
         "color", "species", "habitat",
         "male", "female",
@@ -228,7 +228,7 @@ EOF;
             case "def":
             case "spa":
             case "spd":
-            case "spe":
+            case "speed":
                 return $this->object->getBaseStat(Stat::fromName($field));
                 break;
 
@@ -357,4 +357,4 @@ EOF;
         return "";
     }
 
-} 
+}

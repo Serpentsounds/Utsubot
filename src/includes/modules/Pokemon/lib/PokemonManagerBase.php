@@ -7,10 +7,10 @@
 
 namespace Utsubot\Pokemon;
 
+
 use Utsubot\{
     Manager,
-    ManagerException,
-    DatabaseInterface
+    ManagerException
 };
 
 
@@ -23,6 +23,7 @@ class PokemonManagerBaseException extends \Exception {
 
 }
 
+
 /**
  * Class PokemonManagerBase
  *
@@ -32,7 +33,7 @@ abstract class PokemonManagerBase extends Manager {
 
     /** @var PokemonObjectPopulator[] $populators */
     protected $populators;
-    protected $populatorCollections;
+    protected $populatorCollections = [ ];
 
     protected static $populatorMethod;
 
@@ -91,7 +92,9 @@ abstract class PokemonManagerBase extends Manager {
         //  Update main manager collection with composite array
         $collection = [ ];
         foreach ($this->populatorCollections as $populatorCollection)
-            $collection = array_merge($collection, $populatorCollection);
+            //  Array addition to preserve indexes
+            $collection = $collection + $populatorCollection;
+
         $this->collection = $collection;
     }
 
@@ -100,10 +103,18 @@ abstract class PokemonManagerBase extends Manager {
      * Populator helper method
      *
      * @param int $index
+     * @throws PokemonManagerBaseException
      */
     protected function doPopulate(int $index) {
-        $this->populatorCollections[ $index ] =
-            call_user_func([ $this->populators[ $index ], static::$populatorMethod ]);
+        $collection = call_user_func([ $this->populators[ $index ], static::$populatorMethod ]);
+
+        if ($collection instanceof \ArrayObject)
+            $collection = $collection->getArrayCopy();
+
+        if (!is_array($collection))
+            throw new PokemonManagerBaseException("Populator method '".static::$populatorMethod."' did not return an array.");
+
+        $this->populatorCollections[ $index ] = $collection;
     }
 
 

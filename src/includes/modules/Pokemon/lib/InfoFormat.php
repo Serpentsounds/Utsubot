@@ -30,7 +30,7 @@ abstract class InfoFormat {
 
     /** @var PokemonBase $object */
     protected $object;
-    
+
     protected static $defaultFormat = "";
     protected static $validFields = [ ];
 
@@ -43,7 +43,7 @@ abstract class InfoFormat {
     public static function getDefaultFormat(): string {
         return static::$defaultFormat;
     }
-    
+
     /**
      * InfoFormat constructor.
      *
@@ -83,7 +83,7 @@ abstract class InfoFormat {
                 foreach (static::$validFields as $field) {
 
                     //	Require word boundary to avoid overlapping of parameters
-                    if (preg_match("/\\b$field\\b/", $userField)) {
+                    if (preg_match("/\\b$field/", $userField)) {
                         $fieldValue = $this->getField($field);
 
                         //	A value was successfully retrieved, so this {group} will be displayed
@@ -92,7 +92,7 @@ abstract class InfoFormat {
                             $fieldValue = $this->formatField($field, $fieldValue);
 
                             //	Again use a word boundary to prevent overlapping
-                            $userField = preg_replace("/\\b$field\\b/", $fieldValue, $userField);
+                            $userField = preg_replace("/\\b$field/", $fieldValue, $userField);
                         }
                     }
 
@@ -113,13 +113,13 @@ abstract class InfoFormat {
 
     /**
      * Given a valid field name, query the saved object to return the associated data
-     * 
+     *
      * @param string $field
      * @return string
      */
     protected function getField(string $field): string {
         $return = "";
-        
+
         switch ($field) {
             case "english":
             case "japanese":
@@ -143,13 +143,13 @@ abstract class InfoFormat {
                 return (string)$this->object->getGeneration();
                 break;
         }
-        
+
         return $return;
     }
 
     /**
      * Apply additional formatting to data based on the value of the data and/or name of the field
-     * 
+     *
      * @param string $field
      * @param $fieldValue
      * @return string
@@ -157,4 +157,4 @@ abstract class InfoFormat {
     protected function formatField(string $field, $fieldValue): string {
         return bold((string)$fieldValue);
     }
-} 
+}

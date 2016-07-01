@@ -11,11 +11,7 @@ namespace Utsubot\Pokemon\Pokemon;
 use Utsubot\Accounts\Setting;
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
-    ModuleWithPokemon,
-    ModuleWithPokemonException,
-    VeekunDatabaseInterface,
-    Version,
-    Language
+    Gen7DatabaseInterface, ModuleWithPokemon, ModuleWithPokemonException, VeekunDatabaseInterface, Version, Language
 };
 use Utsubot\{
     IRCBot,
@@ -57,8 +53,9 @@ class PokemonModule extends ModuleWithPokemon {
         //  Create and register manager with base class
         $pokemonManager = new PokemonManager();
         $pokemonManager->addPopulator(new VeekunDatabaseInterface());
+        $pokemonManager->addPopulator(new Gen7DatabaseInterface());
         $pokemonManager->populate();
-        
+
         $this->registerManager("Pokemon", $pokemonManager);
 
         //  Account settings
