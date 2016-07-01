@@ -6,18 +6,21 @@
  */
 
 namespace Utsubot\Pokemon\Move;
+
 use Utsubot\Pokemon\PokemonManagerBase;
 
+
 class MoveManager extends PokemonManagerBase {
-	protected static $manages = "Utsubot\\Pokemon\\Move\\Move";
 
-	public function load() {
-		$this->collection = $this->interface->getMove();
-	}
+    protected static $manages = "Utsubot\\Pokemon\\Move\\Move";
 
-	public function searchFields($field, $operator = "", $value = ""){}
+    protected static $populatorMethod = "getMoves";
 
-	public function customComparison($object, $field, $operator, $value) {
-		// TODO: Implement customComparison() method.
-	}
-} 
+    public function searchFields($field, $operator = "", $value = "") {
+    }
+
+
+    public function customComparison($object, $field, $operator, $value) {
+        // TODO: Implement customComparison() method.
+    }
+}

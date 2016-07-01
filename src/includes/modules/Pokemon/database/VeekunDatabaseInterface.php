@@ -24,20 +24,39 @@ use Utsubot\Pokemon\Nature\Nature;
 use Utsubot\Pokemon\Move\Move;
 
 
+/**
+ * Class VeekunDatabaseInterfaceException
+ *
+ * @package Utsubot\Pokemon
+ */
 class VeekunDatabaseInterfaceException extends DatabaseInterfaceException {
 
 }
 
-class VeekunDatabaseInterface extends DatabaseInterface {
+/**
+ * Class VeekunDatabaseInterface
+ *
+ * @package Utsubot\Pokemon
+ */
+class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObjectPopulator {
 
+    /**
+     * VeekunDatabaseInterface constructor.
+     */
     public function __construct() {
         parent::__construct(MySQLDatabaseCredentials::createFromConfig("veekun"));
     }
 
 
-    public function getPokemon() {
+    /**
+     * @return PokemonGroup
+     * @throws PokemonBaseException
+     * @throws \Utsubot\Pokemon\Pokemon\PokemonException
+     * @throws \Utsubot\EnumException
+     */
+    public function getPokemon(): PokemonGroup  {
         /** @var Pokemon[] $pokemon */
-        $pokemon = [ ];
+        $pokemon = new PokemonGroup();
 
         $nationalDex = new Dex(Dex::National);
 
@@ -334,6 +353,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getSpecies() {
         return $this->query(
             "SELECT ps.*, pc.identifier AS color, gr.identifier AS growth, phn.name AS habitat
@@ -344,6 +366,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getName() {
         return $this->query(
             "SELECT ln.name AS `language`, psn.*
@@ -354,6 +379,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getEggGroup() {
         return $this->query(
             "SELECT `egp`.`name`, `peg`.`species_id`
@@ -364,6 +392,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getPokemonRow() {
         return $this->query(
             "SELECT *
@@ -373,6 +404,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getAlt() {
         return $this->query(
             "SELECT *
@@ -382,6 +416,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getAltName() {
         return $this->query(
             "SELECT ln.name AS `language`, pfn.form_name, pfn.pokemon_name, pf.pokemon_id, pf.form_order
@@ -392,6 +429,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getDexnum() {
         return $this->query(
             "SELECT pdn.species_id, pdn.pokedex_number, pp.name
@@ -402,6 +442,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getEvolution() {
         return $this->query(
             "SELECT ps.id AS evo, ps.evolves_from_species_id AS preevo, ps.evolution_chain_id, pe.*, pe.id AS entry, et.identifier AS method
@@ -412,6 +455,11 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @param string $table
+     * @param int    $id
+     * @return bool
+     */
     public function getNameFromId(string $table, int $id) {
         if (!in_array($table, [ "item", "pokemon_species", "pokemon_form", "move", "ability", "location", "type", "language" ]))
             return false;
@@ -433,6 +481,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getPokemonType() {
         return $this->query(
             "SELECT pt.*, t.identifier
@@ -443,6 +494,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getPokemonStats() {
         return $this->query(
             "SELECT ps.*, s.identifier
@@ -453,6 +507,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getPokemonAbility() {
         return $this->query(
             "SELECT pa.*, an.name
@@ -463,6 +520,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getPokemonDexEntries() {
         return $this->query(
             "SELECT ln.name AS `language`, vn.name AS version, psft.*
@@ -473,9 +533,13 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
-    public function getAbility() {
+    /**
+     * @return AbilityGroup
+     * @throws PokemonBaseException
+     */
+    public function getAbilities(): AbilityGroup {
         /** @var Ability[] $abilities */
-        $abilities = [ ];
+        $abilities = new AbilityGroup();
 
         $names = $this->getAbilityNames();
         foreach ($names as $row) {
@@ -515,6 +579,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getAbilityNames() {
         return $this->query(
             "SELECT ln.name AS `language`, an.*, a.generation_id
@@ -525,6 +592,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getAbilityText() {
         return $this->query(
             "SELECT ln.name AS `language`, aft.*, vg.identifier
@@ -535,6 +605,10 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @param $string
+     * @return mixed|string
+     */
     private static function stripCodes($string) {
         $string = preg_replace_callback(
             '/\[([a-z0-9\- ]*)\]\{[a-z]+:([a-z0-9\-]+)\}/i',
@@ -554,6 +628,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getAbilityEffect() {
         return $this->query(
             "SELECT *
@@ -564,9 +641,14 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
-    public function getItem() {
+    /**
+     * @return ItemGroup
+     * @throws \Utsubot\Pokemon\Item\ItemException
+     * @throws PokemonBaseException
+     */
+    public function getItems(): ItemGroup {
         /** @var Item[] $items */
-        $items = [ ];
+        $items = new ItemGroup();
 
         $itemRow = $this->getItemRow();
         foreach ($itemRow as $row) {
@@ -621,6 +703,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getItemRow() {
         return $this->query(
             "SELECT i.*, icp.name as category, ipn.item_pocket_id as pocket
@@ -632,6 +717,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getItemFling() {
         return $this->query(
             "SELECT i.*, ifep.item_fling_effect_id as fling_effect
@@ -642,6 +730,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getItemNames() {
         return $this->query(
             "SELECT ln.name AS `language`, `in`.*
@@ -652,6 +743,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getItemText() {
         return $this->query(
             "SELECT ln.name AS `language`, ift.*, vg.identifier
@@ -662,6 +756,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getItemEffect() {
         return $this->query(
             "SELECT *
@@ -672,6 +769,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getItemFlags() {
         return $this->query(
             "SELECT ifm.item_id, ifp.name, ifp.description, ifp.item_flag_id
@@ -682,9 +782,13 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
-    public function getNature() {
+    /**
+     * @return NatureGroup
+     * @throws PokemonBaseException
+     */
+    public function getNatures(): NatureGroup {
         /** @var Nature[] $natures */
-        $natures = [ ];
+        $natures = new NatureGroup();
 
         $natureAttributes = $this->getNatureAttributes();
         foreach ($natureAttributes as $row) {
@@ -714,6 +818,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getNatureAttributes() {
         return $this->query(
             "SELECT   `sn1`.`name` AS `increases`, `sn2`.`name` AS `decreases`, `ctn1`.`name` AS `likes`, `ctn2`.`name` AS `dislikes`,
@@ -730,6 +837,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getNatureNames() {
         return $this->query(
             "SELECT   `ln`.`name` AS `language`, `nn`.*
@@ -743,13 +853,21 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @param $id
+     */
     public function getLocation($id) {
     }
 
 
-    public function getMove($id = null) {
+    /**
+     * @return MoveGroup
+     * @throws \Utsubot\Pokemon\Move\MoveException
+     * @throws PokemonBaseException
+     */
+    public function getMoves(): MoveGroup {
         /** @var Move[] $moves */
-        $moves = [ ];
+        $moves = new MoveGroup();
 
         $moveRow = $this->getMoveRow();
         foreach ($moveRow as $row) {
@@ -813,6 +931,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getMoveRow() {
         return $this->query(
             "SELECT	  `m`.*, `t`.`identifier` AS `type`, `mdc`.`identifier` AS `damage`, `mt`.`identifier` AS `target`, `mep`.`effect`, `mep`.`short_effect`
@@ -826,6 +947,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getMoveContest() {
         return $this->query(
             "SELECT	  `m`.*, `ct`.`identifier` AS `contestType`, `ce`.`appeal` AS `contestAppeal`, `ce`.`jam`, `cep`.`flavor_text` AS `contestFlavor`, `cep`.`effect` AS `contestEffect`,
@@ -841,6 +965,9 @@ class VeekunDatabaseInterface extends DatabaseInterface {
     }
 
 
+    /**
+     * @return array|bool|int
+     */
     public function getMovesNames() {
         return $this->query(
             "SELECT   `ln`.`name` AS `language`, `mn`.*

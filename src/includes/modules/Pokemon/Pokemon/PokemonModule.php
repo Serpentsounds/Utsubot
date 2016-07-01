@@ -55,8 +55,10 @@ class PokemonModule extends ModuleWithPokemon {
         parent::__construct($IRCBot);
 
         //  Create and register manager with base class
-        $pokemonManager = new PokemonManager(new VeekunDatabaseInterface());
-        $pokemonManager->load();
+        $pokemonManager = new PokemonManager();
+        $pokemonManager->addPopulator(new VeekunDatabaseInterface());
+        $pokemonManager->populate();
+        
         $this->registerManager("Pokemon", $pokemonManager);
 
         //  Account settings

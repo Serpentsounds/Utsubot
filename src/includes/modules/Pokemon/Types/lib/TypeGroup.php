@@ -10,14 +10,6 @@ namespace Utsubot\Pokemon\Types;
 
 use Utsubot\TypedArray;
 
-/**
- * Class TypeGroupException
- *
- * @package Utsubot\Pokemon\Types
- */
-class TypeGroupException extends \Exception {
-
-}
 
 /**
  * Class TypeGroup

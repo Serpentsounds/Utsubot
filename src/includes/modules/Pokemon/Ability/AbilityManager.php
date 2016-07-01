@@ -6,21 +6,17 @@
  */
 
 namespace Utsubot\Pokemon\Ability;
+
 use Utsubot\Pokemon\PokemonManagerBase;
 use Utsubot\ManagerSearchObject;
 
-class AbilityManager extends PokemonManagerBase {
-    protected static $manages = "Utsubot\\Pokemon\\Ability\\Ability";
 
+class AbilityManager extends PokemonManagerBase {
+
+    protected static $manages = "Utsubot\\Pokemon\\Ability\\Ability";
     protected static $validFields = [ "effect" ];
 
-
-    /**
-     *
-     */
-    public function load() {
-        $this->collection = $this->interface->getAbility();
-    }
+    protected static $populatorMethod = "getAbilities";
 
 
     /**
@@ -33,7 +29,7 @@ class AbilityManager extends PokemonManagerBase {
         switch ($field) {
             case "effect":
                 return new ManagerSearchObject($this, "getEffect", [ ], self::$stringOperators);
-            break;
+                break;
         }
 
         return null;

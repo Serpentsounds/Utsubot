@@ -49,8 +49,10 @@ class AbilityModule extends ModuleWithPokemon {
         parent::__construct($IRCBot);
 
         //  Create and register manager with base module
-        $abilityManager = new AbilityManager(new VeekunDatabaseInterface());
-        $abilityManager->load();
+        $abilityManager = new AbilityManager(); 
+        $abilityManager->addPopulator(new VeekunDatabaseInterface());
+        $abilityManager->populate();
+
         $this->registerManager("Ability", $abilityManager);
 
         //  Command triggers

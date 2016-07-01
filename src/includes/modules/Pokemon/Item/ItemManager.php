@@ -6,18 +6,22 @@
  */
 
 namespace Utsubot\Pokemon\Item;
+
 use Utsubot\Pokemon\PokemonManagerBase;
 
+
 class ItemManager extends PokemonManagerBase {
-	protected static $manages = "Utsubot\\Pokemon\\Item\\Item";
 
-	public function load() {
-		$this->collection = $this->interface->getItem();
-	}
+    protected static $manages = "Utsubot\\Pokemon\\Item\\Item";
 
-	public function searchFields($field, $operator = "", $value = ""){}
+    protected static $populatorMethod = "getItems";
 
-	public function customComparison($object, $field, $operator, $value) {
-		// TODO: Implement customComparison() method.
-	}
+
+    public function searchFields($field, $operator = "", $value = "") {
+    }
+
+
+    public function customComparison($object, $field, $operator, $value) {
+        // TODO: Implement customComparison() method.
+    }
 }

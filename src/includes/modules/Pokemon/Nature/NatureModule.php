@@ -49,8 +49,10 @@ class NatureModule extends ModuleWithPokemon {
         parent::__construct($IRCBot);
 
         //  Create and register manager with base module
-        $natureManager = new NatureManager(new VeekunDatabaseInterface());
-        $natureManager->load();
+        $natureManager = new NatureManager();
+        $natureManager->addPopulator(new VeekunDatabaseInterface());
+        $natureManager->populate();
+        
         $this->registerManager("Nature", $natureManager);
 
         //  Command triggers

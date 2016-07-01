@@ -56,7 +56,7 @@ abstract class ModuleWithAccounts extends Module {
      * @throws \Utsubot\ModuleException
      */
     protected function getAccounts(): Accounts {
-        return $this->externalModule("Utsubot\\Accounts\\Accounts");
+        return $this->getModule("Utsubot\\Accounts\\Accounts");
     }
 
     /**

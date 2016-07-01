@@ -7,6 +7,7 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Item;
+
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     ModuleWithPokemon,
@@ -26,7 +27,9 @@ use function Utsubot\bold;
  *
  * @package Utsubot\Pokemon\Item
  */
-class ItemModuleException extends ModuleWithPokemonException {}
+class ItemModuleException extends ModuleWithPokemonException {
+
+}
 
 /**
  * Class ItemModule
@@ -44,20 +47,23 @@ class ItemModule extends ModuleWithPokemon {
         parent::__construct($IRCBot);
 
         //  Create and register manager with base module
-        $itemManager = new ItemManager(new VeekunDatabaseInterface());
-        $itemManager->load();
+        $itemManager = new ItemManager();
+        $itemManager->addPopulator(new VeekunDatabaseInterface());
+        $itemManager->populate();
+        
         $this->registerManager("Item", $itemManager);
 
         //  Command triggers
-        $item = new Trigger("pitem", [$this, "item"]);
+        $item = new Trigger("pitem", [ $this, "item" ]);
         $this->addTrigger($item);
 
         //  Help entries
         $help = new HelpEntry("Pokemon", $item);
-        $help->addParameterTextPair("ITEM",             "Look up information about the effect and location of the item ITEM.");
-        $help->addParameterTextPair("-verbose ITEM",    "Look up information about the effect and location of the item ITEM, with mechanics explained in-depth.");
+        $help->addParameterTextPair("ITEM", "Look up information about the effect and location of the item ITEM.");
+        $help->addParameterTextPair("-verbose ITEM", "Look up information about the effect and location of the item ITEM, with mechanics explained in-depth.");
         $this->addHelp($help);
     }
+
 
     /**
      * @param IRCMessage $msg
@@ -67,20 +73,20 @@ class ItemModule extends ModuleWithPokemon {
         $this->requireParameters($msg, 1);
 
         //  Check if switches were applied
-        $copy = $parameters = $msg->getCommandParameters();
-        $switch = null;
+        $copy      = $parameters = $msg->getCommandParameters();
+        $switch    = null;
         $firstWord = strtolower(array_shift($copy));
         //  Switch detected, save it and remove from parameters
         if (substr($firstWord, 0, 1) == "-") {
-            $switch = substr($firstWord, 1);
+            $switch     = substr($firstWord, 1);
             $parameters = $copy;
         }
 
         $result = $this->getObject(implode(" ", $parameters));
         /** @var Item $item */
-        $item = $result->current();
+        $item     = $result->current();
         $itemInfo = new ItemInfoFormat($item);
-        $return = $itemInfo->parseFormat();
+        $return   = $itemInfo->parseFormat();
 
         //  Parse switches
         switch ($switch) {

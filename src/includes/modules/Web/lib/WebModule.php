@@ -38,7 +38,7 @@ abstract class WebModule extends ModuleWithPermission implements IHelp {
      * @throws \Utsubot\ModuleException
      */
     protected function getAPIKeys(): APIKeys {
-        return $this->externalModule("Utsubot\\Web\\APIKeys");
+        return $this->getModule("Utsubot\\Web\\APIKeys");
     }
 
     /**
