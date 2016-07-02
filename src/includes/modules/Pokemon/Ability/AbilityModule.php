@@ -10,10 +10,7 @@ namespace Utsubot\Pokemon\Ability;
 
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
-    ModuleWithPokemon,
-    ModuleWithPokemonException,
-    VeekunDatabaseInterface,
-    Language
+    Gen7DatabaseInterface, ModuleWithPokemon, ModuleWithPokemonException, VeekunDatabaseInterface, Language
 };
 use Utsubot\{
     IRCBot,
@@ -49,8 +46,9 @@ class AbilityModule extends ModuleWithPokemon {
         parent::__construct($IRCBot);
 
         //  Create and register manager with base module
-        $abilityManager = new AbilityManager(); 
+        $abilityManager = new AbilityManager();
         $abilityManager->addPopulator(new VeekunDatabaseInterface());
+        $abilityManager->addPopulator(new Gen7DatabaseInterface());
         $abilityManager->populate();
 
         $this->registerManager("Ability", $abilityManager);

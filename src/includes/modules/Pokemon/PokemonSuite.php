@@ -71,6 +71,10 @@ class PokemonSuite extends ModuleWithPokemon {
         //  Command triggers
         $psearch = new Trigger("psearch", [ $this, "search" ]);
         $this->addTrigger($psearch);
+
+        $repopulate = new Trigger("repopulate", [ $this, "repopulate" ]);
+        $this->addTrigger($repopulate);
+        
         $mgdb = new Trigger("mgdb", [ $this, "updateMetagameDatabase" ]);
         $this->addTrigger($mgdb);
 
@@ -166,6 +170,32 @@ class PokemonSuite extends ModuleWithPokemon {
             throw new PokemonSuiteException("No results found.");
 
         $this->respond($msg, implode(", ", $results));
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     * @throws ModuleException
+     * @throws ModuleWithPokemonException
+     * @throws PokemonManagerBaseException
+     * @throws PokemonSuiteException
+     * @throws \Utsubot\Accounts\ModuleWithAccountsException
+     */
+    public function repopulate(IRCMessage $msg) {
+        $this->requireLevel($msg, 100);
+        $this->requireParameters($msg, 2, "Usage: !repopulate <manager> <index>");
+
+        $parameters = $msg->getCommandParameters();
+        $managerName = array_shift($parameters);
+        $index = array_shift($parameters);
+
+        $manager = $this->getOutsideManager($managerName);
+
+        if (preg_match("/[^0-9]/", $index))
+            throw new PokemonSuiteException("Index '$index' must be an integer.");
+
+        $manager->populate((int)$index);
+        $this->respond($msg, "Database has been reloaded.");
     }
 
 

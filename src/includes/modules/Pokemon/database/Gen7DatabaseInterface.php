@@ -10,11 +10,11 @@ namespace Utsubot\Pokemon;
 
 
 use Utsubot\DatabaseInterface;
-use Utsubot\MySQLDatabaseCredentials;
 use Utsubot\Pokemon\Pokemon\{
     Evolution,
     Pokemon
 };
+use Utsubot\Pokemon\Ability\Ability;
 use Utsubot\SQLiteDatbaseCredentials;
 
 
@@ -139,7 +139,37 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
      * @return AbilityGroup
      */
     public function getAbilities(): AbilityGroup {
-        return new AbilityGroup();
+        /** @var Ability[] $abilities */
+        $abilities = new AbilityGroup();
+        $offset    = 2000;
+
+        //  Query names
+        $names = $this->query(
+            "SELECT a.id, a.effect, an.name, l.name as lang
+            FROM abilities a
+            INNER JOIN ability_names an
+            ON a.id=an.ability_id
+            INNER JOIN languages l
+            ON l.id=an.language_id"
+        );
+
+        //  Set names
+        foreach ($names as $row) {
+            $id = $row[ 'id' ] + $offset;
+            if (!isset($abilities[ $id ])) {
+                $abilities[ $id ] = new Ability();
+                $abilities[ $id ]->setId($id);
+
+                $abilities[ $id ]->setEffect($row[ 'effect' ]);
+                $abilities[ $id ]->setShortEffect($row[ 'effect' ]);
+                
+                $abilities[ $id ]->setGeneration(7);
+            }
+
+            $abilities[ $id ]->setName($row[ 'name' ], Language::fromName($row[ 'lang' ]));
+        }
+
+        return $abilities;
     }
 
 

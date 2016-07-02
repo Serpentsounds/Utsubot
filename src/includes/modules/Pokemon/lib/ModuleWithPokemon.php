@@ -33,12 +33,13 @@ class ModuleWithPokemonException extends ModuleException {}
  * @package Utsubot\Pokemon
  */
 abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
-    
+
     use THelp;
 
     private static $managers;
-    
-    /** @var PokemonManagerBase $manager */
+
+    /** @var PokemonManagerBase $manager
+     *  Private so subclass must registerManager */
     private $manager;
 
     /**
@@ -50,30 +51,31 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
      */
     protected final function registerManager(string $name, PokemonManagerBase $manager) {
         $this->manager = $manager;
-        self::$managers[$name] = &$this->manager;
+        self::$managers[strtolower($name)] = &$this->manager;
     }
 
     /**
      * Get this object's saved Manager
-     * 
+     *
      * @return PokemonManagerBase
      * @throws ModuleWithPokemonException
      */
     public function getManager(): PokemonManagerBase {
         if ($this->manager instanceof PokemonManagerBase)
             return $this->manager;
-        
+
         throw new ModuleWithPokemonException("A manager has not been loaded for ". get_class($this). ".");
     }
 
     /**
      * Get a registered Manager from another ModuleWithPokemon
-     * 
+     *
      * @param string $manager
      * @return PokemonManagerBase
      * @throws ModuleWithPokemonException Unregistered Manager
      */
     protected final function getOutsideManager(string $manager): PokemonManagerBase {
+        $manager = strtolower($manager);
         if (!isset(self::$managers[$manager]))
             throw new ModuleWithPokemonException("Pokemon suite Manager '$manager' has not been registered by any Modules.");
 
@@ -94,7 +96,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
 
         //  Number of search modes to check
         $maxMode = ($allowSpellcheck) ? 3 : 1;
-        
+
         //  Set up loop to try multiple fetch angles while catching exceptions for no results
         for ($mode = 0; $mode <= $maxMode; $mode++) {
             try {
@@ -136,7 +138,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
                 //  Switch exited successfully, item data should be populated
                 break;
             }
-            
+
             //  Item lookup failed, try next mode
             catch (ManagerException $e) {}
         }
@@ -147,5 +149,5 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
 
         return $result;
     }
-    
+
 }

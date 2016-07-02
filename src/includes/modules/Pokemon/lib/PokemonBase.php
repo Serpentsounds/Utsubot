@@ -22,14 +22,14 @@ abstract class PokemonBase {
     protected $generation = -1;
     protected $names = [ ];
     protected $lastJaroResult;
-    
+
     /**
      * @return string
      */
     public function __toString(): string {
         return $this->getName(new Language(Language::English));
     }
-    
+
     /**
      * Test if a search term (usu. id number or name) matches this object
      *
@@ -137,7 +137,7 @@ abstract class PokemonBase {
      * @throws PokemonBaseException
      */
     public function setGeneration(int $generation) {
-        if ($generation < 1 || $generation > 6)
+        if ($generation < 1 || $generation > 7)
             throw new PokemonBaseException("Invalid generation number '$generation'.");
 
         $this->generation = $generation;
@@ -170,10 +170,10 @@ abstract class PokemonBase {
     public function getLastJaroResult(): JaroResult {
         if (!($this->lastJaroResult instanceof JaroResult))
             throw new PokemonBaseException("Unable to get last Jaro result because no Jaro searches have been performed.");
-        
+
         return $this->lastJaroResult;
     }
-    
+
 }
 
 /**
