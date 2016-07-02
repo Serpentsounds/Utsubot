@@ -120,6 +120,10 @@ class PokemonManager extends PokemonManagerBase {
             case "species":
                 return new ManagerSearchObject($this, "getSpecies", [ ], self::$stringOperators);
                 break;
+
+            case "generation":
+                return new ManagerSearchObject($this, "getGeneration", [ ], self::$numericOperators);
+                break;
         }
 
         return null;

@@ -30,6 +30,9 @@ class AbilityManager extends PokemonManagerBase {
             case "effect":
                 return new ManagerSearchObject($this, "getEffect", [ ], self::$stringOperators);
                 break;
+            case "generation":
+                return new ManagerSearchObject($this, "getGeneration", [ ], self::$numericOperators);
+                break;
         }
 
         return null;

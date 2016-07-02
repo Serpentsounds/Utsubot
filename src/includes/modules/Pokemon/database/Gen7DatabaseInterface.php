@@ -59,6 +59,8 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
             if (!isset($pokemon[ $id ])) {
                 $pokemon[ $id ] = new Pokemon();
                 $pokemon[ $id ]->setId($id);
+
+                $pokemon[ $id ]->setGeneration(7);
             }
 
             $pokemon[ $id ]->setName($row[ 'name' ], Language::fromName($row[ 'lang' ]));
@@ -162,7 +164,7 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
 
                 $abilities[ $id ]->setEffect($row[ 'effect' ]);
                 $abilities[ $id ]->setShortEffect($row[ 'effect' ]);
-                
+
                 $abilities[ $id ]->setGeneration(7);
             }
 

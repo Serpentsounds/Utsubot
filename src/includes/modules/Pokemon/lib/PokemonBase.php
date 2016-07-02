@@ -6,22 +6,35 @@
  */
 
 namespace Utsubot\Pokemon;
+
+
 use function Utsubot\Jaro\jaroWinklerDistance;
 
 
-class PokemonBaseException extends \Exception {}
+/**
+ * Class PokemonBaseException
+ *
+ * @package Utsubot\Pokemon
+ */
+class PokemonBaseException extends \Exception {
+
+}
+
 
 /**
  * Class PokemonBase
- * Method and members used by all substance classes of the pokemon extension (Pokemon, Ability, Nature, Item, Move, MetaPokemon)
+ * Method and members used by all substance classes of the pokemon extension (Pokemon, Ability, Nature, Item, Move,
+ * MetaPokemon)
+ *
  * @package Pokemon
  */
 abstract class PokemonBase {
 
-    protected $id = -1;
+    protected $id         = -1;
     protected $generation = -1;
-    protected $names = [ ];
+    protected $names      = [ ];
     protected $lastJaroResult;
+
 
     /**
      * @return string
@@ -29,6 +42,7 @@ abstract class PokemonBase {
     public function __toString(): string {
         return $this->getName(new Language(Language::English));
     }
+
 
     /**
      * Test if a search term (usu. id number or name) matches this object
@@ -47,7 +61,7 @@ abstract class PokemonBase {
         //	String search
         elseif (is_string($search)) {
             //	Case insensitive
-            $normalize = function(string $str) {
+            $normalize = function (string $str) {
                 return strtolower(
                     str_replace(
                         [ " ", "-" ],
@@ -69,6 +83,7 @@ abstract class PokemonBase {
         return false;
     }
 
+
     /**
      * Retieve this object's unique ID number
      *
@@ -78,6 +93,7 @@ abstract class PokemonBase {
         return $this->id;
     }
 
+
     /**
      * Retrieve a name for this object
      *
@@ -85,8 +101,9 @@ abstract class PokemonBase {
      * @return string
      */
     public function getName(Language $language): string {
-        return $this->names[$language->getValue()] ?? "";
+        return $this->names[ $language->getValue() ] ?? "";
     }
+
 
     /**
      * Return all saved names for this object
@@ -97,6 +114,7 @@ abstract class PokemonBase {
         return $this->names;
     }
 
+
     /**
      * Get the first generation of games this object was introduced in
      *
@@ -105,6 +123,7 @@ abstract class PokemonBase {
     public function getGeneration(): int {
         return $this->generation;
     }
+
 
     /**
      * Sets the id nunber for this object
@@ -119,16 +138,18 @@ abstract class PokemonBase {
         $this->id = $id;
     }
 
+
     /**
      * Set one of this object's name values (english, japanese, french, german, etc.)
      *
-     * @param string $name
+     * @param string   $name
      * @param Language $language
      * @throws PokemonBaseException Invalid language
      */
     public function setName(string $name, Language $language) {
-        $this->names[$language->getValue()] = $name;
+        $this->names[ $language->getValue() ] = $name;
     }
+
 
     /**
      * Set the first generation of games this ability was introduced in
@@ -143,25 +164,27 @@ abstract class PokemonBase {
         $this->generation = $generation;
     }
 
+
     /**
      * Get the Jaro-Winkler distance from a search to the closest 'name' this object has
      *
-     * @param string $search
+     * @param string   $search
      * @param Language $language
      * @return float
      */
     public function jaroSearch(string $search, Language $language): float {
-        $return = 0;
+        $return     = 0;
         $languageId = $language->getValue();
         foreach ($this->names as $compareLanguage => $name) {
             if (($languageId == Language::All || $languageId == $compareLanguage) && ($jaroWinkler = jaroWinklerDistance($name, $search)) > $return) {
-                $return = $jaroWinkler;
+                $return               = $jaroWinkler;
                 $this->lastJaroResult = new JaroResult($name, $search, $jaroWinkler);
             }
         }
 
         return $return;
     }
+
 
     /**
      * @return JaroResult
@@ -176,28 +199,32 @@ abstract class PokemonBase {
 
 }
 
+
 /**
  * Class JaroResult
  *
  * @package Utsubot\Pokemon
  */
 class JaroResult {
+
     private $targetString;
     private $matchedString;
     private $similarity;
+
 
     /**
      * JaroResult constructor.
      *
      * @param string $targetString
      * @param string $matchedString
-     * @param float $similarity
+     * @param float  $similarity
      */
     public function __construct(string $targetString, string $matchedString, float $similarity) {
-        $this->targetString = $targetString;
+        $this->targetString  = $targetString;
         $this->matchedString = $matchedString;
-        $this->similarity = $similarity;
+        $this->similarity    = $similarity;
     }
+
 
     /**
      * @return string
@@ -206,12 +233,14 @@ class JaroResult {
         return $this->targetString;
     }
 
+
     /**
      * @return string
      */
     public function getMatchedString(): string {
         return $this->matchedString;
     }
+
 
     /**
      * @return float
