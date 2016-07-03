@@ -6,7 +6,7 @@
  */
 
 namespace Utsubot\Pokemon\Ability;
-use Utsubot\Manageable;
+use Utsubot\Manager\Manageable;
 use Utsubot\Pokemon\{
     AbilityItemBase,
     PokemonBaseException
@@ -25,4 +25,4 @@ class AbilityException extends PokemonBaseException {}
  *
  * @package Utsubot\Pokemon\Ability
  */
-class Ability extends AbilityItemBase implements Manageable {}
+class Ability extends AbilityItemBase {}

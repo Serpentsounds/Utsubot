@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Stats;
 
@@ -15,20 +15,22 @@ class HiddenPowerCalculator {
 
     private $IVs;
 
+
     /**
      * HiddenPowerCalculator constructor.
      *
-     * @param int $hp HP IV
-     * @param int $attack Attack IV
-     * @param int $defense Defense IV
-     * @param int $specialAttack Special Attack IV
+     * @param int $hp             HP IV
+     * @param int $attack         Attack IV
+     * @param int $defense        Defense IV
+     * @param int $specialAttack  Special Attack IV
      * @param int $specialDefense Special Defense IV
-     * @param int $speed Speed IV
+     * @param int $speed          Speed IV
      */
     public function __construct(int $hp, int $attack, int $defense, int $specialAttack, int $specialDefense, int $speed) {
         //  Reorder speed IV to streamline binary calculations
         $this->IVs = [ $hp, $attack, $defense, $speed, $specialAttack, $specialDefense ];
     }
+
 
     /**
      * Calculate this object's hidden power parameters and return the result
@@ -43,23 +45,22 @@ class HiddenPowerCalculator {
          *	The floor()'d result is an index applied to a list of types
          *	This routine converts each IV to its term value in that equation
          */
-        array_walk($typeTerms, function(&$iv, $key) {
+        array_walk($typeTerms, function (&$iv, $key) {
             //	The 0-5 index corresponds with the term placement and coefficient, so we can use it calculate the term value
             $iv = ($iv % 2) * pow(2, $key);
         });
 
         //	Apply the final part of the type formula to the list of types
         $index = intval(array_sum($typeTerms) * 15 / 63);
-        $type = self::$types[$index];
-
+        $type  = self::$types[ $index ];
 
         /*	Hidden power base power formula is given by (40/63)(a+2b+4c+8d+16e+32f)+30, where a through f again correspond to the stats, but this time take on the 2nd to last binary bit
          *	This can be easily determined by checking if the value modulo 4 is greater than 1
          * 	The floor()'d result is the base power  */
-        array_walk($powerTerms, function(&$iv, $key) {
+        array_walk($powerTerms, function (&$iv, $key) {
             //	This operates similarly to the type routine
             $secondToLast = ($iv % 4 > 1) ? 1 : 0;
-            $iv = $secondToLast * pow(2, $key);
+            $iv           = $secondToLast * pow(2, $key);
         });
 
         //  Final bit of formula
@@ -68,8 +69,8 @@ class HiddenPowerCalculator {
         return new HiddenPowerCalculation($type, $power);
     }
 
-
 }
+
 
 /**
  * The result set of a HiddenPowerCalculator's calculation
@@ -81,20 +82,30 @@ class HiddenPowerCalculation {
     private $type;
     private $power;
 
+
     /**
      * HiddenPowerCalculation constructor.
      *
      * @param string $type
-     * @param int $power
+     * @param int    $power
      */
     public function __construct(string $type, int $power) {
-        $this->type = $type;
+        $this->type  = $type;
         $this->power = $power;
     }
 
+
+    /**
+     * @return string
+     */
     public function getType() {
         return $this->type;
     }
+
+
+    /**
+     * @return int
+     */
     public function getPower() {
         return $this->power;
     }

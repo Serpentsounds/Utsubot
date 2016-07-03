@@ -6,7 +6,7 @@
  */
 
 namespace Utsubot;
-
+use Utsubot\Manager\ManagerException;
 /**
  * Class Core
  *
@@ -98,7 +98,7 @@ class Core extends Module {
             $this->IRCBot->raw("WHO ".$msg->getResponseTarget());
         }
 
-        $channel = $channels->search($msg->getResponseTarget());
+        $channel = $channels->findFirst($msg->getResponseTarget());
         if ($channel instanceof Channel) {
             $channel->join($user);
             $user->join($msg->getResponseTarget());

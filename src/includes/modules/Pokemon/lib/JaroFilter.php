@@ -8,7 +8,7 @@
 
 namespace Utsubot\Pokemon;
 
-use \Utsubot\ManagerFilter;
+use \Utsubot\Manager\BasicFilter;
 
 
 /**
@@ -16,7 +16,7 @@ use \Utsubot\ManagerFilter;
  *
  * @package Utsubot\Pokemon
  */
-class JaroFilter extends ManagerFilter {
+class JaroFilter extends BasicFilter {
 
     const MINIMUM_SIMILARITY = 0.80;
 

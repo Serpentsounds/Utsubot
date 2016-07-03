@@ -7,6 +7,15 @@
 
 namespace Utsubot;
 
+
+use Utsubot\Manager\Manageable;
+
+
+/**
+ * Class User
+ *
+ * @package Utsubot
+ */
 class User implements Manageable {
 
     private $id;
@@ -16,6 +25,12 @@ class User implements Manageable {
     private $idle     = 0;
 
 
+    /**
+     * User constructor.
+     *
+     * @param $nick
+     * @param $address
+     */
     public function __construct($nick, $address) {
         $this->nick    = $nick;
         $this->address = $address;
@@ -23,6 +38,9 @@ class User implements Manageable {
     }
 
 
+    /**
+     * @param $channel
+     */
     public function join($channel) {
         $channel = strtolower($channel);
 
@@ -32,6 +50,9 @@ class User implements Manageable {
     }
 
 
+    /**
+     * @param $channel
+     */
     public function part($channel) {
         $channel = strtolower($channel);
 
@@ -41,6 +62,10 @@ class User implements Manageable {
     }
 
 
+    /**
+     * @param $channel
+     * @param $mode
+     */
     public function mode($channel, $mode) {
         $channel = strtolower($channel);
         //	Updates the information for the user's status on the given channel (e.g., op, voice, etc).
@@ -54,7 +79,7 @@ class User implements Manageable {
                 foreach ($modes as $mode) {
                     //	Setting mode and mode isn't already present, add it
                     if ($set == '+' && !in_array($mode, $this->channels[ $channel ]))
-                        $this->channels[ $channel ][ ] = $mode;
+                        $this->channels[ $channel ][] = $mode;
 
                     //	Removing mode and mode exists, clear it
                     elseif ($set == '-' && ($index = array_search($mode, $this->channels[ $channel ])) !== false)
@@ -73,15 +98,24 @@ class User implements Manageable {
 
 
     //	Returns true if this user is on the given channel.
+    /**
+     * @param $channel
+     * @return mixed
+     */
     public function isOn($channel) {
         return array_key_exists(strtolower($channel), $this->channels);
     }
 
 
     //	Returns the user's modes on the given channel.
+    /**
+     * @param      $channel
+     * @param bool $str
+     * @return bool|mixed
+     */
     public function status($channel, $str = false) {
         $channel = strtolower($channel);
-        
+
         if (!$this->isOn($channel))
             return false;
 
@@ -89,57 +123,91 @@ class User implements Manageable {
     }
 
 
+    /**
+     * @param $id
+     */
     public function setId($id) {
         $this->id = $id;
     }
 
 
+    /**
+     * @return mixed
+     */
     public function getId() {
         return $this->id;
     }
 
 
+    /**
+     * @param $nick
+     */
     public function setNick($nick) {
         $this->nick = $nick;
     }
 
 
+    /**
+     * @return string
+     */
     public function getNick() {
         return $this->nick;
     }
 
 
+    /**
+     * @param $address
+     */
     public function setAddress($address) {
         $this->address = $address;
     }
 
 
+    /**
+     * @return string
+     */
     public function getAddress() {
         return $this->address;
     }
 
 
+    /**
+     *
+     */
     public function activity() {
         $this->idle = microtime(true);
     }
 
 
+    /**
+     * @return mixed
+     */
     public function getTimeIdle() {
         return microtime(true) - $this->idle;
     }
 
 
+    /**
+     * @return array
+     */
     public function getChannels() {
         return $this->channels;
     }
 
 
     //	Conversion of the user object to a String yields the current nickname.
+    /**
+     * @return string
+     */
     public function __toString() {
         return $this->nick;
     }
 
 
+    /**
+     * @param mixed $term
+     * @return bool
+     */
     public function search($term): bool {
         return (strtolower($term) == strtolower($this->nick));
     }

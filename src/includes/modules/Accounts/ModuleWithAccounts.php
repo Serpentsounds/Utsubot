@@ -7,10 +7,10 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Accounts;
+use Utsubot\Manager\ManagerException;
 use Utsubot\{
     Module,
     ModuleException,
-    IRCBot,
     IRCMessage,
     User
 };
@@ -126,11 +126,11 @@ abstract class ModuleWithAccounts extends Module {
      * @param string $nickname
      * @return int
      * @throws AccountsException
-     * @throws \Utsubot\ManagerException
+     * @throws ManagerException
      */
     protected function getAccountIDByNickname(string $nickname): int {
         $users = $this->IRCBot->getUsers();
-        $user = $users->search($nickname);
+        $user = $users->findFirst($nickname);
         return $this->getAccountIDByUser($user);
     }
 }

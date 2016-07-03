@@ -43,7 +43,7 @@ EOF;
     public function __construct($object, $pokemon) {
         parent::__construct($object);
 
-        $MetaPokemon = $this->object->search($pokemon);
+        $MetaPokemon = $this->object->findFirst($pokemon);
         if ($MetaPokemon === false)
             throw new InfoFormatException("MetaPokemon '$pokemon' could not be found.");
         $this->MetaPokemon = $MetaPokemon[ 0 ];

@@ -7,9 +7,21 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
+
+
 use Exception;
 
-class URLParserRegexException extends Exception {}
+
+/**
+ * Class URLParserRegexException
+ *
+ * @package Utsubot\Web
+ */
+class URLParserRegexException extends Exception {
+
+}
+
+
 /**
  * Class URLParserRegex
  *
@@ -22,6 +34,7 @@ class URLParserRegex {
     private $method;
     private $permission;
 
+
     /**
      * URLParserRegex constructor.
      *
@@ -31,15 +44,16 @@ class URLParserRegex {
      * @param string   $permission
      */
     public function __construct(string $domain, string $regex, callable $method, string $permission) {
-        $this->domain = strtolower($domain);
-        $this->regex = $regex;
-        $this->method = $method;
+        $this->domain     = strtolower($domain);
+        $this->regex      = $regex;
+        $this->method     = $method;
         $this->permission = $permission;
     }
 
+
     /**
      * Grab regex capture groups and plug them into the saved callback to fetch web data
-     * 
+     *
      * @param string $url
      * @param string $channel
      * @return string
@@ -47,12 +61,14 @@ class URLParserRegex {
      */
     public function call(string $url, string $channel): string {
         $regexMatch = $this->match($url);
+
         return call_user_func($this->method, $regexMatch, $channel);
     }
 
+
     /**
      * Match a url against the internal regex and return capture groups if it matches
-     * 
+     *
      * @param string $url
      * @return array
      * @throws URLParserRegexException
@@ -81,12 +97,14 @@ class URLParserRegex {
         return $match;
     }
 
+
     /**
      * @return string
      */
     public function getDomain(): string {
         return $this->domain;
     }
+
 
     /**
      * @return string
@@ -95,12 +113,14 @@ class URLParserRegex {
         return $this->regex;
     }
 
+
     /**
      * @return callable
      */
     public function getMethod(): callable {
         return $this->method;
     }
+
 
     /**
      * @return string

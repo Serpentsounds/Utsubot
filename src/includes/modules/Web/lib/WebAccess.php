@@ -8,10 +8,22 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
-use function Utsubot\{bold, italic, underline};
 
 
-class WebAccessException extends \Exception {}
+use function Utsubot\{
+    bold, italic, underline
+};
+
+
+/**
+ * Class WebAccessException
+ *
+ * @package Utsubot\Web
+ */
+class WebAccessException extends \Exception {
+
+}
+
 
 /**
  * Get the body of a web resource
@@ -87,7 +99,7 @@ function cURLExec($cURL): string {
  */
 function cURLResource(string $url) {
     if (!extension_loaded("cURL"))
-        throw new WebAccessException(get_class(). ": Extension cURL must be loaded.");
+        throw new WebAccessException(get_class().": Extension cURL must be loaded.");
 
     $cURL = curl_init($url);
     //	These are universal cURL options applied to all resources obtained through this class
@@ -102,7 +114,8 @@ function cURLResource(string $url) {
 
 /**
  * Takes HTML text and puts it through a series of parsings for normal display.
- * Entities including unicode entities, bold, italic, underline, and extra spacing are all normalized, and stray html tags are removed
+ * Entities including unicode entities, bold, italic, underline, and extra spacing are all normalized, and stray html
+ * tags are removed
  *
  * @param string $html
  * @return string $html without html
@@ -112,21 +125,21 @@ function stripHTML(string $html): string {
     $html = preg_replace_callback(
         "/<b>(.*?)<\/b>/i",
         function ($match) {
-            return bold($match[1]);
+            return bold($match[ 1 ]);
         },
         $html
     );
     $html = preg_replace_callback(
         "/<i>(.*?)<\/i>/i",
         function ($match) {
-            return italic($match[1]); 
+            return italic($match[ 1 ]);
         },
         $html
     );
     $html = preg_replace_callback(
         "/<u>(.*?)<\/u>/i",
         function ($match) {
-            return underline($match[1]);
+            return underline($match[ 1 ]);
         },
         $html
     );
@@ -138,10 +151,16 @@ function stripHTML(string $html): string {
     //	Remove remaining html
     $html = preg_replace("/<[^>]*>/s", "", $html);
     //	Convert unicode entities
-    $html = preg_replace_callback("/\\\\u([0-9a-f]{4})|&#u([0-9a-f]{4});/i", function ($match) { return chr(hexdec(($match[2]?:$match[1]))); }, $html);
-    $html = preg_replace_callback("/\\\\x([0-9a-f]{2})|&#x([0-9a-f]{2});/i", function ($match) { return chr(hexdec(($match[2]?:$match[1]))); }, $html);
+    $html = preg_replace_callback("/\\\\u([0-9a-f]{4})|&#u([0-9a-f]{4});/i", function ($match) {
+        return chr(hexdec(($match[ 2 ] ?: $match[ 1 ])));
+    }, $html);
+    $html = preg_replace_callback("/\\\\x([0-9a-f]{2})|&#x([0-9a-f]{2});/i", function ($match) {
+        return chr(hexdec(($match[ 2 ] ?: $match[ 1 ])));
+    }, $html);
     //	Convert standard entities
-    $html = preg_replace_callback("/&#([0-9]{2,3});/i", function ($match) { return chr((int)($match[1])); }, $html);
+    $html = preg_replace_callback("/&#([0-9]{2,3});/i", function ($match) {
+        return chr((int)($match[ 1 ]));
+    }, $html);
     $html = html_entity_decode($html, ENT_NOQUOTES, "UTF-8");
     //	Condense extra space
     $html = mb_ereg_replace("\s+", " ", $html);

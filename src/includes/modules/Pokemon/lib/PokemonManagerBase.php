@@ -8,7 +8,7 @@
 namespace Utsubot\Pokemon;
 
 
-use Utsubot\{
+use Utsubot\Manager\{
     Manager,
     ManagerException
 };
@@ -45,7 +45,7 @@ abstract class PokemonManagerBase extends Manager {
      */
     public function __construct() {
         if (!strlen(static::$populatorMethod))
-            throw new PokemonManagerBaseException("Populator method not configured in for class '".get_class($this)."'.");
+            throw new PokemonManagerBaseException("Populator method not configured for class '".get_class($this)."'.");
 
         parent::__construct();
     }
@@ -71,6 +71,8 @@ abstract class PokemonManagerBase extends Manager {
 
 
     /**
+     * Begin population from one or all added sources
+     *
      * @param int|null $index
      * @throws PokemonManagerBaseException
      */
@@ -108,9 +110,11 @@ abstract class PokemonManagerBase extends Manager {
     protected function doPopulate(int $index) {
         $collection = call_user_func([ $this->populators[ $index ], static::$populatorMethod ]);
 
+        //  Convert ArrayObjects to just data
         if ($collection instanceof \ArrayObject)
             $collection = $collection->getArrayCopy();
 
+        //  Collection must be an array
         if (!is_array($collection))
             throw new PokemonManagerBaseException("Populator method '".static::$populatorMethod."' did not return an array.");
 
@@ -119,6 +123,8 @@ abstract class PokemonManagerBase extends Manager {
 
 
     /**
+     * Search for items in the collection with typo forgiveness using Jaro-Winkler distance
+     *
      * @param string   $search
      * @param Language $language
      * @return array
@@ -136,5 +142,15 @@ abstract class PokemonManagerBase extends Manager {
 
         return $return;
     }
+
+
+    /**
+     * Translate the name of a search field for an end user to a method name with parameters to grab the relevant data
+     * from the Manager's objects
+     * 
+     * @param string $field
+     * @return MethodInfo
+     */
+    abstract public function getMethodFor(string $field): MethodInfo;
 
 }

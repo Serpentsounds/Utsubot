@@ -7,13 +7,30 @@
 
 namespace Utsubot\Pokemon\Ability;
 
-use Utsubot\Pokemon\PokemonManagerBase;
-use Utsubot\ManagerSearchObject;
+
+use Utsubot\Pokemon\{
+    PokemonManagerBase, MethodInfo, PokemonManagerBaseException
+};
 
 
+/**
+ * Class AbilityManagerException
+ *
+ * @package Utsubot\Pokemon\Ability
+ */
+class AbilityManagerException extends PokemonManagerBaseException {
+
+}
+
+
+/**
+ * Class AbilityManager
+ *
+ * @package Utsubot\Pokemon\Ability
+ */
 class AbilityManager extends PokemonManagerBase {
 
-    protected static $manages = "Utsubot\\Pokemon\\Ability\\Ability";
+    protected static $manages     = "Utsubot\\Pokemon\\Ability\\Ability";
     protected static $validFields = [ "effect" ];
 
     protected static $populatorMethod = "getAbilities";
@@ -21,32 +38,27 @@ class AbilityManager extends PokemonManagerBase {
 
     /**
      * @param string $field
-     * @param string $operator
-     * @param string $value
-     * @return null|ManagerSearchObject
+     * @return MethodInfo
+     * @throws AbilityManagerException
      */
-    public function searchFields($field, $operator = "", $value = "") {
+    public function getMethodFor(string $field): MethodInfo {
+
         switch ($field) {
+
             case "effect":
-                return new ManagerSearchObject($this, "getEffect", [ ], self::$stringOperators);
+                $return = new MethodInfo("getEffect", [ ]);
                 break;
+
             case "generation":
-                return new ManagerSearchObject($this, "getGeneration", [ ], self::$numericOperators);
+                $return = new MethodInfo("getGeneration", [ ]);
+                break;
+
+            default:
+                throw new AbilityManagerException("Unsupported search field '$field'.");
                 break;
         }
 
-        return null;
-    }
-
-
-    /**
-     * @param mixed $object
-     * @param mixed $field
-     * @param mixed $operator
-     * @param mixed $value
-     */
-    public function customComparison($object, $field, $operator, $value) {
-        // TODO: Implement customComparison() method.
+        return $return;
     }
 
 }

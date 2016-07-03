@@ -7,6 +7,7 @@
 
 namespace Utsubot\Pokemon\Types;
 
+
 use Utsubot\Color;
 use Utsubot\Pokemon\Pokemon\Pokemon;
 use function Utsubot\{
@@ -15,9 +16,15 @@ use function Utsubot\{
 };
 
 
+/**
+ * Class TypesException
+ *
+ * @package Utsubot\Pokemon\Types
+ */
 class TypesException extends \Exception {
 
 }
+
 
 define("IMMUNE", 0);
 define("NOT_VERY_EFFECTIVE", 1);

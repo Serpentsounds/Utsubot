@@ -1,22 +1,23 @@
 <?php
 /**
- * Utsubot - ManagerFilter.php
+ * Utsubot - BasicFilter.php
  * Date: 21/04/2016
  */
 
 declare(strict_types = 1);
 
-namespace Utsubot;
-
+namespace Utsubot\Manager;
 
 /**
- * Class ManagerFilter
+ * Class BasicFilter
  * A custom FilterIterator used in the Manager's search function
- * 
+ *
  * @package Utsubot
  */
-class ManagerFilter extends \FilterIterator {
+class BasicFilter extends \FilterIterator {
+
     protected $search;
+
 
     /**
      * ManagerFilter constructor.
@@ -29,6 +30,7 @@ class ManagerFilter extends \FilterIterator {
         $this->search = $search;
     }
 
+
     /**
      * @return bool
      */
@@ -36,7 +38,8 @@ class ManagerFilter extends \FilterIterator {
         $obj = $this->current();
         if ($obj instanceof Manageable)
             return $obj->search($this->search);
-        
+
         return false;
     }
+    
 }

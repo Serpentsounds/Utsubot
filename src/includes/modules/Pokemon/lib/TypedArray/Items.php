@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: benny
  * Date: 6/30/2016
- * Time: 6:45 PM
+ * Time: 6:44 PM
  */
 
 namespace Utsubot\Pokemon;
@@ -12,12 +12,12 @@ use Utsubot\TypedArray;
 
 
 /**
- * Class MoveGroup
+ * Class Items
  *
  * @package Utsubot\Pokemon
  */
-class MoveGroup extends TypedArray {
+class Items extends TypedArray {
 
-    protected static $contains = "Utsubot\\Pokemon\\Move\\Move";
+    protected static $contains = "Utsubot\\Pokemon\\Item\\Item";
 
 }

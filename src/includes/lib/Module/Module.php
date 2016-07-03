@@ -7,16 +7,32 @@
 
 namespace Utsubot;
 
+/**
+ * Class ModuleException
+ *
+ * @package Utsubot
+ */
+/**
+ * Class ModuleException
+ *
+ * @package Utsubot
+ */
+class ModuleException extends \Exception {
 
-class ModuleException extends \Exception {}
+}
+
 
 /** @property IRCBot */
 abstract class Module {
 
+    /**
+     * @var IRCBot
+     */
     protected $IRCBot;
 
     /** @var Trigger[] $triggers */
     private $triggers = [ ];
+
 
     /**
      * Module constructor.
@@ -27,24 +43,27 @@ abstract class Module {
         $this->IRCBot = $IRCBot;
     }
 
+
     /**
      * Log a message from this module to the console
      *
      * @param string $msg
      */
     protected function status(string $msg) {
-        $this->IRCBot->console(get_class($this). ": $msg\n");
+        $this->IRCBot->console(get_class($this).": $msg\n");
     }
+
 
     /**
      * Shorthand function to reply to channel/user in commands
      *
      * @param IRCMessage $msg
-     * @param $text
+     * @param            $text
      */
     protected function respond(IRCMessage $msg, string $text) {
         $this->IRCBot->message($msg->getResponseTarget(), $text);
     }
+
 
     /**
      * Shorthand function to require the existence of classes before executing a command
@@ -56,6 +75,7 @@ abstract class Module {
         if (!class_exists($class))
             throw new ModuleException("This action requires $class to be loaded.");
     }
+
 
     /**
      * Shorthand function to require a certain number of parameters before proceeding with command processing
@@ -73,6 +93,7 @@ abstract class Module {
             throw new ModuleException($errorMessage);
     }
 
+
     /**
      * Return a reference to another Module object also loaded into the bot
      *
@@ -87,6 +108,7 @@ abstract class Module {
         throw new ModuleException("Module $module is not loaded.");
     }
 
+
     /**
      * Parse the format of module exception to output the error to the user
      *
@@ -99,8 +121,8 @@ abstract class Module {
 
         //  Prepend Exception class name to error output
         if (preg_match("/(.*?)Exception$/", get_class($e), $match)) {
-            $nameParts = explode("\\", $match[1]);
-            $response = underline(italic(end($nameParts)). " error:"). " $response";
+            $nameParts = explode("\\", $match[ 1 ]);
+            $response  = underline(italic(end($nameParts))." error:")." $response";
         }
 
         //	If the error occured in a public channel, address the user directly for clarity
@@ -109,6 +131,7 @@ abstract class Module {
 
         return $response;
     }
+
 
     /**
      * Given an IRCMessage and command triggers, call the necessary methods and process errors
@@ -124,12 +147,13 @@ abstract class Module {
             try {
                 $trigger->trigger($msg);
             }
-            //  Error in triggered command, output to user
+                //  Error in triggered command, output to user
             catch (\Exception $e) {
                 $this->respond($msg, $this->parseException($e, $msg));
             }
         }
     }
+
 
     /**
      * Add a new command trigger
@@ -141,6 +165,7 @@ abstract class Module {
         $this->triggers[] = $trigger;
     }
 
+
     /**
      * @return array
      */
@@ -148,13 +173,34 @@ abstract class Module {
         return $this->triggers;
     }
 
+
     /**
      * Triggered when module is loaded, but before connecting
      */
-    public function startup(){}
-    public function shutdown(){}
-    public function connect(){}
-    public function disconnect(){}
+    public function startup() {
+    }
+
+
+    /**
+     *
+     */
+    public function shutdown() {
+    }
+
+
+    /**
+     *
+     */
+    public function connect() {
+    }
+
+
+    /**
+     *
+     */
+    public function disconnect() {
+    }
+
 
     /**
      * Execute timed commands
@@ -162,10 +208,23 @@ abstract class Module {
      *
      * @param $time
      */
-    public function time(float $time){}
+    public function time(float $time) {
+    }
 
-    public function ping(IRCMessage $msg){}
-    public function error(IRCMessage $msg){}
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function ping(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function error(IRCMessage $msg) {
+    }
+
 
     /**
      * Parse commands
@@ -176,21 +235,95 @@ abstract class Module {
         $this->parseTriggers($msg);
     }
 
-    public function notice(IRCMessage $msg){}
-    public function ctcp(IRCMessage $msg){}
-    public function ctcpResponse(IRCMessage $msg){}
 
-    public function mode(IRCMessage $msg){}
-    public function topic(IRCMessage $msg){}
-    public function join(IRCMessage $msg){}
-    public function part(IRCMessage $msg){}
-    public function quit(IRCMessage $msg){}
-    public function nick(IRCMessage $msg){}
-    public function kick(IRCMessage $msg){}
+    /**
+     * @param IRCMessage $msg
+     */
+    public function notice(IRCMessage $msg) {
+    }
 
-    public function raw(IRCMessage $msg){}
 
-    public function user(User $user){}
-    public function channel(Channel $channel){}
+    /**
+     * @param IRCMessage $msg
+     */
+    public function ctcp(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function ctcpResponse(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function mode(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function topic(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function join(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function part(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function quit(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function nick(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function kick(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     */
+    public function raw(IRCMessage $msg) {
+    }
+
+
+    /**
+     * @param User $user
+     */
+    public function user(User $user) {
+    }
+
+
+    /**
+     * @param Channel $channel
+     */
+    public function channel(Channel $channel) {
+    }
 
 }

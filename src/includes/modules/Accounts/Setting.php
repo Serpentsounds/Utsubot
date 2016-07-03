@@ -8,18 +8,20 @@ declare(strict_types = 1);
 
 namespace Utsubot\Accounts;
 
-
 /**
  * Class SettingException
  *
  * @package Utsubot\Accounts
  */
-class SettingException extends AccountsException {}
+class SettingException extends AccountsException {
+
+}
+
 
 /**
  * Class Setting
  * Data structure to validate a set of parameters describing an account setting field to put into the database
- * 
+ *
  * @package Utsubot\Accounts
  */
 class Setting {
@@ -28,6 +30,7 @@ class Setting {
     private $name;
     private $display;
     private $maxEntries;
+
 
     /**
      * Setting constructor.
@@ -40,7 +43,7 @@ class Setting {
      */
     public function __construct(ModuleWithAccounts $module, string $name, string $display, int $maxEntries) {
         $this->module = $module;
-        
+
         if (!strlen($name))
             throw new SettingException("Name must not be empty.");
         $this->name = $name;
@@ -54,16 +57,22 @@ class Setting {
         $this->maxEntries = $maxEntries;
     }
 
+
     /**
      * @return string
      */
     public function __toString(): string {
         return $this->display;
     }
-    
+
+
+    /**
+     * @param string $value
+     */
     public function validate(string $value) {
         $this->module->validateSetting($this, $value);
     }
+
 
     /**
      * @return string
@@ -72,12 +81,14 @@ class Setting {
         return $this->name;
     }
 
+
     /**
      * @return string
      */
     public function getDisplay(): string {
         return $this->display;
     }
+
 
     /**
      * @return int

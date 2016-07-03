@@ -6,7 +6,7 @@
 
 declare(strict_types = 1);
 
-namespace Utsubot;
+namespace Utsubot\Manager;
 
 /**
  * Interface Manageable
@@ -20,5 +20,5 @@ interface Manageable {
      * @return bool
      */
     function search($terms): bool;
-    
+
 }

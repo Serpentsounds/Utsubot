@@ -49,14 +49,14 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return PokemonGroup
+     * @return Pokemons
      * @throws PokemonBaseException
      * @throws \Utsubot\Pokemon\Pokemon\PokemonException
      * @throws \Utsubot\EnumException
      */
-    public function getPokemon(): PokemonGroup  {
+    public function getPokemon(): Pokemons  {
         /** @var Pokemon[] $pokemon */
-        $pokemon = new PokemonGroup();
+        $pokemon = new Pokemons();
 
         $nationalDex = new Dex(Dex::National);
 
@@ -534,12 +534,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return AbilityGroup
+     * @return Abilities
      * @throws PokemonBaseException
      */
-    public function getAbilities(): AbilityGroup {
+    public function getAbilities(): Abilities {
         /** @var Ability[] $abilities */
-        $abilities = new AbilityGroup();
+        $abilities = new Abilities();
 
         $names = $this->getAbilityNames();
         foreach ($names as $row) {
@@ -642,13 +642,13 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return ItemGroup
+     * @return Items
      * @throws \Utsubot\Pokemon\Item\ItemException
      * @throws PokemonBaseException
      */
-    public function getItems(): ItemGroup {
+    public function getItems(): Items {
         /** @var Item[] $items */
-        $items = new ItemGroup();
+        $items = new Items();
 
         $itemRow = $this->getItemRow();
         foreach ($itemRow as $row) {
@@ -783,12 +783,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return NatureGroup
+     * @return Natures
      * @throws PokemonBaseException
      */
-    public function getNatures(): NatureGroup {
+    public function getNatures(): Natures {
         /** @var Nature[] $natures */
-        $natures = new NatureGroup();
+        $natures = new Natures();
 
         $natureAttributes = $this->getNatureAttributes();
         foreach ($natureAttributes as $row) {
@@ -800,8 +800,8 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                 $nature->setIncreases(Stat::fromName($row[ 'increases' ]));
                 $nature->setDecreases(Stat::fromName($row[ 'decreases' ]));
 
-                $nature->setLikes(Attribute::fromName($row[ 'likes' ]));
-                $nature->setDislikes(Attribute::fromName($row[ 'dislikes' ]));
+                $nature->setLikesAttr(Attribute::fromName($row[ 'likes' ]));
+                $nature->setDislikesAttr(Attribute::fromName($row[ 'dislikes' ]));
 
                 $nature->setLikesFlavor(Flavor::fromName($row[ 'likesFlavor' ]));
                 $nature->setDislikesFlavor(Flavor::fromName($row[ 'dislikesFlavor' ]));
@@ -861,13 +861,13 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return MoveGroup
+     * @return Moves
      * @throws \Utsubot\Pokemon\Move\MoveException
      * @throws PokemonBaseException
      */
-    public function getMoves(): MoveGroup {
+    public function getMoves(): Moves {
         /** @var Move[] $moves */
-        $moves = new MoveGroup();
+        $moves = new Moves();
 
         $moveRow = $this->getMoveRow();
         foreach ($moveRow as $row) {

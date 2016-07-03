@@ -8,6 +8,11 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
+/**
+ * Class IRCNetwork
+ *
+ * @package Utsubot
+ */
 class IRCNetwork {
 
     private $name;
@@ -18,8 +23,20 @@ class IRCNetwork {
     private $onConnect;
     private $commandPrefixes;
 
+
+    /**
+     * IRCNetwork constructor.
+     *
+     * @param string $name
+     * @param array  $servers
+     * @param int    $port
+     * @param array  $nicknames
+     * @param array  $defaultChannels
+     * @param array  $onConnect
+     * @param array  $commandPrefixes
+     */
     public function __construct(string $name, array $servers, int $port, array $nicknames, array $defaultChannels = [ ], array $onConnect = [ ], array $commandPrefixes = [ ]) {
-        $this->serverCycle = new NonEmptyCycle($servers);
+        $this->serverCycle   = new NonEmptyCycle($servers);
         $this->nicknameCycle = new NonEmptyCycle($nicknames);
 
         $this->name            = $name;
@@ -29,12 +46,14 @@ class IRCNetwork {
         $this->commandPrefixes = $commandPrefixes;
     }
 
+
     /**
      * @return string
      */
     public function getName(): string {
         return $this->name;
     }
+
 
     /**
      * @return int
@@ -43,12 +62,14 @@ class IRCNetwork {
         return $this->port;
     }
 
+
     /**
      * @return array
      */
     public function getDefaultChannels(): array {
         return $this->defaultChannels;
     }
+
 
     /**
      * @return array
@@ -57,6 +78,7 @@ class IRCNetwork {
         return $this->onConnect;
     }
 
+
     /**
      * @return array
      */
@@ -64,12 +86,14 @@ class IRCNetwork {
         return $this->commandPrefixes;
     }
 
+
     /**
      * @return NonEmptyCycle
      */
     public function getNicknameCycle(): NonEmptyCycle {
         return $this->nicknameCycle;
     }
+
 
     /**
      * @return NonEmptyCycle

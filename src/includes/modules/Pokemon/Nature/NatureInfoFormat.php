@@ -7,6 +7,7 @@
 
 namespace Utsubot\Pokemon\Nature;
 
+
 use Utsubot\Pokemon\{
     InfoFormat,
     Attribute
@@ -14,22 +15,32 @@ use Utsubot\Pokemon\{
 use function Utsubot\bold;
 
 
+/**
+ * Class NatureInfoFormat
+ *
+ * @package Utsubot\Pokemon\Nature
+ */
 class NatureInfoFormat extends InfoFormat {
 
     protected static $class = "Nature";
 
-    protected static $defaultFormat = "[^Nature^: {english}/{japanese}] [^Increases^: {increases}] [^Decreases^: {decreases}] [^Likes^: {likesFlavor}{ (likes)}] [^Dislikes^: {dislikesFlavor}{ (dislikes)}]";
+    protected static $defaultFormat = "[^Nature^: {english}/{japanese}] [^Increases^: {increases}] [^Decreases^: {decreases}] [^Likes^: {likesFlavor}{ (likesAttr)}] [^Dislikes^: {dislikesFlavor}{ (dislikesAttr)}]";
 
     protected static $validFields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
-        "likes", "dislikes",
+        "likesAttr", "dislikesAttr",
         "likesFlavor", "dislikesFlavor",
         "increases", "decreases"
     ];
 
 
+    /**
+     * @param string $field
+     * @param        $fieldValue
+     * @return string
+     */
     protected function formatField(string $field, $fieldValue): string {
-        if ($field == "likes" || $field == "dislikes")
+        if ($field == "likesAttr" || $field == "dislikesAttr")
             $fieldValue = bold(Nature::colorAttribute(Attribute::fromName($fieldValue)));
 
         //	Default case, just bold
@@ -40,14 +51,18 @@ class NatureInfoFormat extends InfoFormat {
     }
 
 
+    /**
+     * @param string $field
+     * @return string
+     */
     protected function getField(string $field): string {
 
         if ($return = parent::getField($field))
             return $return;
 
         switch ($field) {
-            case "likes":
-            case "dislikes":
+            case "likesAttr":
+            case "dislikesAttr":
             case "likesFlavor":
             case "dislikesFlavor":
             case "increases":
@@ -63,4 +78,4 @@ class NatureInfoFormat extends InfoFormat {
         return "";
     }
 
-} 
+}

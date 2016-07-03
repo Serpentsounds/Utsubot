@@ -262,7 +262,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
                 implode(
                     ", ",
                     array_map(
-                        "bold",
+                        "Utsubot\\bold",
                         array_filter([ $row[ 'slot_1' ], $row[ 'slot_2' ], $row[ 'slot_3' ] ])
                     )
                 )
@@ -301,7 +301,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
                            implode(
                                ", ",
                                array_map(
-                                   "bold",
+                                   "Utsubot\\bold",
                                    array_filter($input[ 'pokemon' ])
                                )
                            ),

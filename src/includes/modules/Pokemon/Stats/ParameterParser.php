@@ -8,26 +8,34 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Stats;
 
-use Utsubot\Manager;
+
+use Utsubot\Manager\Manager;
 use Utsubot\Pokemon\Language;
 use Utsubot\Pokemon\Pokemon\Pokemon;
 use Utsubot\Pokemon\Nature\Nature;
 
 
+/**
+ * Class ParameterParserException
+ *
+ * @package Utsubot\Pokemon\Stats
+ */
 class ParameterParserException extends \Exception {
 
 }
 
+
+/**
+ * Class ParameterParser
+ *
+ * @package Utsubot\Pokemon\Stats
+ */
 class ParameterParser {
 
     /** @var $managers Manager[] */
     private $managers;
 
     private static $statList = [ "HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed" ];
-
-
-    public function __construct() {
-    }
 
 
     /**
@@ -84,7 +92,7 @@ class ParameterParser {
         for ($words = 1; $words <= $maxWords; $words++) {
             //	Add 1 word at a time
             $name   = implode(" ", array_slice($parameters, 0, $words));
-            $object = $manager->search($name);
+            $object = $manager->findFirst($name);
 
             //	Object found
             if ($object instanceof $manages)
@@ -231,6 +239,7 @@ class ParameterParser {
     }
 
 }
+
 
 /**
  * Organized result set from parsing user input of a !piv or !pstat command
@@ -394,6 +403,7 @@ class IVStatParameterResult {
 
 }
 
+
 /**
  * Organized result set from parsing user input of a !basetomax or !maxtobase command
  *
@@ -408,6 +418,16 @@ class baseMaxParameterResult {
     private $hp;
 
 
+    /**
+     * baseMaxParameterResult constructor.
+     *
+     * @param int    $stat
+     * @param int    $level
+     * @param string $from
+     * @param string $to
+     * @param bool   $hp
+     * @throws ParameterParserException
+     */
     public function __construct(int $stat, int $level, string $from, string $to, bool $hp) {
         $this->stat  = $stat;
         $this->level = $level;

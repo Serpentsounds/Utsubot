@@ -7,7 +7,7 @@
 
 namespace Utsubot\Pokemon\Item;
 
-use Utsubot\Manageable;
+use Utsubot\Manager\Manageable;
 use Utsubot\Pokemon\{
     AbilityItemBase,
     PokemonBaseException
@@ -28,7 +28,7 @@ class ItemException extends PokemonBaseException {
  *
  * @package Utsubot\Pokemon\Item
  */
-class Item extends AbilityItemBase implements Manageable {
+class Item extends AbilityItemBase {
 
     const FLAG_COUNTABLE       = 1;
     const FLAG_CONSUMABLE      = 2;

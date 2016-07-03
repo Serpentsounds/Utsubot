@@ -6,7 +6,9 @@
  */
 
 namespace Utsubot\Pokemon\Pokemon;
-use Utsubot\Manageable;
+
+
+use Utsubot\Manager\Manageable;
 use Utsubot\Pokemon\{
     Language,
     PokemonBase,
@@ -30,36 +32,38 @@ use function Utsubot\Pokemon\Types\{
  *
  * @package Utsubot\Pokemon\Pokemon
  */
-class PokemonException extends PokemonBaseException {}
+class PokemonException extends PokemonBaseException {
+
+}
+
 
 /**
  * Class Pokemon
  *
  * @package Utsubot\Pokemon\Pokemon
  */
-class Pokemon extends PokemonBase implements Manageable {
+class Pokemon extends PokemonBase {
 
     //	Max number of each attribute per pokemon
-    const NUMBER_OF_TYPES       = 2;
-    const NUMBER_OF_ABILITIES   = 3;
-    const NUMBER_OF_EGG_GROUPS  = 2;
+    const Number_of_Types     = 2;
+    const Number_of_Abilities = 3;
+    const Number_of_EggGroups = 2;
 
     //  Order of preference for default dex entries
-    const DEX_VERSION_PREFERENCE = [
-        Version::Omega_Ruby,    Version::Alpha_Sapphire,
-        Version::X,             Version::Y,
-        Version::Black_2,       Version::White_2,
-        Version::Black,         Version::White,
-        Version::HeartGold,     Version::SoulSilver,
-        Version::Platinum,      Version::Diamond,           Version::Pearl,
-        Version::FireRed,       Version::LeafGreen,
-        Version::Emerald,       Version::Ruby,              Version::Sapphire,
-        Version::Crystal,       Version::Gold,              Version::Silver,
-        Version::Yellow,        Version::Red,               Version::Blue
+    const Dex_Version_Preference = [
+        Version::Omega_Ruby, Version::Alpha_Sapphire,
+        Version::X, Version::Y,
+        Version::Black_2, Version::White_2,
+        Version::Black, Version::White,
+        Version::HeartGold, Version::SoulSilver,
+        Version::Platinum, Version::Diamond, Version::Pearl,
+        Version::FireRed, Version::LeafGreen,
+        Version::Emerald, Version::Ruby, Version::Sapphire,
+        Version::Crystal, Version::Gold, Version::Silver,
+        Version::Yellow, Version::Red, Version::Blue
     ];
 
-
-    private $regexSearch    = "//";
+    private $regexSearch = "//";
 
     private $abilities      = [ "", "", "" ];
     private $evolutions     = [ ];
@@ -67,25 +71,25 @@ class Pokemon extends PokemonBase implements Manageable {
     private $alternateForms = [ ];
 
     //	Attributes
-    private $baseStats      = [ 0, 0, 0, 0, 0, 0 ];
-    private $evYield        = [ 0, 0, 0, 0, 0, 0 ];
-    private $types          = [ "", "" ];
-    private $eggGroups      = [ ];
-    private $eggSteps       = 0;
-    private $baseExp        = 0;
-    private $catchRate      = 0;
-    private $ratioMale      = 0;
-    private $baseHappiness  = 0;
-    private $isBaby         = false;
+    private $baseStats     = [ 0, 0, 0, 0, 0, 0 ];
+    private $evYield       = [ 0, 0, 0, 0, 0, 0 ];
+    private $types         = [ "", "" ];
+    private $eggGroups     = [ ];
+    private $eggSteps      = 0;
+    private $baseExp       = 0;
+    private $catchRate     = 0;
+    private $ratioMale     = 0;
+    private $baseHappiness = 0;
+    private $isBaby        = false;
 
     //	Pokedex Fields
-    private $dexNumbers     = [ ];
-    private $dexEntries     = [ ];
-    private $species        = [ ];
-    private $habitat        = "";
-    private $color          = "";
-    private $height         = 0;	//	In meters
-    private $weight         = 0;	//	In kilograms
+    private $dexNumbers = [ ];
+    private $dexEntries = [ ];
+    private $species    = [ ];
+    private $habitat    = "";
+    private $color      = "";
+    private $height     = 0;    //	In meters
+    private $weight     = 0;    //	In kilograms
 
 
     /**
@@ -94,6 +98,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function __toString(): string {
         return $this->getName(new Language(Language::English));
     }
+
 
     /**
      * Test if a search term matches this pokemon
@@ -122,19 +127,21 @@ class Pokemon extends PokemonBase implements Manageable {
      * @return int Returns -1 if there is no entry
      */
     public function getDexNumber(Dex $dex) {
-        return $this->dexNumbers[$dex->getValue()] ?? -1;
+        return $this->dexNumbers[ $dex->getValue() ] ?? -1;
     }
+
 
     /**
      * Search for a pokedex entry
      *
-     * @param Version $version
+     * @param Version  $version
      * @param Language $language
      * @return string
      */
     public function getDexEntry(Version $version, Language $language): string {
-        return $this->dexEntries[$version->getValue()][$language->getValue()] ?? "";
+        return $this->dexEntries[ $version->getValue() ][ $language->getValue() ] ?? "";
     }
+
 
     /**
      * Search for the most recent pokedex entry
@@ -146,6 +153,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->getDexEntry($this->getLatestValidDexVersion($language), $language);
     }
 
+
     /**
      * Format a Pokedex entry for output
      *
@@ -156,8 +164,8 @@ class Pokemon extends PokemonBase implements Manageable {
      */
     public function getFormattedDexEntry(Version $version, Language $language): string {
         $dexEntry = $this->getDexEntry($version, $language);
-        $name = $this->getName($language);
-        $species = $this->getSpecies($language);
+        $name     = $this->getName($language);
+        $species  = $this->getSpecies($language);
 
         if (!$dexEntry || !$name || !$species)
             throw new PokemonException("Not enough information in database for a dex readout for {$this} using language {$language->getName()} and version {$version->getName()}.");
@@ -171,6 +179,7 @@ class Pokemon extends PokemonBase implements Manageable {
         );
     }
 
+
     /**
      * Format the most recent pokedex entry
      *
@@ -182,13 +191,14 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->getFormattedDexEntry($this->getLatestValidDexVersion($language), $language);
     }
 
+
     /**
      * @param Language $language
      * @return Version
      * @throws PokemonException
      */
     private function getLatestValidDexVersion(Language $language): Version {
-        foreach (self::DEX_VERSION_PREFERENCE as $versionId) {
+        foreach (self::Dex_Version_Preference as $versionId) {
             $version = new Version($versionId);
             if ($this->getDexEntry($version, $language))
                 return $version;
@@ -196,6 +206,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
         throw new PokemonException("No dex entries found in {$language->getName()} for $this.");
     }
+
 
     /**
      * Retrieve the regular expression used to match against failed searches (for alternate spellings or misspellings)
@@ -206,6 +217,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->regexSearch;
     }
 
+
     /**
      * Get the name of an ability
      *
@@ -214,11 +226,12 @@ class Pokemon extends PokemonBase implements Manageable {
      * @throws PokemonException
      */
     public function getAbility(int $index = 1): string {
-        if ($index < 0 || $index > self::NUMBER_OF_ABILITIES - 1)
+        if ($index < 0 || $index > self::Number_of_Abilities - 1)
             throw new PokemonException("Invalid ability index '$index'.");
 
-        return $this->abilities[$index] ?? "";
+        return $this->abilities[ $index ] ?? "";
     }
+
 
     /**
      * Get all abilities as an array
@@ -229,6 +242,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->abilities;
     }
 
+
     /**
      * Get a base stat value
      *
@@ -237,8 +251,9 @@ class Pokemon extends PokemonBase implements Manageable {
      * @throws PokemonException
      */
     public function getBaseStat(Stat $stat): int {
-        return $this->baseStats[$stat->getValue()];
+        return $this->baseStats[ $stat->getValue() ];
     }
+
 
     /**
      * Get all base stat values as an array
@@ -248,6 +263,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function getBaseStats(): array {
         return $this->baseStats;
     }
+
 
     /**
      * Get the sum of all base stats
@@ -267,8 +283,9 @@ class Pokemon extends PokemonBase implements Manageable {
      * @throws PokemonException
      */
     public function getEVYieldFor(Stat $index) {
-        return $this->evYield[$index->getValue()];
+        return $this->evYield[ $index->getValue() ];
     }
+
 
     /**
      * @return array
@@ -276,6 +293,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function getEVYield(): array {
         return $this->evYield;
     }
+
 
     /**
      * Gets a single type of this pokemon
@@ -288,8 +306,9 @@ class Pokemon extends PokemonBase implements Manageable {
         if (!array_key_exists($index, $this->types))
             throw new PokemonException("Invalid type index '$index'.");
 
-        return $this->types[$index] ?? "";
+        return $this->types[ $index ] ?? "";
     }
+
 
     /**
      * @return array
@@ -298,12 +317,14 @@ class Pokemon extends PokemonBase implements Manageable {
         return array_filter($this->types);
     }
 
+
     /**
      * @return string
      */
     public function getFormattedType(): string {
         return implode("/", array_filter($this->types));
     }
+
 
     /**
      * Get an evolution
@@ -313,11 +334,12 @@ class Pokemon extends PokemonBase implements Manageable {
      * @throws PokemonException
      */
     public function getEvolution(int $index = 0): Evolution {
-        if (!isset($this->evolutions[$index]))
+        if (!isset($this->evolutions[ $index ]))
             throw new PokemonException("Invalid evolution index '$index'.");
 
-        return $this->evolutions[$index];
+        return $this->evolutions[ $index ];
     }
+
 
     /**
      * Get all evolutions as an array
@@ -328,6 +350,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->evolutions ?? [ ];
     }
 
+
     /**
      * Get a pre-evolution
      *
@@ -336,11 +359,12 @@ class Pokemon extends PokemonBase implements Manageable {
      * @throws PokemonException
      */
     public function getPreEvolution(int $index = 0): Evolution {
-        if (!isset($this->preEvolutions[$index]))
+        if (!isset($this->preEvolutions[ $index ]))
             throw new PokemonException("Invalid pre-evolution index '$index'.");
 
-        return $this->preEvolutions[$index];
+        return $this->preEvolutions[ $index ];
     }
+
 
     /**
      * Get all evolutions as an array
@@ -351,6 +375,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->preEvolutions ?? [ ];
     }
 
+
     /**
      * Get the base experience this pokemon awards upon defeat
      *
@@ -359,6 +384,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function getBaseExp(): int {
         return $this->baseExp;
     }
+
 
     /**
      * Get the pokemon's capture rate, which determines how easy it is to catch (lower values = more difficult)
@@ -369,6 +395,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->catchRate;
     }
 
+
     /**
      * Get the likelihood of this pokemon being male
      *
@@ -377,6 +404,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function getGenderRatio(): float {
         return $this->ratioMale;
     }
+
 
     /**
      * Get the minimum number of steps required to hatch an egg holding this pokemon
@@ -387,13 +415,16 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->eggSteps;
     }
 
+
     /**
      * Get the number of egg cycles an egg of this pokemon will go through
+     *
      * @return int
      */
     public function getEggCycles(): int {
         return intval(($this->eggSteps / 255) - 1);
     }
+
 
     /**
      * Get a pokemon's habitat as defined in the in-game pokedex of older versions
@@ -404,6 +435,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->habitat;
     }
 
+
     /**
      * Get a pokemon's species as defined in the in-game pokedex
      *
@@ -411,8 +443,9 @@ class Pokemon extends PokemonBase implements Manageable {
      * @return string
      */
     public function getSpecies(Language $language): string {
-        return $this->species[$language->getValue()] ?? "";
+        return $this->species[ $language->getValue() ] ?? "";
     }
+
 
     /**
      * Get a pokemon's height in meters
@@ -423,6 +456,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->height;
     }
 
+
     /**
      * Get a pokemon's weight in kilograms
      *
@@ -431,6 +465,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function getWeight(): float {
         return $this->weight;
     }
+
 
     /**
      * Get a pokemon's color as defined in the in-game pokedex
@@ -441,6 +476,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->color;
     }
 
+
     /**
      * Get a pokemon's base happiness value
      *
@@ -449,6 +485,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function getBaseHappiness(): int {
         return $this->baseHappiness;
     }
+
 
     /**
      * Determine whether or not this pokemon is considered a "baby" pokemon
@@ -459,6 +496,7 @@ class Pokemon extends PokemonBase implements Manageable {
         return $this->isBaby;
     }
 
+
     /**
      * Get an egg group of this pokemon
      *
@@ -467,11 +505,12 @@ class Pokemon extends PokemonBase implements Manageable {
      * @throws PokemonException Invalid index
      */
     public function getEggGroup(int $index) {
-        if ($index < 0 || $index > self::NUMBER_OF_EGG_GROUPS - 1)
+        if ($index < 0 || $index > self::Number_of_EggGroups - 1)
             throw new PokemonException("Invalid egg group index '$index'.");
 
-        return $this->eggGroups[$index] ?? "";
+        return $this->eggGroups[ $index ] ?? "";
     }
+
 
     /**
      * @return array
@@ -492,20 +531,22 @@ class Pokemon extends PokemonBase implements Manageable {
         if ($number < 0)
             throw new PokemonException("Invalid dex number '$number'.");
 
-        $this->dexNumbers[$dex->getValue()] = $number;
+        $this->dexNumbers[ $dex->getValue() ] = $number;
     }
+
 
     /**
      * Add a pokedex entry
      *
-     * @param string $entry
-     * @param Version $version
+     * @param string   $entry
+     * @param Version  $version
      * @param Language $language
      * @return string
      */
     public function setDexEntry(string $entry, Version $version, Language $language) {
-        $this->dexEntries[$version->getValue()][$language->getValue()] = $entry;
+        $this->dexEntries[ $version->getValue() ][ $language->getValue() ] = $entry;
     }
+
 
     /**
      * Set the regular expression used to perform additional searches for this pokemon
@@ -525,19 +566,21 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->regexSearch = $regex;
     }
 
+
     /**
      * Sets an ability
      *
-     * @param int $index
+     * @param int    $index
      * @param string $ability
      * @throws PokemonException Invalid index
      */
     public function setAbility(int $index, string $ability) {
-        if ($index < 0 || $index > self::NUMBER_OF_ABILITIES - 1)
+        if ($index < 0 || $index > self::Number_of_Abilities - 1)
             throw new PokemonException("Invalid ability index '$index'.");
 
-        $this->abilities[$index] = $ability;
+        $this->abilities[ $index ] = $ability;
     }
+
 
     /**
      * Set all abilities at once via an array
@@ -550,58 +593,63 @@ class Pokemon extends PokemonBase implements Manageable {
             $this->setAbility($index, $ability);
     }
 
+
     /**
      * Sets a base stat
      *
      * @param Stat $stat
-     * @param int $value
+     * @param int  $value
      * @throws PokemonException Invalid stat value
      */
     public function setBaseStat(Stat $stat, int $value) {
         if ($value < 1 || $value > 255)
             throw new PokemonException("Invalid stat number '$value'.");
 
-        $this->baseStats[$stat->getValue()] = $value;
+        $this->baseStats[ $stat->getValue() ] = $value;
     }
+
 
     /**
      * Set the EV yield of a stat
      *
      * @param Stat $stat
-     * @param int $yield
+     * @param int  $yield
      * @throws PokemonException Invalid index or yield value
      */
     public function setEVYield(Stat $stat, int $yield) {
         if ($yield < 0 || $yield > 3)
             throw new PokemonException("Invalid EV yield value '$yield'.");
 
-        $this->evYield[$stat->getValue()] = $yield;
+        $this->evYield[ $stat->getValue() ] = $yield;
     }
+
 
     /**
      * Set a type
      *
-     * @param int $index
+     * @param int    $index
      * @param string $type
      * @throws PokemonException Invalid index
      */
     public function setType(int $index, string $type) {
-        if ($index < 0 || $index > self::NUMBER_OF_TYPES - 1)
+        if ($index < 0 || $index > self::Number_of_Types - 1)
             throw new PokemonException("Invalid type index '$index'.");
 
-        $this->types[$index] = $type;
+        $this->types[ $index ] = $type;
     }
+
 
     /**
      * Set an evolution
      *
-     * @param int $index
+     * @param int       $index
      * @param Evolution $evolution
      */
     public function setEvolution(int $index, Evolution $evolution) {
         $evolution->setPre(false);
-        $this->evolutions[$index] = $evolution;
+        $this->evolutions[ $index ] = $evolution;
     }
+
 
     /**
      * Append an evolution
@@ -612,16 +660,18 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->setEvolution(count($this->evolutions), $evolution);
     }
 
+
     /**
      * Set a pre-evolution
      *
-     * @param int $index
+     * @param int       $index
      * @param Evolution $evolution
      */
     public function setPreEvolution(int $index, Evolution $evolution) {
         $evolution->setPre(true);
-        $this->preEvolutions[$index] = $evolution;
+        $this->preEvolutions[ $index ] = $evolution;
     }
+
 
     /**
      * Append a pre-evolution
@@ -632,14 +682,16 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->setPreEvolution(count($this->preEvolutions), $evolution);
     }
 
+
     /**
      * @param string $formName
-     * @param array $info
+     * @param array  $info
      */
     public function addToAlternateForm(string $formName, array $info) {
-        $base = $this->alternateForms[$formName] ?? [ ];
-        $this->alternateForms[$formName] = array_merge_recursive($base, $info);
+        $base                              = $this->alternateForms[ $formName ] ?? [ ];
+        $this->alternateForms[ $formName ] = array_merge_recursive($base, $info);
     }
+
 
     /**
      * Set a pokemon's base experience awarded upon defeat
@@ -654,6 +706,7 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->baseExp = $baseExp;
     }
 
+
     /**
      * Set the pokemon's capture rate, which determines how easy it is to catch (lower values = more difficult)
      *
@@ -666,6 +719,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
         $this->catchRate = $catchRate;
     }
+
 
     /**
      * Set the likelihood of this pokemon being male
@@ -681,6 +735,7 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->ratioMale = $genderRatio;
     }
 
+
     /**
      * Set the minimum number of steps required to hatch an egg holding this pokemon
      *
@@ -693,6 +748,7 @@ class Pokemon extends PokemonBase implements Manageable {
 
         $this->eggSteps = $eggSteps;
     }
+
 
     /**
      * Set the egg steps by converting from number of cycles
@@ -707,6 +763,7 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->eggSteps = ($eggCycles + 1) * 255;
     }
 
+
     /**
      * Set a pokemon's habitat as defined in the in-game pokedex of older versions
      *
@@ -716,15 +773,17 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->habitat = $habitat;
     }
 
+
     /**
      * Set a pokemon's species as defined in the in-game pokedex
      *
-     * @param string $species
+     * @param string   $species
      * @param Language $language
      */
     public function setSpecies(string $species, Language $language) {
-        $this->species[$language->getValue()] = $species;
+        $this->species[ $language->getValue() ] = $species;
     }
+
 
     /**
      * Set a pokemon's height in meters
@@ -739,6 +798,7 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->height = $height;
     }
 
+
     /**
      * Set a pokemon's weight in kilograms
      *
@@ -752,6 +812,7 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->weight = $weight;
     }
 
+
     /**
      * Set a pokemon's color as defined in the in-game pokedex
      *
@@ -760,6 +821,7 @@ class Pokemon extends PokemonBase implements Manageable {
     public function setColor(string $color) {
         $this->color = $color;
     }
+
 
     /**
      * Set a pokemon's base happiness
@@ -774,6 +836,7 @@ class Pokemon extends PokemonBase implements Manageable {
         $this->baseHappiness = $happiness;
     }
 
+
     /**
      * Set whether or not this pokemon is considered a "baby" pokemon
      *
@@ -787,16 +850,17 @@ class Pokemon extends PokemonBase implements Manageable {
     /**
      * Set an egg group used for breeding
      *
-     * @param int $index
+     * @param int    $index
      * @param string $eggGroup
      * @throws PokemonException
      */
     public function setEggGroup(int $index, string $eggGroup) {
-        if ($index < 0 || $index > self::NUMBER_OF_EGG_GROUPS - 1)
+        if ($index < 0 || $index > self::Number_of_EggGroups - 1)
             throw new PokemonException("Invalid egg group index '$index'.");
 
-        $this->eggGroups[$index] = $eggGroup;
+        $this->eggGroups[ $index ] = $eggGroup;
     }
+
 
     /**
      * Append an egg group without specifying the index

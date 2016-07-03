@@ -9,10 +9,21 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
+/**
+ * Class IRCMessageException
+ *
+ * @package Utsubot
+ */
 class IRCMessageException extends \Exception {
 
 }
 
+
+/**
+ * Class IRCMessage
+ *
+ * @package Utsubot
+ */
 class IRCMessage {
 
     private $type       = "";
@@ -424,6 +435,10 @@ class IRCMessage {
     }
 
 
+    /**
+     * @return User
+     * @throws IRCMessageException
+     */
     public function getQuitUser(): User {
         if ($this->quitUser instanceof User)
             return $this->quitUser;

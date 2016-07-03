@@ -7,8 +7,8 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Relay;
+use Utsubot\Manager\Manageable;
 use Utsubot\{
-    Manageable,
     User,
     Channel
 };

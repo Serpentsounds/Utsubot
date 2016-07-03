@@ -200,7 +200,7 @@ class Permission extends ModuleWithPermission implements IHelp {
 
                     //	Access Users to get account name
                     $users = $this->IRCBot->getUsers();
-                    $user  = $users->search($value);
+                    $user  = $users->findFirst($value);
 
                     //	Find account User is logged into
                     if ($user instanceof User) {

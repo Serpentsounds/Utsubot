@@ -18,8 +18,10 @@ use Utsubot\Pokemon\{
 use Utsubot\{
     IRCBot,
     IRCMessage,
-    Trigger,
-    ManagerSearchCriterion
+    Trigger
+};
+use Utsubot\Manager\{
+    ManagerException, Operator, SearchCriteria, SearchCriterion, SearchMode
 };
 use function Utsubot\bold;
 
@@ -52,7 +54,7 @@ class NatureModule extends ModuleWithPokemon {
         $natureManager = new NatureManager();
         $natureManager->addPopulator(new VeekunDatabaseInterface());
         $natureManager->populate();
-        
+
         $this->registerManager("Nature", $natureManager);
 
         //  Command triggers
@@ -73,7 +75,7 @@ class NatureModule extends ModuleWithPokemon {
      * @throws ModuleWithPokemonException
      * @throws NatureModuleException Invalid parameters
      * @throws \Utsubot\EnumException Invalid stat name
-     * @throws \Utsubot\ManagerException No search results
+     * @throws ManagerException No search results
      */
     public function nature(IRCMessage $msg) {
         $this->requireParameters($msg, 1);
@@ -97,12 +99,13 @@ class NatureModule extends ModuleWithPokemon {
             if (!$increases || !$decreases)
                 throw new NatureModuleException("An increased and decreased stat must both be given.");
 
-            $criteria = [
-                new ManagerSearchCriterion($this->getManager(), "increases", "==", $increases),
-                new ManagerSearchCriterion($this->getManager(), "decreases", "==", $decreases)
-            ];
+            $criteria = new SearchCriteria([
+                new SearchCriterion("getIncreases", [ ], new Operator("=="), $increases),
+                new SearchCriterion("getDecreases", [ ], new Operator("=="), $decreases),
+            ]);
 
-            $nature = $this->getManager()->fullSearch($criteria, false);
+            $nature = $this->getManager()->advancedSearch($criteria, new SearchMode(SearchMode::All), 1);
+            
             if (!($nature instanceof Nature))
                 throw new NatureModuleException("Invalid nature.");
         }

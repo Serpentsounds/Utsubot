@@ -7,6 +7,7 @@
 
 namespace Utsubot\Pokemon\Move;
 
+
 use Utsubot\Pokemon\{
     InfoFormat,
     Language
@@ -15,6 +16,11 @@ use function Utsubot\bold;
 use function Utsubot\Pokemon\Types\colorType;
 
 
+/**
+ * Class MoveInfoFormat
+ *
+ * @package Utsubot\Pokemon\Move
+ */
 class MoveInfoFormat extends InfoFormat {
 
     /** @var $object Move */
@@ -33,23 +39,34 @@ EOF;
 
     protected static $validFields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
-        "type", "power", "damageType", "accuracy", "target", "priority", "pp", 
+        "type", "power", "damageType", "accuracy", "target", "priority", "pp",
         "effect", "shortEffect",
         "contestType", "contestAppeal", "contestJam", "superContestAppeal",
         "contestEffect", "superContestFlavorText", "contestFlavorText"
     ];
 
 
+    /**
+     * @return string
+     */
     public static function getVerboseFormat() {
         return self::$verboseFormat;
     }
 
 
+    /**
+     * @return string
+     */
     public static function getContestformat() {
         return self::$contestFormat;
     }
 
 
+    /**
+     * @param string $field
+     * @param        $fieldValue
+     * @return string
+     */
     protected function formatField(string $field, $fieldValue): string {
         if ($field == "type")
             $fieldValue = colorType($fieldValue);
@@ -64,6 +81,10 @@ EOF;
     }
 
 
+    /**
+     * @param string $field
+     * @return string
+     */
     protected function getField(string $field): string {
         switch ($field) {
             case "english":
@@ -106,4 +127,4 @@ EOF;
         return "";
     }
 
-} 
+}

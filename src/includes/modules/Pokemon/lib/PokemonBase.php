@@ -9,6 +9,7 @@ namespace Utsubot\Pokemon;
 
 
 use function Utsubot\Jaro\jaroWinklerDistance;
+use Utsubot\Manager\Manageable;
 
 
 /**
@@ -28,7 +29,7 @@ class PokemonBaseException extends \Exception {
  *
  * @package Pokemon
  */
-abstract class PokemonBase {
+abstract class PokemonBase implements Manageable {
 
     protected $id         = -1;
     protected $generation = -1;

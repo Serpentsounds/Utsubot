@@ -12,11 +12,13 @@ use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     Gen7DatabaseInterface, ModuleWithPokemon, ModuleWithPokemonException, VeekunDatabaseInterface, Language
 };
+use Utsubot\Manager\{
+    SearchCriteria, SearchCriterion, Operator, SearchMode
+};
 use Utsubot\{
     IRCBot,
     IRCMessage,
-    Trigger,
-    ManagerSearchCriterion
+    Trigger
 };
 use function Utsubot\bold;
 
@@ -73,7 +75,7 @@ class AbilityModule extends ModuleWithPokemon {
      * @param IRCMessage $msg
      * @throws ModuleWithPokemonException Attempting to use PokemonManager without PokemonModule
      * @throws AbilityModuleException Invalid ability specified by user
-     * @throws \Utsubot\ManagerException Error creating search criterion
+     * @throws \Utsubot\Manager\ManagerException Error creating search criterion
      */
     public function ability(IRCMessage $msg) {
         $this->requireParameters($msg, 1);
@@ -109,14 +111,14 @@ class AbilityModule extends ModuleWithPokemon {
 
                 //  Grab PokemonManager from the Pokemon Module. Exception if it's not loaded
                 $pokemonManager = $this->getOutsideManager("Pokemon");
-                $criteria       = [
-                    new ManagerSearchCriterion($pokemonManager, "ability1", "==", $abilityName),
-                    new ManagerSearchCriterion($pokemonManager, "ability2", "==", $abilityName),
-                    new ManagerSearchCriterion($pokemonManager, "ability3", "==", $abilityName)
-                ];
+                $criteria = new SearchCriteria([
+                                             new SearchCriterion("getAbility", array( 0), new Operator("=="), $abilityName),
+                                             new SearchCriterion("getAbility", array( 1), new Operator("=="), $abilityName),
+                                             new SearchCriterion("getAbility", array( 2), new Operator("=="), $abilityName)
+                ]);
 
                 // Perform a loose search to match any criteria
-                $pokemon = $pokemonManager->fullSearch($criteria, true, false);
+                $pokemon = $pokemonManager->advancedSearch($criteria, SearchMode::fromName("Any"));
 
                 $return = sprintf(
                     "These pokemon can have %s: %s.",

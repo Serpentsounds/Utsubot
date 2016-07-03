@@ -6,20 +6,38 @@
  */
 
 namespace Utsubot\Pokemon;
+
+
 use Utsubot\HybridDatabaseInterface;
 
+
+/**
+ * Class FriendSafariDatabaseInterface
+ *
+ * @package Utsubot\Pokemon
+ */
 class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
 
     protected static $table = "users_friendsafari";
 
-    protected static $userIDColumn = "user_id";
+    protected static $userIDColumn   = "user_id";
     protected static $nicknameColumn = "nickname";
 
-    protected static $typeColumn = "type";
+    protected static $typeColumn  = "type";
     protected static $slot1Column = "slot_1";
     protected static $slot2Column = "slot_2";
     protected static $slot3Column = "slot_3";
 
+
+    /**
+     * @param      $nickname
+     * @param      $type
+     * @param      $slot1
+     * @param      $slot2
+     * @param null $slot3
+     * @return array|bool|int
+     * @throws \Utsubot\HybridDatabaseInterfaceException
+     */
     public function insert($nickname, $type, $slot1, $slot2, $slot3 = null) {
         $hybridAnalysis = $this->analyze($nickname);
         list($column, $user) = $this->parseMode($hybridAnalysis);
@@ -37,9 +55,18 @@ class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
             return $this->query(
                 sprintf("INSERT INTO `%s` (`$column`, `%s`, `%s`, `%s`, `%s`) VALUES (?, ?, ?, ?, ?)", self::$table, self::$typeColumn, self::$slot1Column, self::$slot2Column, self::$slot3Column),
                 [ $user, $type, $slot1, $slot2, $slot3 ]
-        );
+            );
     }
 
+
+    /**
+     * @param      $nickname
+     * @param null $slot1
+     * @param null $slot2
+     * @param null $slot3
+     * @return array|bool|int
+     * @throws \Utsubot\HybridDatabaseInterfaceException
+     */
     public function delete($nickname, $slot1 = null, $slot2 = null, $slot3 = null) {
         $hybridAnalysis = $this->analyze($nickname);
         list($column, $user) = $this->parseMode($hybridAnalysis);
@@ -71,6 +98,15 @@ class FriendSafariDatabaseInterface extends HybridDatabaseInterface {
             );
     }
 
+
+    /**
+     * @param      $nickname
+     * @param null $slot1
+     * @param null $slot2
+     * @param null $slot3
+     * @return array|bool|int
+     * @throws \Utsubot\HybridDatabaseInterfaceException
+     */
     public function select($nickname, $slot1 = null, $slot2 = null, $slot3 = null) {
         $hybridAnalysis = $this->analyze($nickname);
         //	Insecure mode, allow account mode retrieval through linked nickname even if not logged in

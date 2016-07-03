@@ -8,23 +8,26 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Pokemon;
+
+
 use Utsubot\Permission\ModuleWithPermission;
 use Utsubot\Help\{
     IHelp,
     THelp
 };
-use Utsubot\{
-    ModuleException,
-    ManagerException
-};
+use Utsubot\Manager\ManagerException;
+use Utsubot\ModuleException;
 use function Utsubot\bold;
+
 
 /**
  * Class ModuleWithPokemonException
  *
  * @package Utsubot\Pokemon
  */
-class ModuleWithPokemonException extends ModuleException {}
+class ModuleWithPokemonException extends ModuleException {
+
+}
 
 
 /**
@@ -42,17 +45,29 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
      *  Private so subclass must registerManager */
     private $manager;
 
+
     /**
      * Register a Manager for this class under a given name
      *
-     * @param string $name
+     * @param string             $name
      * @param PokemonManagerBase $manager
-     * @throws \Utsubot\ManagerException
+     * @throws ManagerException
      */
     protected final function registerManager(string $name, PokemonManagerBase $manager) {
-        $this->manager = $manager;
-        self::$managers[strtolower($name)] = &$this->manager;
+        $this->manager                       = $manager;
+        self::$managers[ strtolower($name) ] = &$this->manager;
     }
+
+
+    /**
+     * Get a list of Managers that have been registered
+     *
+     * @return array
+     */
+    public function listManagers(): array {
+        return array_keys(self::$managers);
+    }
+
 
     /**
      * Get this object's saved Manager
@@ -64,8 +79,9 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
         if ($this->manager instanceof PokemonManagerBase)
             return $this->manager;
 
-        throw new ModuleWithPokemonException("A manager has not been loaded for ". get_class($this). ".");
+        throw new ModuleWithPokemonException("A manager has not been loaded for ".get_class($this).".");
     }
+
 
     /**
      * Get a registered Manager from another ModuleWithPokemon
@@ -76,23 +92,24 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
      */
     protected final function getOutsideManager(string $manager): PokemonManagerBase {
         $manager = strtolower($manager);
-        if (!isset(self::$managers[$manager]))
+        if (!isset(self::$managers[ $manager ]))
             throw new ModuleWithPokemonException("Pokemon suite Manager '$manager' has not been registered by any Modules.");
 
-        return self::$managers[$manager];
+        return self::$managers[ $manager ];
     }
+
 
     /**
      * Pursue all search routes to get an item of this object's manager from user input
      *
      * @param string $parameterString
-     * @param bool $allowSpellcheck
+     * @param bool   $allowSpellcheck
      * @return PokemonObjectResult
      * @throws ModuleWithPokemonException
      */
     protected function getObject(string $parameterString, bool $allowSpellcheck = true): PokemonObjectResult {
-        $result = new PokemonObjectResult();
-        $firstWord = explode(" ", $parameterString)[0];
+        $result    = new PokemonObjectResult();
+        $firstWord = explode(" ", $parameterString)[ 0 ];
 
         //  Number of search modes to check
         $maxMode = ($allowSpellcheck) ? 3 : 1;
@@ -117,7 +134,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
                     //  Attempt to match string to the name of a Pokemon
                     case 1:
                         /** @var PokemonBase $item */
-                        $item = $this->getManager()->search($parameterString);
+                        $item = $this->getManager()->findFirst($parameterString);
                         $result->addItem($item);
                         break;
 
@@ -139,8 +156,9 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
                 break;
             }
 
-            //  Item lookup failed, try next mode
-            catch (ManagerException $e) {}
+                //  Item lookup failed, try next mode
+            catch (ManagerException $e) {
+            }
         }
 
         //  Still no results, end with error

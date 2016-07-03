@@ -7,11 +7,17 @@
 
 namespace Utsubot\GameNetworking;
 
+
 use Utsubot\{
     HybridDatabaseInterface, DatabaseInterfaceException, ModuleException
 };
 
 
+/**
+ * Class GameNetworkingDatabaseInterface
+ *
+ * @package Utsubot\GameNetworking
+ */
 class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
 
     protected static $table = "users_codes";
@@ -27,8 +33,8 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
      * Insert a networking code into the database
      *
      * @param string $nickname
-     * @param int    $item  ID of code
-     * @param string $value Code itself
+     * @param int    $item     ID of code
+     * @param string $value    Code itself
      * @return int|bool Number of affected rows, or false on failure
      * @throws DatabaseInterfaceException If a PDO error is encountered
      * @throws ModuleException If there is an error configuring the hybrid analysis, or if the nickname link failsafe
@@ -52,8 +58,8 @@ class GameNetworkingDatabaseInterface extends HybridDatabaseInterface {
      * Delete a networking code or codes from the database
      *
      * @param string $nickname
-     * @param int    $item  ID of code
-     * @param string $value Code itself, or null to remove all codes of given ID
+     * @param int    $item     ID of code
+     * @param string $value    Code itself, or null to remove all codes of given ID
      * @return int|bool Number of affected rows, or false on failure
      * @throws DatabaseInterfaceException If a PDO error is encountered
      * @throws ModuleException If there is an error configuring the hybrid analysis, or if the nickname link failsafe

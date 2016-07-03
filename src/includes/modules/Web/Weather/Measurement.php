@@ -7,12 +7,19 @@
 declare(strict_types = 1);
 
 namespace Utsubot\Web;
+
+
 use Utsubot\Enum;
 
 
+/**
+ * Class Measurement
+ *
+ * @package Utsubot\Web
+ */
 class Measurement extends Enum {
 
-    const Temperature   = 1;
-    const Speed         = 2;
-    
+    const Temperature = 1;
+    const Speed       = 2;
+
 }

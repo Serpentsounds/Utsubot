@@ -7,32 +7,47 @@
 
 namespace Utsubot;
 
+
+use Utsubot\Manager\{
+    Manager,
+    Manageable,
+    ManagerException
+};
+
+
 /**
  * Class Users
  *
  * @package Utsubot
- * @method User search($terms)
+ * @method User findFirst($terms)
  */
 class Users extends Manager {
 
     protected static $manages = "Utsubot\\User";
-    private $IRCBot;
+    private          $IRCBot;
 
     /** @var $collection User[] */
-    protected $collection = [];
+    protected $collection = [ ];
 
     protected static $customOperators = [ "on", "voice", "hop", "halfop", "op", "sop", "protect", "owner", "founder", "loggedIn" ];
 
+
+    /**
+     * Users constructor.
+     *
+     * @param IRCBot $irc
+     */
     public function __construct(IRCBot $irc) {
         parent::__construct();
         $this->IRCBot = $irc;
     }
 
+
     /**
      * Add a user object to the collection
      *
      * @param Manageable $user User object
-     * @param bool $unique
+     * @param bool       $unique
      * @return int Key of new item
      * @throws ManagerException
      */
@@ -44,6 +59,7 @@ class Users extends Manager {
 
         return $key;
     }
+
 
     /**
      * Ensure a User object exists, and get that object. If necessary, creates it and performs initialization.
@@ -57,7 +73,7 @@ class Users extends Manager {
 
         try {
             //  User exists, just do an address update
-            $user = $this->search($nick);
+            $user = $this->findFirst($nick);
             /** @var User $user */
 
             if ($address && $address != $user->getAddress()) {
@@ -66,7 +82,7 @@ class Users extends Manager {
             }
         }
 
-        //  New user needs to be created
+            //  New user needs to be created
         catch (ManagerException $e) {
             //  Create user
             $user = new User($nick, $address);
@@ -83,43 +99,18 @@ class Users extends Manager {
         return $user;
     }
 
-    /**
-     * Given a $field to search against, this function should return info on how to get the field
-     *
-     * @param string $field The name of an aspect of one of this manager's collection
-     * @param string $operator
-     * @param string $value The value being searched against, if relevant
-     * @return ManagerSearchObject|null
-     */
-    public function searchFields($field, $operator = "", $value = "") {
-        switch ($field) {
-            case "nick":	case "nickname":
-                return new ManagerSearchObject($this, "getNick", [ ], self::$stringOperators);
-                break;
-
-            case "address":
-                return new ManagerSearchObject($this, "getAddress", [ ], self::$stringOperators);
-                break;
-
-            case "idle":	case "timeIdle":
-                return new ManagerSearchObject($this, "getTimeIdle", [ ], self::$numericOperators);
-                break;
-        }
-
-        return null;
-    }
 
     /**
      * Perform custom comparisons on a User, for checking channel presence and modes
      *
-     * @param User $object A User object in this manager
-     * @param string $field Field name
+     * @param User   $object   A User object in this manager
+     * @param string $field    Field name
      * @param string $operator Custom operator
-     * @param string $value Value to compare against
+     * @param string $value    Value to compare against
      * @return bool True or false depending on comparison result
      */
     protected function customComparison($object, $field, $operator, $value) {
-        $isOn = $object->isOn($value);
+        $isOn   = $object->isOn($value);
         $status = $object->status($value);
 
         switch ($operator) {
@@ -140,14 +131,14 @@ class Users extends Manager {
                     return false;
 
                 $modes = [
-                    'voice'     => "v", 'vop'       => "v",
-                    'halfop'    => "h", 'hop'       => "h",
-                    'op'        => "o",
-                    'sop'       => "a",
-                    'protect'   => "a",
-                    'owner'     => "q", 'founder'   => "q"
+                    'voice'   => "v", 'vop' => "v",
+                    'halfop'  => "h", 'hop' => "h",
+                    'op'      => "o",
+                    'sop'     => "a",
+                    'protect' => "a",
+                    'owner'   => "q", 'founder' => "q"
                 ];
-                if (strpos($status, $modes[$operator]) !== false)
+                if (strpos($status, $modes[ $operator ]) !== false)
                     return true;
 
                 return false;

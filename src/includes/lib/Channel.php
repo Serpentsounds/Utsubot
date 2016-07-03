@@ -2,6 +2,15 @@
 
 namespace Utsubot;
 
+
+use Utsubot\Manager\Manageable;
+
+
+/**
+ * Class Channel
+ *
+ * @package Utsubot
+ */
 class Channel implements Manageable {
 
     private $name = "";
@@ -15,6 +24,11 @@ class Channel implements Manageable {
     private static $parameterModes = "fjkLl";
 
 
+    /**
+     * Channel constructor.
+     *
+     * @param $name
+     */
     public function __construct($name) {
         $this->name = $name;
 
@@ -24,6 +38,10 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @param $user
+     * @return bool
+     */
     public function join(&$user) {
         if ($user instanceof User && !isset($this->users[ $user->getNick() ])) {
             $this->users[ $user->getNick() ] = $user;
@@ -35,6 +53,10 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @param $user
+     * @return bool
+     */
     public function part($user) {
         if (gettype($user) == "string" && isset($this->users[ $user ])) {
             unset($this->users[ $user ]);
@@ -52,6 +74,11 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @param $oldNick
+     * @param $newNick
+     * @return bool
+     */
     public function nick($oldNick, $newNick) {
         if (isset($this->users[ $oldNick ])) {
             $this->users[ $newNick ] = $this->users[ $oldNick ];
@@ -64,6 +91,11 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @param        $mask
+     * @param string $type
+     * @return bool
+     */
     public function ban($mask, $type = "b") {
         if (strpos(self::$banModes, $type) === false)
             return false;
@@ -79,6 +111,11 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @param        $mask
+     * @param string $type
+     * @return bool
+     */
     public function unban($mask, $type = "b") {
         if (strpos(self::$banModes, $type) === false)
             return false;
@@ -95,6 +132,10 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @param $modeString
+     * @return bool
+     */
     public function mode($modeString) {
         $modeParameters = [ ];
         if (preg_match_all("/^\S+ (.+)/", $modeString, $match))
@@ -141,6 +182,10 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @param $search
+     * @return bool|User
+     */
     public function getUser($search) {
         if (preg_match("/^[^@]+@.+/", $search))
             $searchType = "address";
@@ -174,16 +219,26 @@ class Channel implements Manageable {
     }
 
 
+    /**
+     * @return string
+     */
     public function getName() {
         return $this->name;
     }
 
 
+    /**
+     * @return string
+     */
     public function __toString() {
         return $this->name;
     }
 
 
+    /**
+     * @param mixed $search
+     * @return bool
+     */
     public function search($search): bool {
         return strtolower($search) == strtolower($this->name);
     }

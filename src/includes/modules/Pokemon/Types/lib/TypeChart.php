@@ -20,16 +20,17 @@ class TypeChart {
     
     private $multipliers = [ ];
 
+
     /**
-     * CalculatedChart constructor.
+     * TypeChart constructor.
      *
-     * @param TypeEffectivenessChart $typeChart
-     * @param ChartMode              $mode
+     * @param TypeGroup $types
+     * @param ChartMode $mode
      */
     public function __construct(TypeGroup $types, ChartMode $mode) {
         $this->chartMode = $mode;
         
-        $allTypes = TypeGroup::fromStrings(Type::listConstants());
+        $allTypes = TypeGroup::fromStrings(array_keys(Type::listConstants()));
 
         foreach ($types as $type1) {
             foreach ($allTypes as $type2) {

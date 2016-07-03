@@ -660,7 +660,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                         throw new AccountsException("You do not have permission to grant level $level.");
 
                     //	Make sure target user is online. Access can only be modified through nickname, not account name.
-                    $targetUser = $users->search($nickname);
+                    $targetUser = $users->findFirst($nickname);
                     $accountID  = $this->getAccountIDByUser($targetUser);
 
                     //	Prevent modifying somebody with higher access than you
@@ -686,7 +686,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                     $nickname = array_shift($parameters);
 
                     //	Make sure target user is online. Access can only be modified through nickname, not account name.
-                    $targetUser = $users->search($nickname);
+                    $targetUser = $users->findFirst($nickname);
                     $accountID  = $this->getAccountIDByUser($targetUser);
 
                     //	Prevent modifying somebody with higher access than you
@@ -708,7 +708,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                     else
                         $nickname = $msg->getNick();
 
-                    $targetUser      = $users->search($nickname);
+                    $targetUser      = $users->findFirst($nickname);
                     $targetUserLevel = $this->getAccessByUser($targetUser);
 
                     $this->respond($msg, "Access level for '{$targetUser->getNick()}' is $targetUserLevel.");

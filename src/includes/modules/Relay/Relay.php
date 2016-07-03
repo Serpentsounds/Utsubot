@@ -329,7 +329,7 @@ class Relay extends ModuleWithPermission implements IHelp {
                 
                 //  If the event is NICK, there won't be a channel target, so check if they're on the relayed channel instead
                 if ($event->getValue() == RelayMode::NICK) {
-                    if ($this->IRCBot->getUsers()->search((string)$source)->isOn((string)$relay->getTo()))
+                    if ($this->IRCBot->getUsers()->findFirst((string)$source)->isOn((string)$relay->getTo()))
                         $doRelay = true;
                 }
 
@@ -381,10 +381,10 @@ class Relay extends ModuleWithPermission implements IHelp {
             $itemObject = null;
             //  Verify Channel
             if (substr($item, 0, 1) == "#")
-                $itemObject = $this->IRCBot->getChannels()->search($item);
+                $itemObject = $this->IRCBot->getChannels()->findFirst($item);
             //  Or verify User
             else
-                $itemObject = $this->IRCBot->getUsers()->search($item);
+                $itemObject = $this->IRCBot->getUsers()->findFirst($item);
 
             return $itemObject;
         };

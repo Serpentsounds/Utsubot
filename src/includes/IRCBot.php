@@ -7,15 +7,33 @@
 
 namespace Utsubot;
 
-class IRCBotException extends \Exception {}
+/**
+ * Class IRCBotException
+ *
+ * @package Utsubot
+ */
+/**
+ * Class IRCBotException
+ *
+ * @package Utsubot
+ */
+class IRCBotException extends \Exception {
 
+}
+
+
+/**
+ * Class IRCBot
+ *
+ * @package Utsubot
+ */
 class IRCBot {
 
-    const SOCKET_POLL_TIME = 100000;
+    const SOCKET_POLL_TIME  = 100000;
     const RECONNECT_TIMEOUT = 7;
-    const RECONNECT_DELAY = 10;
+    const RECONNECT_DELAY   = 10;
 
-    const PING_FREQUENCY = 90;
+    const PING_FREQUENCY   = 90;
     const ACTIVITY_TIMEOUT = 150;
 
     /** @var IRCNetwork $IRCNetwork */
@@ -27,11 +45,12 @@ class IRCBot {
 
     private $socket = null;
 
-    private $host = "";
+    private $host     = "";
     private $nickname = "";
-    private $address = "";
+    private $address  = "";
 
-    private $modules = [];
+    private $modules = [ ];
+
 
     /**
      * Load up the config for this IRCBot
@@ -42,9 +61,10 @@ class IRCBot {
     public function __construct(IRCNetwork $network) {
         $this->IRCNetwork = $network;
 
-        $this->users = new Users($this);
+        $this->users    = new Users($this);
         $this->channels = new Channels($this);
     }
+
 
     /**
      * Reset the server connection and register with the server
@@ -56,7 +76,7 @@ class IRCBot {
 
         //	Suppress error on fsockopen, and handle it later
         $server = $this->IRCNetwork->getServerCycle()->get();
-        $port = $this->IRCNetwork->getPort();
+        $port   = $this->IRCNetwork->getPort();
         $this->console("Attempting to connect to $server:$port...");
         $this->socket = @fsockopen($server, $port, $errno, $errstr, self::RECONNECT_TIMEOUT);
 
@@ -64,6 +84,7 @@ class IRCBot {
         if (!$this->socket) {
             $this->IRCNetwork->getServerCycle()->cycle();
             $this->reconnectCountdown();
+
             return false;
         }
 
@@ -75,9 +96,11 @@ class IRCBot {
             $this->raw("USER Utsubot 0 * :$nickname");
             $this->raw("NICK :$nickname");
             $this->setNickname($nickname);
+
             return true;
         }
     }
+
 
     /**
      * Kill the server connection
@@ -85,6 +108,7 @@ class IRCBot {
     public function disconnect() {
         $this->socket = null;
     }
+
 
     /**
      * Play an update to the console while delaying reconnection
@@ -99,6 +123,7 @@ class IRCBot {
         fwrite(STDOUT, "\n\n");
     }
 
+
     /**
      * @return bool True or false if the socket is active or not
      */
@@ -109,13 +134,14 @@ class IRCBot {
         return false;
     }
 
+
     /**
      * Poll the socket for changes for a time, then returns a line if there is data to read
      *
      * @return string The line or an empty string
      */
     public function read() {
-        $arr = [ $this->socket ];
+        $arr   = [ $this->socket ];
         $write = $except = null;
         if (($changed = stream_select($arr, $write, $except, 0, self::SOCKET_POLL_TIME)) > 0)
             return trim(fgets($this->socket, 512));
@@ -123,10 +149,12 @@ class IRCBot {
         return "";
     }
 
+
     /**
      * Send raw data to the server and log it to the console
      *
-     * @param string $msg Message(s) to log. If line breaks are found, the message will be split and each message will be processed separately
+     * @param string $msg Message(s) to log. If line breaks are found, the message will be split and each message will
+     *                    be processed separately
      */
     public function raw($msg) {
         $lines = explode("\n", $msg);
@@ -139,6 +167,7 @@ class IRCBot {
         }
     }
 
+
     /**
      * Joins the irc channel $channel
      *
@@ -148,11 +177,17 @@ class IRCBot {
         $this->raw("JOIN :$channel");
     }
 
+
+    /**
+     * @param $nickname
+     * @throws CycleException
+     */
     public function nick($nickname) {
         $this->setNickname($nickname);
         $this->IRCNetwork->getNicknameCycle()->setPrimary($nickname);
         $this->raw("NICK $nickname");
     }
+
 
     /**
      * @param string $nickname
@@ -160,6 +195,7 @@ class IRCBot {
     public function setNickname(string $nickname) {
         $this->nickname = $nickname;
     }
+
 
     /**
      * Save this bot's address on the irc server
@@ -170,6 +206,7 @@ class IRCBot {
         $this->address = $address;
     }
 
+
     /**
      * @param string $host
      */
@@ -177,12 +214,14 @@ class IRCBot {
         $this->host = $host;
     }
 
-    /**	 *
+
+    /**     *
      * @return IRCNetwork The network name set for this bot
      */
     public function getIRCNetwork(): IRCNetwork {
         return $this->IRCNetwork;
     }
+
 
     /**
      * @return string The server address the bot connected to
@@ -191,12 +230,14 @@ class IRCBot {
         return $this->host;
     }
 
+
     /**
      * @return string The bot's main nickname
      */
     public function getNickname() {
         return $this->nickname;
     }
+
 
     /**
      * @return string This bot's address on the irc server
@@ -205,12 +246,14 @@ class IRCBot {
         return $this->address;
     }
 
+
     /**
      * @return Users
      */
     public function getUsers() {
         return $this->users;
     }
+
 
     /**
      * @return Channels
@@ -219,6 +262,7 @@ class IRCBot {
         return $this->channels;
     }
 
+
     /**
      * Gets one of this bot's modules for external use
      *
@@ -226,11 +270,12 @@ class IRCBot {
      * @return Module|bool The module class matching $module, or false on failure
      */
     public function getModule($module) {
-        if (isset($this->modules[$module]) && $this->modules[$module] instanceof Module)
-            return $this->modules[$module];
+        if (isset($this->modules[ $module ]) && $this->modules[ $module ] instanceof Module)
+            return $this->modules[ $module ];
 
         return false;
     }
+
 
     /**
      * @return array
@@ -238,6 +283,7 @@ class IRCBot {
     public function getModules(): array {
         return $this->modules;
     }
+
 
     /**
      * Instantiate a new instance of a module and save it
@@ -249,15 +295,17 @@ class IRCBot {
         if (!is_subclass_of("$class", "Utsubot\\Module"))
             throw new IRCBotException("$class does not exist or does not extend Utsubot\\Module.");
 
-        $module = new $class($this, $class);
-        $this->modules[$class] = $module;
+        $module                  = new $class($this, $class);
+        $this->modules[ $class ] = $module;
     }
+
 
     /**
      * This method is called on any IRC event to send the info to modules and give them the proper chance to respond
      *
-     * @param string $function The name of the function relevant to the IRC event, e.g. "privmsg"
-     * @param Object|float|null $msg If available, send the IRCMessage object that was created from this event, or other relevant information
+     * @param string            $function The name of the function relevant to the IRC event, e.g. "privmsg"
+     * @param Object|float|null $msg      If available, send the IRCMessage object that was created from this event, or
+     *                                    other relevant information
      */
     public function sendToModules($function, $msg = null) {
         //	These modules will receive the information first, if any relevant pre-processing needs to be done
@@ -266,8 +314,8 @@ class IRCBot {
         try {
             //	Send event to priority modules
             foreach ($priority as $module) {
-                if (isset($this->modules[$module]))
-                    $this->sendToModule($this->modules[$module], $function, $msg);
+                if (isset($this->modules[ $module ]))
+                    $this->sendToModule($this->modules[ $module ], $function, $msg);
             }
 
             //	Send event to all other modules
@@ -283,12 +331,14 @@ class IRCBot {
 
     }
 
+
     /**
      * A helper for sendToModules that handles an individual module
      *
-     * @param Module $module
-     * @param string $function The name of the function relevant to the IRC event, e.g. "privmsg"
-     * @param Object|float|null $msg If available, send the IRCMessage object that was created from this event, or other relevant information
+     * @param Module            $module
+     * @param string            $function The name of the function relevant to the IRC event, e.g. "privmsg"
+     * @param Object|float|null $msg      If available, send the IRCMessage object that was created from this event, or
+     *                                    other relevant information
      * @throws IRCBotException Bubble up IRCBotExceptions to force halt processing
      */
     private function sendToModule($module, $function, $msg = null) {
@@ -313,6 +363,7 @@ class IRCBot {
 
     }
 
+
     /**
      * Output a string to the console for display
      *
@@ -321,6 +372,7 @@ class IRCBot {
     public function console($string) {
         fwrite(STDOUT, "$string\n\n");
     }
+
 
     /**
      * Restart the bot program
@@ -334,23 +386,26 @@ class IRCBot {
         exit;
     }
 
+
     /**
-     * Messages the target on IRC with text. Splits text up into multiple messages if total data length exceeds 512 bytes (maximum transferable).
-     * Also splits line breaks into multiple messages, and will carry over incomplete control codes.
+     * Messages the target on IRC with text. Splits text up into multiple messages if total data length exceeds 512
+     * bytes (maximum transferable). Also splits line breaks into multiple messages, and will carry over incomplete
+     * control codes.
      *
-     * @param string $target User or channel to send message to
-     * @param string|array $text Lines or collection of lines to send
-     * @param bool $action Pass true to send message as an IRC Action (/me)
+     * @param string       $target User or channel to send message to
+     * @param string|array $text   Lines or collection of lines to send
+     * @param bool         $action Pass true to send message as an IRC Action (/me)
      */
     public function message($target, $text, $action = false) {
         //	Split array into multiple messages
         if (is_array($text)) {
             foreach ($text as $newText)
                 $this->message($target, $newText, $action);
+
             return;
         }
 
-        $text = (string) $text;
+        $text = (string)$text;
         //	Empty line
         if (strlen(trim(stripControlCodes($text))) == 0)
             return;
@@ -366,19 +421,20 @@ class IRCBot {
         if (strpos($text, "\n") !== false) {
             $textArray = explode("\n", $text);
             $this->message($target, $textArray, $action);
+
             return;
         }
 
-        $words = explode(" ", $text);
+        $words       = explode(" ", $text);
         $builtString = "";
 
         //	Loop through words
         for ($i = 0, $wordCount = count($words); $i < $wordCount; $i++) {
             //	Build string
-            $builtString .= $words[$i]. " ";
+            $builtString .= $words[ $i ]." ";
 
             //	If the next word would break the 512 byte limit, or we're out of words, output the string and clear it
-            if ((isset($words[$i+1]) && strlen($builtString. $words[$i+1]) > $maxlen) || !isset($words[$i+1])) {
+            if ((isset($words[ $i + 1 ]) && strlen($builtString.$words[ $i + 1 ]) > $maxlen) || !isset($words[ $i + 1 ])) {
                 //	Cut off trailing space
                 $sendString = substr($builtString, 0, -1);
 
@@ -399,30 +455,49 @@ class IRCBot {
 
     }
 
+
     /**
      * Calls $this->message, but sends the command as a CTCP ACTION (/me)
      *
-     * @param string $target User or channel to send message to
-     * @param string|array $text Lines or collection of lines to send
+     * @param string       $target User or channel to send message to
+     * @param string|array $text   Lines or collection of lines to send
      */
     public function action($target, $text) {
         $this->message($target, $text, true);
     }
 
+
+    /**
+     * @param $target
+     * @param $text
+     */
     public function notice($target, $text) {
         $this->raw("NOTICE $target :$text");
     }
 
+
+    /**
+     * @param $target
+     * @param $text
+     */
     public function ctcp($target, $text) {
         $this->message($target, "\x01$text\x01");
     }
 
+
+    /**
+     * @param $target
+     * @param $type
+     * @param $response
+     */
     public function ctcpReply($target, $type, $response) {
         $this->notice($target, "\x01$type $response\x01");
     }
 
+
     /**
-     * When forced to split an IRC message up across multiple lines, this function will determine which control codes need to be continued
+     * When forced to split an IRC message up across multiple lines, this function will determine which control codes
+     * need to be continued
      *
      * @param string $message The IRC message
      * @return string The set of control codes that represent the state of the message at the end of the string
@@ -430,10 +505,10 @@ class IRCBot {
     private static function getNextLinePrefix($message) {
         //	Bold, reverse, italic, underline respectively
         $controlCodes = [
-            2   => false,
-            22  => false,
-            29  => false,
-            31  => false
+            2  => false,
+            22 => false,
+            29 => false,
+            31 => false
         ];
         //	Denotes colored text
         $colorCode = chr(3);
@@ -441,7 +516,7 @@ class IRCBot {
         $clearCode = chr(15);
 
         //	Initialize vars
-        $colorPrefix = false;
+        $colorPrefix    = false;
         $nextLinePrefix = $background = $foreground = "";
 
         //	Loop through every character
@@ -450,9 +525,9 @@ class IRCBot {
 
             //	Clear all formatting
             if ($character == $clearCode) {
-                $clear = true;
+                $clear       = true;
                 $colorPrefix = false;
-                $foreground = $background = "";
+                $foreground  = $background = "";
             }
             //	No clearing for this iteration
             else
@@ -461,10 +536,10 @@ class IRCBot {
             //	Loop through control codes to activate or deactivate
             foreach ($controlCodes as $code => $toggle) {
                 if ($clear)
-                    $controlCodes[$code] = false;
+                    $controlCodes[ $code ] = false;
 
                 elseif ($character == chr($code))
-                    $controlCodes[$code] = !($toggle);
+                    $controlCodes[ $code ] = !($toggle);
             }
 
             //	Begin to parse colors
@@ -514,7 +589,7 @@ class IRCBot {
 
         //	Include color if necessary
         if ($colorPrefix && is_numeric($foreground)) {
-            $nextLinePrefix .= $colorCode. sprintf("%02d", $foreground);
+            $nextLinePrefix .= $colorCode.sprintf("%02d", $foreground);
 
             //	Optionally include background if necessary
             if (is_numeric($background))
@@ -524,11 +599,12 @@ class IRCBot {
         return $nextLinePrefix;
     }
 
+
     /**
      * Print a variable's contents to a file (for debug purposes)
      *
      * @param string $filename
-     * @param mixed $data
+     * @param mixed  $data
      */
     public function saveToFile($filename, $data) {
         ob_start();

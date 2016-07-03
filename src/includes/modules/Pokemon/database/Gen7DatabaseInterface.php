@@ -34,13 +34,13 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
 
 
     /**
-     * @return PokemonGroup
+     * @return Pokemons
      * @throws PokemonBaseException
      * @throws \Utsubot\Pokemon\Pokemon\PokemonException
      */
-    public function getPokemon(): PokemonGroup {
+    public function getPokemon(): Pokemons {
         /** @var Pokemon[] $pokemon */
-        $pokemon = new PokemonGroup();
+        $pokemon = new Pokemons();
         $offset  = 2000;
 
         //  Query names
@@ -138,11 +138,11 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
 
 
     /**
-     * @return AbilityGroup
+     * @return Abilities
      */
-    public function getAbilities(): AbilityGroup {
+    public function getAbilities(): Abilities {
         /** @var Ability[] $abilities */
-        $abilities = new AbilityGroup();
+        $abilities = new Abilities();
         $offset    = 2000;
 
         //  Query names
@@ -176,25 +176,25 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
 
 
     /**
-     * @return ItemGroup
+     * @return Items
      */
-    public function getItems(): ItemGroup {
-        return new ItemGroup();
+    public function getItems(): Items {
+        return new Items();
     }
 
 
     /**
-     * @return MoveGroup
+     * @return Moves
      */
-    public function getMoves(): MoveGroup {
-        return new MoveGroup();
+    public function getMoves(): Moves {
+        return new Moves();
     }
 
 
     /**
-     * @return NatureGroup
+     * @return Natures
      */
-    public function getNatures(): NatureGroup {
-        return new NatureGroup();
+    public function getNatures(): Natures {
+        return new Natures();
     }
 }

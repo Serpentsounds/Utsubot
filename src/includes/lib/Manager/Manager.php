@@ -5,7 +5,8 @@
  * Date: 06/11/14
  */
 
-namespace Utsubot;
+namespace Utsubot\Manager;
+
 
 /**
  * Class ManagerException
@@ -15,6 +16,7 @@ namespace Utsubot;
 class ManagerException extends \Exception {
 
 }
+
 
 /**
  * Class Manager
@@ -28,19 +30,13 @@ abstract class Manager {
 
     protected static $manages = "";
 
-    protected static $numericOperators = [ "=", "==", "!=", "<", "<=", ">", ">=" ];
-    protected static $stringOperators  = [ "=", "==", "!=", "*=" ];
-    protected static $arrayOperators   = [ "=", "==", "===", "!=", "!==" ];
-    protected static $customOperators  = [ ];
-
-
     /**
      * Manager constructor.
      */
     public function __construct() {
         if (!class_exists(static::$manages))
             throw new ManagerException("Unable to create ".get_class($this)." because the managed class '".static::$manages."' does not exist.");
-        if (!is_subclass_of(static::$manages, "Utsubot\\Manageable"))
+        if (!is_subclass_of(static::$manages, "Utsubot\\Manager\\Manageable"))
             throw new ManagerException("Unable to create ".get_class($this)." because the managed class '".static::$manages."' is not Manageable.");
     }
 
@@ -134,14 +130,14 @@ abstract class Manager {
 
 
     /**
-     * Search for an item by comparing to the implemented Manageable search
+     * Search for the first matching item by comparing to the implemented Manageable search
      *
      * @param mixed $search
      * @return Manageable
      * @throws ManagerException No results
      */
-    public function search($search): Manageable {
-        $filter = new ManagerFilter(new \ArrayIterator($this->collection), $search);
+    public function findFirst($search): Manageable {
+        $filter = new BasicFilter(new \ArrayIterator($this->collection), $search);
         //  Return first item
         foreach ($filter as $item)
             return $item;
@@ -151,14 +147,14 @@ abstract class Manager {
 
 
     /**
-     * Search for all valid items using Manageable search
+     * Search for all matching items by comparing to the implemented Manageable search
      *
      * @param $search
      * @return array
      * @throws ManagerException No results
      */
-    public function searchAll($search): array {
-        $filter  = new ManagerFilter(new \ArrayIterator($this->collection), $search);
+    public function basicSearch($search): array {
+        $filter  = new BasicFilter(new \ArrayIterator($this->collection), $search);
         $results = [ ];
 
         foreach ($filter as $item)
@@ -172,154 +168,29 @@ abstract class Manager {
 
 
     /**
-     * Search for a single or many items through a variety of criteria
-     *
-     * @param array $criteria An array of ManagerSearchCriterion
-     * @param bool  $all      (Optional) Pass false to return only first result, rather than array of results. Default
-     *                        true
-     * @param bool  $strict   (Optional) Pass false to return results that match any criteria, rather than all
-     *                        criteria. Default true
-     * @return array|Object Return the resulting array of objects, a single object, or false on failure
+     * @param SearchCriteria $criteria
+     * @param SearchMode     $searchMode
+     * @param int            $numberOfResults
+     * @return array
      * @throws ManagerException
      */
-    public function fullSearch($criteria, $all = true, $strict = true) {
-        //	Criteria should be array of arrays
-        if (!is_array($criteria))
-            throw new ManagerException("Criteria must be given in an array.");
+    public function advancedSearch(SearchCriteria $criteria, SearchMode $searchMode, int $numberOfResults = 0): array {
+        $filter  = new AdvancedFilter(new \ArrayIterator($this->collection), $criteria, $searchMode);
+        $results = [ ];
 
-        $return = [ ];
-        //	Check each criterion
-        foreach ($criteria as $criterion) {
-            if (!($criterion instanceof ManagerSearchCriterion))
-                throw new ManagerException("Criteria must be instances of ManagerSearchCriterion.");
+        foreach ($filter as $item) {
+            $results[] = $item;
 
-            if ($criterion->getManager() != $this)
-                throw new ManagerException("Criteria was generated for the wrong Manager.");
-
-            $field    = $criterion->getField();
-            $operator = $criterion->getOperator();
-            $value    = $criterion->getValue();
-
-            $searchObject = $criterion->getSearchObject();
-            $operators    = $searchObject->getOperators();
-            $method       = $searchObject->getMethod();
-            $parameters   = $searchObject->getParameters();
-
-            //	Check all objects
-            foreach ($this->collection as $object) {
-
-                if ($operators == static::$customOperators)
-                    $testResult = $this->customComparison($object, $field, $operator, $value);
-
-                else {
-
-                    if ($operator == "=")
-                        $operator = "==";
-
-                    //	Call saved method to retrieve value for comparison
-                    $result = call_user_func_array([ $object, $method ], $parameters);
-                    if (is_string($result))
-                        $result = strtolower($result);
-
-                    //	Use eval() to perform comparison and return true or false
-                    $testResult = false;
-                    //	String comparison
-                    if ($operators == self::$stringOperators) {
-                        //	"*=" operator as an interface for wildcard matching
-                        if ($operator == "*=") {
-                            //	Apply wildcards if none exists
-                            if (!preg_match("/[?*\\[]/", $value))
-                                $value = "*$value*";
-
-                            $testResult = fnmatch($value, $result);
-                        }
-
-                        //	Or, regular comparison with escaped strings
-                        else {
-                            $testResult = ($result == $value);
-                            if ($operator == "!=")
-                                $testResult = !$testResult;
-                        }
-                    }
-
-                    //	Numeric comparison
-                    elseif ($operators == self::$numericOperators)
-                        $testResult = eval("return $result $operator $value;");
-
-                    //	Array comparison
-                    elseif ($operators == self::$arrayOperators) {
-                        switch ($operator) {
-                            case "==":
-                                $testResult = ($result == $value);
-                                break;
-                            case "!=":
-                                $testResult = ($result != $value);
-                                break;
-                            case "===":
-                                $testResult = ($result === $value);
-                                break;
-                            case "!==":
-                                $testResult = ($result !== $value);
-                                break;
-                        }
-                    }
-
-                }
-                if ($testResult)
-                    $return[] = $object;
-
-            }
+            //  Stop searching early because we have enough results
+            if ($numberOfResults && count($results) >= $numberOfResults)
+                break;
         }
 
-        $required = count($criteria);
-        $matched  = [ ];
-        foreach ($return as $object) {
-            //	List of all keys containing that exact object, to determine number of appearances
-            $keys = array_keys($return, $object, true);
+        if (empty($results))
+            throw new ManagerException("No results found for the given criteria in ".get_class($this).".");
 
-            //	If strict mode is enabled, check number of matched criteria vs. total number
-            if (!$strict || count($keys) == $required) {
-                $matched[] = $object;
-                //	Remove all instance of $object from $return to avoid duplicate processing
-                $return = array_filter($return,
-                    function ($element) use ($object) {
-                        return $element !== $object;
-                    });
-            }
-        }
-        $return = $matched;
-
-        //	Return first result if "all" disabled
-        if (!$all)
-            return $return[ 0 ];
-
-        //	Return all results
-        return $return;
+        return $results;
     }
-
-
-    /**
-     * Given a $field to search against, this function should return info on how to get the field
-     *
-     * @param string $field The name of an aspect of one of this manager's collection
-     * @param string $operator
-     * @param string $value The value being searched against, if relevant
-     * @return ManagerSearchObject
-     */
-    abstract public function searchFields($field, $operator = "", $value = "");
-
-
-    /**
-     * Given a member of the collection, the field to search against, the operator to evaluate, and the value to
-     * compare against, perform a comparison
-     *
-     * @param mixed $object   A member of this manager's collection
-     * @param mixed $field    Field name
-     * @param mixed $operator Custom operator
-     * @param mixed $value    Value to compare against
-     * @return bool True or false depending on comparison result
-     */
-    abstract protected function customComparison($object, $field, $operator, $value);
 
 
     /**
@@ -329,35 +200,4 @@ abstract class Manager {
         return static::$manages;
     }
 
-
-    /**
-     * @return array
-     */
-    public static function getArrayOperators() {
-        return self::$arrayOperators;
-    }
-
-
-    /**
-     * @return array
-     */
-    public static function getNumericOperators() {
-        return self::$numericOperators;
-    }
-
-
-    /**
-     * @return array
-     */
-    public static function getStringOperators() {
-        return self::$stringOperators;
-    }
-
-
-    /**
-     * @return array
-     */
-    public static function getCustomOperators() {
-        return static::$customOperators;
-    }
 }

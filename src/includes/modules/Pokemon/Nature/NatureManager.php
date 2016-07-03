@@ -7,50 +7,73 @@
 
 namespace Utsubot\Pokemon\Nature;
 
-use Utsubot\ManagerSearchObject;
-use Utsubot\Pokemon\PokemonManagerBase;
+
+use Utsubot\Pokemon\{
+    PokemonManagerBase, PokemonManagerBaseException, MethodInfo
+};
 
 
+/**
+ * Class NatureManagerException
+ *
+ * @package Utsubot\Pokemon\Nature
+ */
+class NatureManagerException extends PokemonManagerBaseException {
+
+}
+
+
+/**
+ * Class NatureManager
+ *
+ * @package Utsubot\Pokemon\Nature
+ */
 class NatureManager extends PokemonManagerBase {
 
-    protected static $manages = "Utsubot\\Pokemon\\Nature\\Nature";
+    protected static $manages     = "Utsubot\\Pokemon\\Nature\\Nature";
     protected static $validFields = [ "increases", "decreases", "likes", "dislikes", "likesFlavor", "dislikesFlavor" ];
 
     protected static $populatorMethod = "getNatures";
 
 
-    public function searchFields($field, $operator = "", $value = "") {
+    /**
+     * @param string $field
+     * @return MethodInfo
+     * @throws NatureManagerException
+     */
+    public function getMethodFor(string $field): MethodInfo {
+
         switch ($field) {
             case "increases":
-                return new ManagerSearchObject($this, "getIncreases", [ ], self::$stringOperators);
+                $return = new MethodInfo("getIncreases", [ ]);
                 break;
 
             case "decreases":
-                return new ManagerSearchObject($this, "getDecreases", [ ], self::$stringOperators);
+                $return = new MethodInfo("getDecreases", [ ]);
                 break;
 
             case "likes":
-                return new ManagerSearchObject($this, "getLikes", [ ], self::$stringOperators);
+                $return = new MethodInfo("getLikes", [ ]);
                 break;
 
             case "dislikes":
-                return new ManagerSearchObject($this, "getDislikes", [ ], self::$stringOperators);
+                $return = new MethodInfo("getDislikes", [ ]);
                 break;
 
             case "likesFlavor":
-                return new ManagerSearchObject($this, "getLikes", [ ], self::$stringOperators);
+                $return = new MethodInfo("getLikes", [ ]);
                 break;
 
             case "dislikesFlavor":
-                return new ManagerSearchObject($this, "getDislikes", [ ], self::$stringOperators);
+                $return = new MethodInfo("getDislikes", [ ]);
+                break;
+
+            default:
+                throw new NatureManagerException("Unsupported search field '$field'.");
                 break;
         }
 
-        return null;
+        return $return;
     }
 
-
-    public function customComparison($object, $field, $operator, $value) {
-        // TODO: Implement customComparison() method.
-    }
 }

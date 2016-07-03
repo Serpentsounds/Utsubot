@@ -8,12 +8,25 @@ declare(strict_types = 1);
 
 namespace Utsubot;
 
+/**
+ * Class FlagsEnumException
+ *
+ * @package Utsubot
+ */
+class FlagsEnumException extends EnumException {
 
-class FlagsEnumException extends EnumException {}
+}
 
+
+/**
+ * Class FlagsEnum
+ *
+ * @package Utsubot
+ */
 abstract class FlagsEnum extends Enum {
 
     protected static $highestPowers = [ ];
+
 
     /**
      * Check if this object has a given flag set
@@ -24,10 +37,11 @@ abstract class FlagsEnum extends Enum {
      */
     public function hasFlag(int $flag): bool {
         if (!parent::isValidValue($flag))
-            throw new FlagsEnumException("Invalid ". get_called_class(). " flag value '$flag'.");
+            throw new FlagsEnumException("Invalid ".get_called_class()." flag value '$flag'.");
 
         return (bool)($this->value & $flag);
     }
+
 
     /**
      * Get a comma separated list of the field names contained in the object's value
@@ -42,20 +56,21 @@ abstract class FlagsEnum extends Enum {
             return parent::getName();
         }
 
-        //  Value is a composite, list all flags instead
+            //  Value is a composite, list all flags instead
         catch (EnumException $e) {
             $flags = [ ];
             $class = get_called_class();
 
             //  Loop through powers of two
-            for ($i = 0; (2**$i) <= static::$highestPowers[$class]; $i++) {
-                if (2**$i & $this->value)
-                    $flags[] = static::findName(2**$i);
+            for ($i = 0; (2 ** $i) <= static::$highestPowers[ $class ]; $i++) {
+                if (2 ** $i & $this->value)
+                    $flags[] = static::findName(2 ** $i);
             }
 
             return implode(", ", $flags);
         }
     }
+
 
     /**
      * Override loadConstants to automatically save highest power of 2 for faster repeated calls of isValidValue
@@ -64,19 +79,20 @@ abstract class FlagsEnum extends Enum {
         parent::loadConstants();
 
         $class = get_called_class();
-        if (!isset(static::$highestPowers[$class])) {
+        if (!isset(static::$highestPowers[ $class ])) {
 
             $highestPower = 0;
-            foreach (static::$constants[$class] as $constant) {
+            foreach (static::$constants[ $class ] as $constant) {
                 //  Only include powers of 2
                 if (!($constant & ($constant - 1)) && $constant > $highestPower)
                     $highestPower = $constant;
             }
 
-            static::$highestPowers[$class] = $highestPower;
+            static::$highestPowers[ $class ] = $highestPower;
         }
 
     }
+
 
     /**
      * Override isValidValue to allow composite values (flags)
@@ -88,6 +104,6 @@ abstract class FlagsEnum extends Enum {
         static::loadConstants();
 
         //  Largest possible value is bitshifted value of largest constant - 1, representing all flags on
-        return is_int($value) && $value < (static::$highestPowers[get_called_class()] << 1);
+        return is_int($value) && $value < (static::$highestPowers[ get_called_class() ] << 1);
     }
 }

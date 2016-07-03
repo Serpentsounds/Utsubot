@@ -7,6 +7,8 @@
 declare(strict_types = 1);
 
 namespace Utsubot;
+
+
 use ReflectionClass;
 use Exception;
 
@@ -16,7 +18,10 @@ use Exception;
  *
  * @package Utsubot
  */
-class EnumException extends Exception {}
+class EnumException extends Exception {
+
+}
+
 
 /**
  * Class Enum
@@ -26,7 +31,8 @@ class EnumException extends Exception {}
 abstract class Enum {
 
     protected static $constants = [ ];
-    protected $value = null;
+    protected        $value     = null;
+
 
     /**
      * Enum constructor.
@@ -36,10 +42,11 @@ abstract class Enum {
      */
     public function __construct($value) {
         if (!static::isValidValue($value))
-            throw new EnumException("Unable to create ". get_called_class(). " with value '$value'.");
+            throw new EnumException("Unable to create ".get_called_class()." with value '$value'.");
 
         $this->value = $value;
     }
+
 
     /**
      * @return string
@@ -48,12 +55,14 @@ abstract class Enum {
         return (string)$this->getValue();
     }
 
+
     /**
      * @return mixed
      */
     public function getValue() {
         return $this->value;
     }
+
 
     /**
      * @return string
@@ -62,6 +71,7 @@ abstract class Enum {
     public function getName(): string {
         return static::findName($this->getValue());
     }
+
 
     /**
      * Construct an Enum instance by passing a name instead of a value
@@ -74,14 +84,16 @@ abstract class Enum {
         return new static(static::findValue($name));
     }
 
+
     /**
      * Instantiate a reflection and cache constants
      */
     protected static function loadConstants() {
         $class = get_called_class();
-        if (!isset(static::$constants[$class]))
-            static::$constants[$class] = (new ReflectionClass(get_called_class()))->getConstants();
+        if (!isset(static::$constants[ $class ]))
+            static::$constants[ $class ] = (new ReflectionClass(get_called_class()))->getConstants();
     }
+
 
     /**
      * Get the number of constants saved
@@ -94,6 +106,7 @@ abstract class Enum {
         return count(static::$constants);
     }
 
+
     /**
      * Check if a value can be validly used as an instance
      *
@@ -103,8 +116,9 @@ abstract class Enum {
     public static function isValidValue($value): bool {
         static::loadConstants();
 
-        return array_search($value, static::$constants[get_called_class()], true) !== false;
+        return array_search($value, static::$constants[ get_called_class() ], true) !== false;
     }
+
 
     /**
      * Get the constant value for a string matching an item
@@ -117,23 +131,24 @@ abstract class Enum {
         static::loadConstants();
 
         //  Anonymous function to apply to searches for a loose comparison
-        $normalize = function($item) {
+        $normalize = function ($item) {
             return strtolower(str_replace([ "_", "-", " " ], "", $item));
         };
 
         //  Grab and normalize keys
-        $class = get_called_class();
-        $keys = array_keys(static::$constants[$class]);
+        $class      = get_called_class();
+        $keys       = array_keys(static::$constants[ $class ]);
         $searchKeys = array_map(
             $normalize,
             $keys
         );
 
         if (($key = array_search($normalize($name), $searchKeys)) !== false)
-            return static::$constants[$class][ $keys[$key] ];
+            return static::$constants[ $class ][ $keys[ $key ] ];
 
-        throw new EnumException("Invalid ". get_called_class(). " item name '$name'.");
+        throw new EnumException("Invalid ".get_called_class()." item name '$name'.");
     }
+
 
     /**
      * Get the name of a constant formatted as a string, given its corresponding value
@@ -145,20 +160,20 @@ abstract class Enum {
     public static function findName($value): string {
         static::loadConstants();
 
-        if (($key = array_search($value, static::$constants[get_called_class()], true)) !== false)
+        if (($key = array_search($value, static::$constants[ get_called_class() ], true)) !== false)
             return str_replace("_", " ", $key);
 
-        throw new EnumException("Invalid ". get_called_class(). " item value '$value'.");
+        throw new EnumException("Invalid ".get_called_class()." item value '$value'.");
     }
 
 
     /**
-     * Get the names of all valid constants as an array of strings
-     * 
+     * Get all the valid constants as an array
+     *
      * @return array
      */
     public static function listConstants(): array {
-        return array_keys((new \ReflectionClass(static::class))->getConstants());
+        return (new \ReflectionClass(static::class))->getConstants();
     }
 
 }

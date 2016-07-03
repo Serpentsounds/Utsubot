@@ -8,11 +8,15 @@
 namespace Utsubot\Pokemon\Pokemon;
 
 
-use Utsubot\{
-    ManagerException,
-    ManagerSearchObject
+use Utsubot\Manager\{
+    ManagerException
 };
-use Utsubot\Pokemon\PokemonManagerBase;
+use Utsubot\Pokemon\{
+    PokemonManagerBase,
+    MethodInfo,
+    Stat,
+    Language
+};
 
 
 /**
@@ -39,44 +43,42 @@ class PokemonManager extends PokemonManagerBase {
 
 
     /**
-     * Given a $field to search against, this function returns info on how to get the field from a pokemon
-     *
-     * @param string $field The name of an aspect of one of a pokemon
-     * @param string $operator
-     * @param string $value The value being searched against, if relevant
-     * @return array array(method to get field, array(parameters,for,method), array(valid,comparison,operators))
+     * @param string $field
+     * @return MethodInfo
+     * @throws PokemonManagerException
      */
-    public function searchFields($field, $operator = "", $value = "") {
-        if (in_array(strtolower($operator), self::$customOperators))
-            return new ManagerSearchObject($this, "", [ ], self::$customOperators);
+    public function getMethodFor(string $field): MethodInfo {
 
         switch ($field) {
-            case    "id":
-            case    "pid":
-                return new ManagerSearchObject($this, "getId", [ ], self::$numericOperators);
+            case "id":
+            case "pid":
+                $return = new MethodInfo("getId", [ ]);
                 break;
 
-            case    "hp":
-            case    "hit points":
-            case    "atk":
-            case    "attack":
-            case    "def":
-            case    "defense":
-            case    "spa":
-            case    "special attack":
-            case    "spd":
-            case    "special defense":
-            case    "spe":
-            case    "speed":
-                return new ManagerSearchObject($this, "getBaseStat", [ $field ], self::$numericOperators);
+            case "hp":
+            case "hit points":
+            case "atk":
+            case "attack":
+            case "def":
+            case "defense":
+            case "spa":
+            case "special attack":
+            case "spd":
+            case "special defense":
+            case "spe":
+            case "speed":
+                $return = new MethodInfo("getBaseStat", [ Stat::fromName($field) ]);
                 break;
 
             case "total":
             case "bst":
-                return new ManagerSearchObject($this, "getBaseStatTotal", [ ], self::$numericOperators);
+                $return = new MethodInfo("getBaseStatTotal", [ ]);
                 break;
 
             case    "name":
+                $return = new MethodInfo("getName", [ new Language(Language::English) ]);
+                break;
+
             case    "english":
             case    "romaji":
             case    "katakana":
@@ -90,7 +92,7 @@ class PokemonManager extends PokemonManagerBase {
             case    "official roomaji":
             case    "roumaji":
             case    "japanese":
-                return new ManagerSearchObject($this, "getName", [ $field ], self::$stringOperators);
+                $return = new MethodInfo("getName", [ Language::fromName($field) ]);
                 break;
 
             case "ability1":
@@ -99,60 +101,38 @@ class PokemonManager extends PokemonManagerBase {
             case "abl1":
             case "abl2":
             case "abl3":
-                return new ManagerSearchObject($this, "getAbility", [ intval(substr($field, -1)) ], self::$stringOperators);
+                $return = new MethodInfo("getAbility", [ intval(substr($field, -1)) - 1 ]);
                 break;
 
             case "abilities":
             case "ability":
-                return new ManagerSearchObject($this, "getAbility", [ 0 ], self::$arrayOperators);
+                $return = new MethodInfo("getAbilities", [ ]);
                 break;
 
             case "type1":
             case "type2":
-                return new ManagerSearchObject($this, "getType", [ intval(substr($field, -1)) ], self::$stringOperators);
+                $return = new MethodInfo("getType", [ intval(substr($field, -1)) - 1 ]);
                 break;
 
             case "type":
             case "types":
-                return new ManagerSearchObject($this, "getType", [ 0 ], self::$arrayOperators);
+                $return = new MethodInfo("getTypes", [ ]);
                 break;
 
             case "species":
-                return new ManagerSearchObject($this, "getSpecies", [ ], self::$stringOperators);
+                $return = new MethodInfo("getSpecies", [ ]);
                 break;
 
             case "generation":
-                return new ManagerSearchObject($this, "getGeneration", [ ], self::$numericOperators);
+                $return = new MethodInfo("getGeneration", [ ]);
+                break;
+
+            default:
+                throw new PokemonManagerException("Unsupported search field '$field'.");
                 break;
         }
 
-        return null;
-    }
-
-
-    /**
-     * @param mixed $pokemon
-     * @param mixed $field
-     * @param mixed $operator
-     * @param mixed $value
-     * @return bool
-     * @throws PokemonManagerException
-     */
-    protected function customComparison($pokemon, $field, $operator, $value) {
-        if (!($pokemon instanceof $pokemon))
-            throw new PokemonManagerException("Comparison object is not a Pokemon.");
-
-        switch (strtolower($operator)) {
-            case "hasabl":
-                return in_array(strtolower($value), array_map("strtolower", $pokemon->getAbility()));
-                break;
-
-            case "hastype":
-                return in_array(strtolower($value), array_map("strtolower", $pokemon->getType()));
-                break;
-        }
-
-        return false;
+        return $return;
     }
 
 }

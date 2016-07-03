@@ -9,15 +9,10 @@ namespace Utsubot\Pokemon;
 
 use Utsubot\Help\HelpEntry;
 use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    ModuleException,
-    DatabaseInterface,
-    MySQLDatabaseCredentials,
-    Manager,
-    ManagerException,
-    ManagerSearchCriterion
+    EnumException, IRCBot, IRCMessage, Trigger, ModuleException, DatabaseInterface, MySQLDatabaseCredentials
+};
+use Utsubot\Manager\{
+    SearchCriteria, SearchCriterion, ManagerException, Operator, SearchMode
 };
 use function Utsubot\{
     bold,
@@ -74,7 +69,7 @@ class PokemonSuite extends ModuleWithPokemon {
 
         $repopulate = new Trigger("repopulate", [ $this, "repopulate" ]);
         $this->addTrigger($repopulate);
-        
+
         $mgdb = new Trigger("mgdb", [ $this, "updateMetagameDatabase" ]);
         $this->addTrigger($mgdb);
 
@@ -95,72 +90,112 @@ class PokemonSuite extends ModuleWithPokemon {
      * @throws ModuleWithPokemonException
      * @throws PokemonSuiteException
      * @throws ManagerException
+     * @throws EnumException
      */
     public function search(IRCMessage $msg) {
         $parameters = $msg->getCommandParameters();
 
         //	Parse user-selected search category
-        $categories = [ "pokemon", "ability", "move", "nature", "item" ];
+        $categories = $this->listManagers();
         $category   = strtolower(array_shift($parameters));
         if (!in_array($category, $categories))
             throw new PokemonSuiteException("Invalid search category '$category'. Valid categories are: ".implode(", ", $categories).".");
-
-        //	Compose collection of valid operators for input parsing
-        $operators = array_merge(Manager::getNumericOperators(), Manager::getStringOperators(), Manager::getArrayOperators());
-
-        //	Grab relevant Manager and include custom operators, if applicable
-        $manager = $this->getOutsideManager(ucfirst($category));
-
-        $customOperators     = $manager::getCustomOperators();
-        $customOperatorRegex = '/^('.preg_replace('/([\/\\*?+().{}])/', '\\\\$1', implode("|", $customOperators)).'):(.+)$/';
-
-        //  Filter and merge operators to one collection
-        $operators = array_unique(array_merge($operators, $customOperators));
-        /*	Make longer operators appear earlier in the array, so the resulting regex will match them before shorter ones that might begin the same
-            e.g., > will prevent >= from ever matching if it appears first in the capture group */
-        usort($operators, function ($a, $b) {
-            return strlen($b) - strlen($a);
-        });
-        //	Regex to parse user input
-        $regex = '/^(.*?)('.preg_replace('/([\/\\*?+().{}])/', '\\\\$1', implode("|", $operators)).')(.+)$/';
 
         //  Default to return all results
         $return = 0;
         //  Default English
         $language = new Language(Language::English);
-        $criteria = [ ];
+        $switches = implode("|", [ "return", "language" ]);
+        $copy = $parameters;
+        //  Check for parameter switch overrides at the beginning of command
+        while (preg_match("/^($switches):(.*)/", array_shift($copy), $match)) {
+            list(, $switch, $value) = $match;
+
+            switch ($switch) {
+                case "return":
+                    if (preg_match("/[^0-9]/", $value))
+                        throw new PokemonSuiteException("Invalid result count '$value'. Please specify a positive integer.");
+                    $return = $value;
+                    break;
+
+                //  Will throw an EnumException if an invalid Language name is given
+                case "language":
+                    $language = Language::fromName($value);
+                    break;
+            }
+
+            $parameters = $copy;
+        }
+
+        //	Compose collection of valid operators for input parsing
+        $operators = Operator::listConstants();
+        /*	Make longer operators appear earlier in the array, so the resulting regex will match them before shorter ones that might begin the same
+            e.g., > will prevent >= from ever matching if it appears first in the capture group */
+        usort($operators, function ($a, $b) {
+            return strlen($b) - strlen($a);
+        });
+
+        //  Regex to parse user input
+        $operatorGroup = implode("|", preg_replace("/([*?^$-.])/", "\\\\$1", $operators));
+        $regex = "/^([^<>*=!:]+)(?:($operatorGroup|:)(.+))/";
+        $inParameter = false;
+        /** @var MethodInfo $methodInfo */
+        $field = $operator = $value = $methodInfo = null;
+        $criteria = new SearchCriteria();
+        $manager = $this->getOutsideManager($category);
+
         foreach ($parameters as $parameter) {
 
-            //	Customize number of results returned
-            if (preg_match('/^return:(\d+)$/', $parameter, $match))
-                $return = $match[ 1 ];
+            //  Continue parsing a quoted parameter
+            if ($inParameter) {
 
-            //	Customize language of result set
-            elseif (preg_match('/^language:(.+)$/', $parameter, $match))
-                $language = Language::fromName($match[ 1 ]);
+                //  Closing quote found, create Criterion
+                if (($position = strpos($parameter, '"') !== FALSE)) {
+                    $value .= " ". substr($parameter, 0, $position);
+                    $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                    $inParameter = false;
+                }
 
-            //  Apply a new criterion with a custom operator
-            elseif (preg_match($customOperatorRegex, $parameter, $match)) {
-                list(, $operator, $value) = $match;
-                $criteria[] = new ManagerSearchCriterion($manager, "", $operator, $value);
+                //  No closing quote, continue parsing
+                else
+                    $value .= " ". $parameter;
             }
 
-            //	Apply a new criterion with a default operator
-            elseif (preg_match($regex, $parameter, $match)) {
-                list(, $field, $operator, $value) = $match;
-                $criteria[] = new ManagerSearchCriterion($manager, $field, $operator, $value);
-            }
+            //  Look for a new parameter
+            else {
+                if (preg_match($regex, $parameter, $match)) {
+                    $field = $match[1];
+                    $methodInfo = $manager->getMethodFor($field);
 
-            //	Abort on unknown parameter
-            else
-                throw new PokemonSuiteException("Invalid parameter '$parameter'.");
+                    //  Comparison criterion
+                    if (count($match) > 2) {
+                        list(,, $operator, $value) = $match;
+
+                        //  Quoted parameter, wait to grab the rest before creating Criterion
+                        if (substr($value, 0, 1) == '"') {
+                            $inParameter = true;
+                            $value = substr($value, 1);
+                            continue;
+                        }
+
+                        //  Single word parameter, create Criterion
+                        else
+                            $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                    }
+
+                    //  Boolean criterion, loose compare method result to 1 (true)
+                    else
+                        $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                }
+
+                //  Bad data
+                else
+                    throw new PokemonSuiteException("Invalid search term '$parameter'.");
+            }
         }
 
         /** @var PokemonBase[] $results */
-        $results = $manager->fullSearch($criteria);
-        //	Apply number of results limit
-        if ($return > 0)
-            $results = array_slice($results, 0, $return);
+        $results = $manager->advancedSearch($criteria, new SearchMode(SearchMode::All), $return);
 
         //	Convert objects to strings in given language
         foreach ($results as $key => $result)
@@ -169,7 +204,7 @@ class PokemonSuite extends ModuleWithPokemon {
         if (!$results)
             throw new PokemonSuiteException("No results found.");
 
-        $this->respond($msg, implode(", ", $results));
+        $this->respond($msg, sprintf("%s results: %s", bold(count($results)), implode(", ", $results)));
     }
 
 

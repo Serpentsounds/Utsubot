@@ -7,16 +7,30 @@
 
 namespace Utsubot;
 
-class Channels extends Manager {
-	protected static $manages = "Utsubot\\Channel";
 
-	/**
-	 * @param $name
-	 * @return Channel
-	 */
-	public function confirmChannel($name) : Channel {
+use Utsubot\Manager\{
+    Manager,
+    ManagerException
+};
+
+
+/**
+ * Class Channels
+ *
+ * @package Utsubot
+ */
+class Channels extends Manager {
+
+    protected static $manages = "Utsubot\\Channel";
+
+
+    /**
+     * @param $name
+     * @return Channel
+     */
+    public function confirmChannel($name) : Channel {
         try {
-            $channel = $this->search($name);
+            $channel = $this->findFirst($name);
         }
         catch (ManagerException $e) {
             $channel = new Channel($name);
@@ -26,14 +40,7 @@ class Channels extends Manager {
         #//	Attempt to auto-login to relevant account
         #$this->IRCBot->sendToModules("channel", clone $channel);
 
-		return $channel;
-	}
+        return $channel;
+    }
 
-	public function searchFields($field, $operator = "", $value = "") {
-		return null;
-	}
-
-	public function customComparison($object, $field, $operator, $value) {
-		// TODO: Implement customComparison() method.
-	}
-} 
+}
