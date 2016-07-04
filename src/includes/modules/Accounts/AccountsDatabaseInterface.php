@@ -102,11 +102,11 @@ class AccountsDatabaseInterface extends DatabaseInterface {
             [ $username ]
         );
 
-        //	No row in database
+        //  No row in database
         if (!$results)
             throw new AccountsDatabaseInterfaceException("Invalid username.");
 
-        //	Password hashes don't match
+        //  Password hashes don't match
         elseif ($results[ 0 ][ 'password' ] != md5($password))
             throw new AccountsDatabaseInterfaceException("Invalid password.");
 
@@ -122,7 +122,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      * @throws AccountsDatabaseInterfaceException If $level isn't an integer or is above 99
      */
     public function setAccess(int $accountID, int $level) {
-        //	Make sure level is an int, and don't give anyone else root access
+        //  Make sure level is an int, and don't give anyone else root access
         if ($level > 99)
             throw new AccountsDatabaseInterfaceException("Level must be an integer below 99.");
 
@@ -196,7 +196,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
             [ $accountID, $settingID, $value ]
         );
 
-        //	Database error
+        //  Database error
         if (!$rowCount)
             throw new AccountsDatabaseInterfaceException("Failed to enter setting into database.");
     }
@@ -218,24 +218,24 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         $maxEntries = $setting->getMaxEntries();
         $settingID  = $this->getSettingID($setting);
 
-        //	Max value of 0 means an indefinite number of entries are allowed, add a new one
+        //  Max value of 0 means an indefinite number of entries are allowed, add a new one
         if ($maxEntries === 0)
             $this->addUserSetting($accountID, $settingID, $value);
 
         elseif ($maxEntries > 0) {
 
-            //	If entries for $settings exist for this user
+            //  If entries for $settings exist for this user
             try {
                 $results = $this->getUserSetting($accountID, $setting);
 
-                //	Not a single-entry setting, but a cap exists
+                //  Not a single-entry setting, but a cap exists
                 if ($maxEntries > 1) {
 
-                    //	This user is already at or over the limit
+                    //  This user is already at or over the limit
                     if ($maxEntries <= count($results))
                         throw new AccountsDatabaseInterfaceException("Cannot add more entries for '$setting'.");
 
-                    //	There is space, add a new one
+                    //  There is space, add a new one
                     else
                         $this->addUserSetting($accountID, $settingID, $value);
                 }
@@ -259,7 +259,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                 }
             }
 
-                //	No existing entries, add a new one
+                //  No existing entries, add a new one
             catch (AccountsDatabaseInterfaceException $e) {
                 $this->addUserSetting($accountID, $settingID, $value);
             }
@@ -281,10 +281,10 @@ class AccountsDatabaseInterface extends DatabaseInterface {
 
         $settingsID = $this->getSettingID($setting);
 
-        //	Default to deleting all entries
+        //  Default to deleting all entries
         $constraint = "";
         $parameters = [ $accountID, $settingsID ];
-        //	Looking to delete a specific value, update query and parameters
+        //  Looking to delete a specific value, update query and parameters
         if (strlen($value)) {
             $constraint   = " AND `value`=?";
             $parameters[] = $value;
@@ -468,7 +468,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         if ($results)
             return intval($results[ 0 ][ 'level' ]);
 
-        //	Unregisterd users have a level of -1
+        //  Unregisterd users have a level of -1
         return -1;
     }
 

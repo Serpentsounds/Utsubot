@@ -235,8 +235,8 @@ class Misc extends ModuleWithPermission implements IHelp {
             $countdownFrom -= $countdownInterval;
         }
 
-        /*	$countdownDelay + $counted * $countdownInterval = time last number was sent
-         * 	$countdownFrom + $countdownInterval = remaining time	*/
+        /*  $countdownDelay + $counted * $countdownInterval = time last number was sent
+         *   $countdownFrom + $countdownInterval = remaining time  */
         $finalTime = $countdownDelay + --$counted * $countdownInterval + $countdownFrom + $countdownInterval;
 
         //  Timer for finish message

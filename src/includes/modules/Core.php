@@ -92,7 +92,7 @@ class Core extends Module {
         $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
 
         $channels = $this->IRCBot->getChannels();
-        //	Bot is joining a channel, add channel to list and /WHO the channel to supplement /NAMES user info
+        //  Bot is joining a channel, add channel to list and /WHO the channel to supplement /NAMES user info
         if ($msg->getNick() == $this->IRCBot->getNickname()) {
             $channels->confirmChannel($msg->getResponseTarget());
             $this->IRCBot->raw("WHO ".$msg->getResponseTarget());
@@ -112,20 +112,20 @@ class Core extends Module {
      * @param IRCMessage $msg
      */
     public function quit(IRCMessage $msg) {
-        //	Destroy user object
+        //  Destroy user object
         $users = $this->IRCBot->getUsers();
         $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
         $msg->setQuitUser(clone $user);
         $users->removeItem($user);
 
-        //	Remove user from channels userlist
+        //  Remove user from channels userlist
         $channels = $this->IRCBot->getChannels();
         /** @var $allChannels Channel[] */
         $allChannels = $channels->collection();
         foreach ($allChannels as $channel)
             $channel->part($user);
 
-        //	Reclaim main bot nick if ghost quit
+        //  Reclaim main bot nick if ghost quit
         if ($msg->getNick() == $this->IRCBot->getIRCNetwork()->getNicknameCycle()->getPrimary())
             $this->IRCBot->nick($msg->getNick());
     }
@@ -167,13 +167,13 @@ class Core extends Module {
                 break;
 
             /*
-             *	/WHO response, create new users
+             *  /WHO response, create new users
              */
             case 352:
-                //	/WHO response format
+                //  /WHO response format
                 list($channelName, $ident, $host, $server, $nick, $flags, $hops, $realname) = $msg->getParameters();
 
-                //	Ensure User object exists and has channel listed
+                //  Ensure User object exists and has channel listed
                 $users    = $this->IRCBot->getUsers();
                 $channels = $this->IRCBot->getChannels();
 
@@ -183,12 +183,12 @@ class Core extends Module {
                 $user->join($channelName);
                 $channel->join($user);
 
-                //	Check flags for channel modes
+                //  Check flags for channel modes
                 if (preg_match("/([~&@%+]+)/", $flags, $match)) {
                     $modes       = str_split($match[ 1 ]);
                     $modeLetters = [ '~' => "q", '&' => "a", '@' => "o", '%' => "h", '+' => "v" ];
 
-                    //	Update channel status on User object
+                    //  Update channel status on User object
                     foreach ($modes as $mode) {
                         if (isset($modeLetters[ $mode ]))
                             $user->mode($channelName, "+{$modeLetters[$mode]}");
@@ -197,10 +197,10 @@ class Core extends Module {
                 break;
 
             /*
-             *	/NAMES response, create new users, with UHNAMES support
+             *  /NAMES response, create new users, with UHNAMES support
              */
             case 353:
-                //	Names responds with "= #channel :person1 person2 ...", cut "=" and save channel
+                //  Names responds with "= #channel :person1 person2 ...", cut "=" and save channel
                 $parameters = $msg->getParameters();
                 array_shift($parameters);
                 $channelName = array_shift($parameters);
@@ -209,23 +209,23 @@ class Core extends Module {
                 $channels = $this->IRCBot->getChannels();
                 $channel  = $channels->confirmChannel($channelName);
 
-                //	Process each return
+                //  Process each return
                 foreach ($parameters as $fullAddress) {
-                    //	Match modes/name, and optionally host if UHNAMES is enabled
+                    //  Match modes/name, and optionally host if UHNAMES is enabled
                     if (preg_match("/([:~&@%+]*)([^!]+)(?:!([^@]+)@(.+))?/", $fullAddress, $match)) {
                         @list(, $modes, $nick, $ident, $host) = $match;
 
-                        //	Confirm user and create with address if applicable; join channel
+                        //  Confirm user and create with address if applicable; join channel
                         $address = (strlen($ident)) ? "$ident@$host" : "";
                         $user    = $users->createIfAbsent("$nick!$address");
                         $user->join($channelName);
                         $channel->join($user);
 
-                        //	Check prefixes for channel modes
+                        //  Check prefixes for channel modes
                         $modes       = str_split($modes);
                         $modeLetters = [ '~' => "q", '&' => "a", '@' => "o", '%' => "h", '+' => "v" ];
 
-                        //	Update channel status on User object
+                        //  Update channel status on User object
                         foreach ($modes as $mode) {
                             if (isset($modeLetters[ $mode ]))
                                 $user->mode($channelName, "+{$modeLetters[$mode]}");

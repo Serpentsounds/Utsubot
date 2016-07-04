@@ -70,17 +70,17 @@ class IRCBot {
      * Reset the server connection and register with the server
      */
     public function connect() {
-        //	Reset socket
+        //  Reset socket
         if ($this->socket)
             $this->socket = null;
 
-        //	Suppress error on fsockopen, and handle it later
+        //  Suppress error on fsockopen, and handle it later
         $server = $this->IRCNetwork->getServerCycle()->get();
         $port   = $this->IRCNetwork->getPort();
         $this->console("Attempting to connect to $server:$port...");
         $this->socket = @fsockopen($server, $port, $errno, $errstr, self::RECONNECT_TIMEOUT);
 
-        //	Connection was unsuccessful
+        //  Connection was unsuccessful
         if (!$this->socket) {
             $this->IRCNetwork->getServerCycle()->cycle();
             $this->reconnectCountdown();
@@ -88,7 +88,7 @@ class IRCBot {
             return false;
         }
 
-        //	Full speed ahead
+        //  Full speed ahead
         else {
             $this->console("Connection successful.");
             $this->IRCNetwork->getNicknameCycle()->reset();
@@ -308,19 +308,19 @@ class IRCBot {
      *                                    other relevant information
      */
     public function sendToModules($function, $msg = null) {
-        //	These modules will receive the information first, if any relevant pre-processing needs to be done
+        //  These modules will receive the information first, if any relevant pre-processing needs to be done
         $priority = [ "Core" ];
 
         try {
-            //	Send event to priority modules
+            //  Send event to priority modules
             foreach ($priority as $module) {
                 if (isset($this->modules[ $module ]))
                     $this->sendToModule($this->modules[ $module ], $function, $msg);
             }
 
-            //	Send event to all other modules
+            //  Send event to all other modules
             foreach ($this->modules as $name => $module) {
-                //	Skip the priority modules we already called
+                //  Skip the priority modules we already called
                 if (!in_array($name, $priority))
                     $this->sendToModule($module, $function, $msg);
             }
@@ -342,10 +342,10 @@ class IRCBot {
      * @throws IRCBotException Bubble up IRCBotExceptions to force halt processing
      */
     private function sendToModule($module, $function, $msg = null) {
-        //	These events don't require an IRCMessage
+        //  These events don't require an IRCMessage
         $noParameters = [ "connect", "shutdown" ];
 
-        //	Attempt to call the method while handling errors
+        //  Attempt to call the method while handling errors
         if (method_exists($module, $function)) {
             try {
                 if (in_array($function, $noParameters))
@@ -397,7 +397,7 @@ class IRCBot {
      * @param bool         $action Pass true to send message as an IRC Action (/me)
      */
     public function message($target, $text, $action = false) {
-        //	Split array into multiple messages
+        //  Split array into multiple messages
         if (is_array($text)) {
             foreach ($text as $newText)
                 $this->message($target, $newText, $action);
@@ -406,18 +406,18 @@ class IRCBot {
         }
 
         $text = (string)$text;
-        //	Empty line
+        //  Empty line
         if (strlen(trim(stripControlCodes($text))) == 0)
             return;
 
-        /*	Maximum size of irc command is 512 bytes
-         * 	Subtract 1 for leading ":", nicknam length, 1 for "!", address length, 9 for " PRIVMSG ", target length, 2 for " :", 2 for "\r\n"	*/
+        /*  Maximum size of irc command is 512 bytes
+         *   Subtract 1 for leading ":", nicknam length, 1 for "!", address length, 9 for " PRIVMSG ", target length, 2 for " :", 2 for "\r\n"  */
         $maxlen = 512 - 1 - strlen($this->nickname) - 1 - strlen($this->address) - 9 - strlen($target) - 2 - 2;
-        //	9 extra characters for \x01ACTION \x01
+        //  9 extra characters for \x01ACTION \x01
         if ($action)
             $maxlen -= 9;
 
-        //	Split line breaks into multiple messages
+        //  Split line breaks into multiple messages
         if (strpos($text, "\n") !== false) {
             $textArray = explode("\n", $text);
             $this->message($target, $textArray, $action);
@@ -428,17 +428,17 @@ class IRCBot {
         $words       = explode(" ", $text);
         $builtString = "";
 
-        //	Loop through words
+        //  Loop through words
         for ($i = 0, $wordCount = count($words); $i < $wordCount; $i++) {
-            //	Build string
+            //  Build string
             $builtString .= $words[ $i ]." ";
 
-            //	If the next word would break the 512 byte limit, or we're out of words, output the string and clear it
+            //  If the next word would break the 512 byte limit, or we're out of words, output the string and clear it
             if ((isset($words[ $i + 1 ]) && strlen($builtString.$words[ $i + 1 ]) > $maxlen) || !isset($words[ $i + 1 ])) {
-                //	Cut off trailing space
+                //  Cut off trailing space
                 $sendString = substr($builtString, 0, -1);
 
-                //	Send data for action or regular message, and log to console
+                //  Send data for action or regular message, and log to console
                 if ($action) {
                     fputs($this->socket, "PRIVMSG $target :\x01ACTION $sendString\x01\n");
                     $this->console(" *-> $target: * $sendString");
@@ -448,7 +448,7 @@ class IRCBot {
                     $this->console(" -> $target: $sendString");
                 }
 
-                //	Start next line with control codes continued
+                //  Start next line with control codes continued
                 $builtString = self::getNextLinePrefix($sendString);
             }
         }
@@ -503,37 +503,37 @@ class IRCBot {
      * @return string The set of control codes that represent the state of the message at the end of the string
      */
     private static function getNextLinePrefix($message) {
-        //	Bold, reverse, italic, underline respectively
+        //  Bold, reverse, italic, underline respectively
         $controlCodes = [
             2  => false,
             22 => false,
             29 => false,
             31 => false
         ];
-        //	Denotes colored text
+        //  Denotes colored text
         $colorCode = chr(3);
-        //	Clears all formatting
+        //  Clears all formatting
         $clearCode = chr(15);
 
-        //	Initialize vars
+        //  Initialize vars
         $colorPrefix    = false;
         $nextLinePrefix = $background = $foreground = "";
 
-        //	Loop through every character
+        //  Loop through every character
         for ($j = 0, $length = strlen($message); $j < $length; $j++) {
             $character = mb_substr($message, $j, 1);
 
-            //	Clear all formatting
+            //  Clear all formatting
             if ($character == $clearCode) {
                 $clear       = true;
                 $colorPrefix = false;
                 $foreground  = $background = "";
             }
-            //	No clearing for this iteration
+            //  No clearing for this iteration
             else
                 $clear = false;
 
-            //	Loop through control codes to activate or deactivate
+            //  Loop through control codes to activate or deactivate
             foreach ($controlCodes as $code => $toggle) {
                 if ($clear)
                     $controlCodes[ $code ] = false;
@@ -542,30 +542,30 @@ class IRCBot {
                     $controlCodes[ $code ] = !($toggle);
             }
 
-            //	Begin to parse colors
+            //  Begin to parse colors
             if ($character == $colorCode) {
-                //	Default to the code signifying the end of color
+                //  Default to the code signifying the end of color
                 if ($colorPrefix)
                     $colorPrefix = false;
 
                 $foreground = $background = "";
-                //	Check the next character for a number to represent a color index for the foreground
+                //  Check the next character for a number to represent a color index for the foreground
                 if ($j + 1 < $length && is_numeric($next = mb_substr($message, $j + 1, 1))) {
                     $foreground = $next;
-                    //	Advance character pointer
+                    //  Advance character pointer
                     $j++;
 
-                    //	Same for next potential foreground digit
+                    //  Same for next potential foreground digit
                     if ($j + 1 < $length && is_numeric($next = mb_substr($message, $j + 1, 1))) {
                         $foreground .= $next;
                         $j++;
 
-                        //	Check for background, if present, separated from foreground by comma
+                        //  Check for background, if present, separated from foreground by comma
                         if ($j + 2 < $length && mb_substr($message, $j + 1, 1) == "," && is_numeric($next = mb_substr($message, $j + 2, 1))) {
                             $background = $next;
                             $j += 2;
 
-                            //	Next potential background digit
+                            //  Next potential background digit
                             if ($j + 1 < $length && is_numeric($next = mb_substr($message, $j + 1, 1))) {
                                 $background .= $next;
                                 $j++;
@@ -574,24 +574,24 @@ class IRCBot {
                         }
                     }
 
-                    //	Matched at least one digit, so enable colors
+                    //  Matched at least one digit, so enable colors
                     $colorPrefix = true;
                 }
             }
 
         }
 
-        //	Whichever codes ended up as true will continue to the next line
+        //  Whichever codes ended up as true will continue to the next line
         foreach ($controlCodes as $code => $toggle) {
             if ($toggle)
                 $nextLinePrefix .= chr($code);
         }
 
-        //	Include color if necessary
+        //  Include color if necessary
         if ($colorPrefix && is_numeric($foreground)) {
             $nextLinePrefix .= $colorCode.sprintf("%02d", $foreground);
 
-            //	Optionally include background if necessary
+            //  Optionally include background if necessary
             if (is_numeric($background))
                 $nextLinePrefix .= sprintf(",%02d", $background);
         }

@@ -163,7 +163,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
      * @throws FriendSafariException
      */
     public function listSafariPokemon(IRCMessage $msg) {
-        //	Shave off "list" from user input
+        //  Shave off "list" from user input
         $parameters = $msg->getCommandParameters();
         array_shift($parameters);
 
@@ -203,7 +203,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
      * @throws FriendSafariException
      */
     public function searchSafari(IRCMessage $msg) {
-        //	Shave off "search" from user input
+        //  Shave off "search" from user input
         $parameters = $msg->getCommandParameters();
         array_shift($parameters);
         $pokemon = $this->getValidPokemon(implode(" ", $parameters))[ 0 ][ 'name' ];
@@ -242,10 +242,10 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
      * @throws FriendSafariException
      */
     public function getSafari(IRCMessage $msg) {
-        //	Shave off target from user input
+        //  Shave off target from user input
         $parameters = $msg->getCommandParameters();
         $nick       = array_shift($parameters);
-        //	No nick given, check all safaris for user
+        //  No nick given, check all safaris for user
         if (!$nick)
             $nick = $msg->getNick();
 
@@ -284,10 +284,10 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
      * @throws FriendSafariException
      */
     public function addSafari(IRCMessage $msg) {
-        //	Shave off "add" from user input
+        //  Shave off "add" from user input
         $parameters = $msg->getCommandParameters();
         array_shift($parameters);
-        //	Verify input
+        //  Verify input
         $input = $this->verifyUserPokemon(implode(" ", $parameters));
 
         $rowCount = $this->interface->insert($msg->getNick(), $input[ 'type' ], $input[ 'pokemon' ][ 0 ], $input[ 'pokemon' ][ 1 ], $input[ 'pokemon' ][ 2 ]);
@@ -317,17 +317,17 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
      * @throws FriendSafariException
      */
     public function removeSafari(IRCMessage $msg) {
-        //	Shave off "remove" from user input
+        //  Shave off "remove" from user input
         $parameters = $msg->getCommandParameters();
         array_shift($parameters);
 
-        //	Verify input
+        //  Verify input
         if (count($parameters))
             $pokemon = $this->verifyUserPokemon(implode(" ", $parameters))[ 'pokemon' ];
         else
             $pokemon = [ null, null, null ];
 
-        //	Abort if the user doesn't have any matching safari set
+        //  Abort if the user doesn't have any matching safari set
         if (!$this->interface->select($msg->getNick(), $pokemon[ 0 ], $pokemon[ 1 ], $pokemon[ 2 ]))
             throw new FriendSafariException("No matching safari entries found.");
 
@@ -365,24 +365,24 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
      * @throws FriendSafariException
      */
     private function verifyUserPokemon($pokemonString) {
-        //	No friend safari pokemon are multi-word pokemon, so word by word checking is sufficient
+        //  No friend safari pokemon are multi-word pokemon, so word by word checking is sufficient
         $userPokemon = explode(" ", $pokemonString);
         $pokemon     = $safaris = [ ];
         $type        = null;
 
         foreach ($userPokemon as $slot => $currentPokemon) {
-            //	Pokemon should be given in order: slot 1, slot 2, [slot 3]
+            //  Pokemon should be given in order: slot 1, slot 2, [slot 3]
             $slot += 1;
 
             $pokemonInfo = $this->getValidPokemon($currentPokemon);
 
-            //	No valid pokemon entry found
+            //  No valid pokemon entry found
             if ($pokemonInfo === false)
                 throw new FriendSafariException("$currentPokemon is not a Friend Safari pokemon.");
 
             if ($slot == 1) {
                 if ($pokemonInfo[ 0 ][ 'slot' ] == 1) {
-                    //	No dual-type safari pokemon appear in slot 1, so we can safely assume type from the first pokemon
+                    //  No dual-type safari pokemon appear in slot 1, so we can safely assume type from the first pokemon
                     $type      = $pokemonInfo[ 0 ][ 'type' ];
                     $pokemon[] = $pokemonInfo[ 0 ][ 'name' ];
                 }
@@ -402,7 +402,7 @@ class FriendSafari extends ModuleWithPermission implements IHelp {
                             throw new FriendSafariException("{$row['name']} appears in slot {$row['slot']}, not slot $slot.");
                     }
 
-                    //	Type didn't match and we've checked all possible types for this pokemon
+                    //  Type didn't match and we've checked all possible types for this pokemon
                     elseif ($key + 1 == count($pokemonInfo))
                         throw new FriendSafariException(
                             sprintf(

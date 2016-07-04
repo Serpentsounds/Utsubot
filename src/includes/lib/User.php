@@ -44,7 +44,7 @@ class User implements Manageable {
     public function join($channel) {
         $channel = strtolower($channel);
 
-        //	Adds a common channel (one shared with the bot) to the list.
+        //  Adds a common channel (one shared with the bot) to the list.
         if (!isset($this->channels[ $channel ]))
             $this->channels[ $channel ] = [ ];
     }
@@ -56,7 +56,7 @@ class User implements Manageable {
     public function part($channel) {
         $channel = strtolower($channel);
 
-        //	Removes a common channel from the list.
+        //  Removes a common channel from the list.
         if (isset($this->channels[ $channel ]))
             unset($this->channels[ $channel ]);
     }
@@ -68,26 +68,26 @@ class User implements Manageable {
      */
     public function mode($channel, $mode) {
         $channel = strtolower($channel);
-        //	Updates the information for the user's status on the given channel (e.g., op, voice, etc).
+        //  Updates the information for the user's status on the given channel (e.g., op, voice, etc).
         if (preg_match_all('/([+-])([qaohv]+)/i', $mode, $match, PREG_PATTERN_ORDER)) {
 
-            //	For each + or - group
+            //  For each + or - group
             foreach ($match[ 1 ] as $key => $set) {
-                //	Split into individual mode letters
+                //  Split into individual mode letters
                 $modes = str_split(strtolower($match[ 2 ][ $key ]));
 
                 foreach ($modes as $mode) {
-                    //	Setting mode and mode isn't already present, add it
+                    //  Setting mode and mode isn't already present, add it
                     if ($set == '+' && !in_array($mode, $this->channels[ $channel ]))
                         $this->channels[ $channel ][] = $mode;
 
-                    //	Removing mode and mode exists, clear it
+                    //  Removing mode and mode exists, clear it
                     elseif ($set == '-' && ($index = array_search($mode, $this->channels[ $channel ])) !== false)
                         unset($this->channels[ $channel ][ $index ]);
                 }
             }
 
-            //	Normalize indices
+            //  Normalize indices
             usort($this->channels[ $channel ], function ($a, $b) {
                 $modes = "qaohv";
 
@@ -97,7 +97,7 @@ class User implements Manageable {
     }
 
 
-    //	Returns true if this user is on the given channel.
+    //  Returns true if this user is on the given channel.
     /**
      * @param $channel
      * @return mixed
@@ -107,7 +107,7 @@ class User implements Manageable {
     }
 
 
-    //	Returns the user's modes on the given channel.
+    //  Returns the user's modes on the given channel.
     /**
      * @param      $channel
      * @param bool $str
@@ -195,7 +195,7 @@ class User implements Manageable {
     }
 
 
-    //	Conversion of the user object to a String yields the current nickname.
+    //  Conversion of the user object to a String yields the current nickname.
     /**
      * @return string
      */

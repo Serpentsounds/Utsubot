@@ -67,7 +67,7 @@ function jaroDistance(string $base, string $comparison): float {
     }
     $swaps /= 2;
 
-    //	Jaro Calculation
+    //  Jaro Calculation
     return ($matchingLengths[ 0 ] / $lengths[ 0 ] + $matchingLengths[ 0 ] / $lengths[ 1 ] + ($matchingLengths[ 0 ] - $swaps) / $matchingLengths[ 0 ]) / 3;
 }
 
@@ -86,12 +86,12 @@ function jaroWinklerDistance(string $base, string $comparison, int $prefixLength
     $base       = strtolower($base);
     $comparison = strtolower($comparison);
 
-    //	Prepare to calculate length of common prefix
+    //  Prepare to calculate length of common prefix
     $check = min($prefixLength, strlen($base), strlen($comparison));
 
     $commonPrefix = 0;
     for ($i = 0; $i < $check; $i++) {
-        //	Characters must be the same
+        //  Characters must be the same
         if ($base[ $i ] != $comparison[ $i ])
             break;
 
@@ -101,7 +101,7 @@ function jaroWinklerDistance(string $base, string $comparison, int $prefixLength
     $commonSuffix = 0;
     if ($check >= 6) {
         for ($i = $check - 1; $i >= 0; $i--) {
-            //	Characters must be the same
+            //  Characters must be the same
             if ($base[ $i ] != $comparison[ $i ])
                 break;
 
@@ -110,7 +110,7 @@ function jaroWinklerDistance(string $base, string $comparison, int $prefixLength
     }
 
     $jaroDistance = jaroDistance($base, $comparison);
-    //	Jaro-Winkler Calculation
+    //  Jaro-Winkler Calculation
     $jaroWinklerDistance = $jaroDistance + $commonPrefix * $prefixScale * (1.0 - $jaroDistance);
 
     #return $jaroWinklerDistance;

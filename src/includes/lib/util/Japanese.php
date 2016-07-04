@@ -131,22 +131,22 @@ define("Extra_Katakana_Romanization", [
  */
 function romanizeKana(string $kana): string {
 
-    //	Adds ' for n followed by vowel (んあ vs. な)
+    //  Adds ' for n followed by vowel (んあ vs. な)
     $kana = preg_replace('/([\\x{30F3}\\x{3093}])([\\x{30A1}-\\x{30AA}\\x{3041}-\\x{304A}])/u', '$1\'$2', $kana);
 
-    //	Replace extra katakana sounds first with romaji
+    //  Replace extra katakana sounds first with romaji
     $kana = str_replace(Extra_Katakana, Extra_Katakana_Romanization, $kana);
 
-    //	Replace katakana with romaji
+    //  Replace katakana with romaji
     $kana = str_replace(Katakana, Romanization, $kana);
 
-    //	Replace hiragana with romaji
+    //  Replace hiragana with romaji
     $kana = str_replace(Hiragana, Romanization, $kana);
 
-    //	Double up long katakana vowels (aー to aa, etc)
+    //  Double up long katakana vowels (aー to aa, etc)
     $kana = preg_replace('/([aeiou])\\x{30FC}/u', '$1$1', $kana);
 
-    //	Fill in sokuons (っk to kk, etc)
+    //  Fill in sokuons (っk to kk, etc)
     $kana = preg_replace('/(?:\\x{30C3}|\\x{3063})([a-z])/u', '$1$1', $kana);
 
     return $kana;

@@ -80,7 +80,7 @@ abstract class DatabaseCredentials {
         //  Read config into memory
         $configFile = parse_ini_file(static::$configFile, true);
         $config     = [ ];
-        //	Start with global config, then override as necessary
+        //  Start with global config, then override as necessary
         if (isset($configFile[ 'global' ]))
             $config = $configFile[ 'global' ];
         if (isset($configFile[ $database ]))

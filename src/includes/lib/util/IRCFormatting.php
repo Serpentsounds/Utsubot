@@ -71,10 +71,10 @@ function terminate(string $text): string {
  * @return string
  */
 function stripControlCodes(string $text): string {
-    //	Strip colors with a regex
+    //  Strip colors with a regex
     $text = preg_replace('/\x03\d{1,2}(,\d{1,2})?/', "", $text);
 
-    //	Strip all other formatting
+    //  Strip all other formatting
     $text = str_replace([ chr(2), chr(3), chr(15), chr(22), chr(29), chr(31) ], "", $text);
 
     return $text;

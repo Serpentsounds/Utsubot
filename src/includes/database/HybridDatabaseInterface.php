@@ -62,23 +62,23 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
      * @throws HybridDatabaseInterfaceException
      */
     public function migrate($nickname) {
-        //	Get User object
+        //  Get User object
         $user = $this->users->findFirst($nickname);
         if (!($user instanceof User))
             throw new HybridDatabaseInterfaceException("Error getting User object.");
 
-        //	Get account associated with nickname
+        //  Get account associated with nickname
         $userList = $this->accounts->getInterface()->getUsersWithSetting($this->accounts->getSettingObject("nick"), $nickname);
         if ($userList)
             throw new HybridDatabaseInterfaceException("Your nickname is not linked with an account.");
 
-        //	Check accounts against eachother
+        //  Check accounts against eachother
         $accountID = $this->accounts->getAccountIDByUser($user);
         $targetID  = $userList[ 0 ][ 'user_id' ];
         if ($accountID != $targetID)
             throw new HybridDatabaseInterfaceException("You are not logged in to the account your nickname is linked with.");
 
-        //	Check codes still filed under the nickname
+        //  Check codes still filed under the nickname
         $results     = $this->query(
             sprintf("SELECT * FROM `%s` WHERE `%s`=?", static::$table, static::$nicknameColumn),
             [ $nickname ]
@@ -87,14 +87,14 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
         if (!$resultCount)
             throw new HybridDatabaseInterfaceException("You have no items to migrate.");
 
-        //	Update codes to be filed under account
+        //  Update codes to be filed under account
         $rowCount = $this->query(
             sprintf("UPDATE `%s` SET `%s`=?, `%s`=NULL WHERE `%s` IS NULL AND `%s`=? LIMIT $resultCount",
                     static::$table, static::$userIDColumn, static::$nicknameColumn, static::$userIDColumn, static::$nicknameColumn),
             [ $accountID, $nickname ]
         );
 
-        //	No rows updated
+        //  No rows updated
         if (!$rowCount)
             throw new HybridDatabaseInterfaceException("An error occured while trying to migrate your codes.");
 
@@ -111,7 +111,7 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
         $analysis = new HybridAnalysis();
         $user     = null;
 
-        //	Look up codes by account
+        //  Look up codes by account
         try {
             $user      = $this->users->findFirst($nickname);
             $accountID = $this->accounts->getAccountIDByUser($user);
@@ -127,13 +127,13 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
             $analysis->setNickname($nickname);
         }
 
-            //	User is not logged in, use nickname
+            //  User is not logged in, use nickname
         catch (AccountsException $e) {
             $analysis->setMode("nickname");
             $analysis->setNickname($user->getNick());
         }
 
-        //	Attempt to convert nickname to a default nickname
+        //  Attempt to convert nickname to a default nickname
         if ($analysis->getMode() == "nickname") {
             $userList = $this->accounts->getInterface()->getUsersWithSetting($this->accounts->getSettingObject("nick"), $analysis->getNickname());
 
@@ -198,12 +198,12 @@ abstract class HybridDatabaseInterface extends DatabaseInterface {
     public function getNicknameFor($accountID) {
         $nickname = null;
 
-        //	Check for current logins
+        //  Check for current logins
         $user = $this->accounts->getUserByAccountID($accountID);
 
         if ($user === false) {
             $settings = $this->accounts->getInterface()->getUserSetting($accountID, $this->accounts->getSettingObject("nick"));
-            //	Default nickname exists
+            //  Default nickname exists
             if (count($settings))
                 $nickname = $settings[ 0 ][ 'value' ];
         }

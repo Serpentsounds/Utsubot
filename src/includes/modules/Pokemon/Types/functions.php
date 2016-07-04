@@ -212,19 +212,19 @@ define("TYPE_COLORS", [
  * @return string A delimeted string of all valid types
  */
 function colorType($types, $bold = false, $delimeter = "/") {
-    //	Normalize to an array for processing
+    //  Normalize to an array for processing
     if (!is_array($types))
         $types = explode($delimeter, $types);
 
     foreach ($types as $key => $type) {
-        //	Omit invalid types
+        //  Omit invalid types
         if (!hasChart($type))
             continue;
 
         $typeName = strtolower($type);
-        //	Call color function with our color names
+        //  Call color function with our color names
         $types[ $key ] = colorText(ucfirst($typeName), new Color(TYPE_COLORS[ $typeName ][ 0 ]), new Color(TYPE_COLORS[ $typeName ][ 1 ]));
-        //	Optionally bold
+        //  Optionally bold
         if ($bold)
             $types[ $key ] = bold($types[ $key ]);
     }
@@ -270,27 +270,27 @@ function hasChart($type, $caseSensitive = false) {
  * @throws TypesException If a type is invalid
  */
 function typeEffectiveness($type1, $type2) {
-    //	Case insensitive
+    //  Case insensitive
     $type1 = strtolower($type1);
     $type2 = strtolower($type2);
 
-    //	Type 1 must have a chart (can be flying press or freeze-dry), type 2 must be a type
+    //  Type 1 must have a chart (can be flying press or freeze-dry), type 2 must be a type
     if (!hasChart($type1) || !isType($type2))
         throw new TypesException("Invalid type given.");
 
-    //	Immune
+    //  Immune
     if (hasMatchup($type1, $type2, IMMUNE))
         return 0;
 
-    //	Not very effective
+    //  Not very effective
     if (hasMatchup($type1, $type2, NOT_VERY_EFFECTIVE))
         return 0.5;
 
-    //	Super effective
+    //  Super effective
     if (hasMatchup($type1, $type2, SUPER_EFFECTIVE))
         return 2;
 
-    //	Default matchup
+    //  Default matchup
     return 1;
 }
 
@@ -316,13 +316,13 @@ function hasMatchup($type1, $type2, $matchup) {
  * @throws TypesException If an invalid type is given
  */
 function typeMatchup($attacking, $defending) {
-    //	Default 1x multiplier
+    //  Default 1x multiplier
     $mult = 1;
 
     $attacking = parseTypeParameter($attacking);
     $defending = parseTypeParameter($defending);
 
-    //	Multiple attacking types, recursively compound
+    //  Multiple attacking types, recursively compound
     if (is_array($attacking)) {
         foreach ($attacking as $type)
             $mult *= typeMatchup($type, $defending);
@@ -330,7 +330,7 @@ function typeMatchup($attacking, $defending) {
         return $mult;
     }
 
-    //	Multiple defensive types, recursively compound
+    //  Multiple defensive types, recursively compound
     if (is_array($defending)) {
         foreach ($defending as $type)
             $mult *= typeMatchup($attacking, $type);
@@ -338,7 +338,7 @@ function typeMatchup($attacking, $defending) {
         return $mult;
     }
 
-    //	Down to a 1vs1 matchup, plug into typeEffectiveness
+    //  Down to a 1vs1 matchup, plug into typeEffectiveness
     if (is_numeric($result = typeEffectiveness($attacking, $defending)))
         $mult *= $result;
 
@@ -378,13 +378,13 @@ function typeChart($type, $mode = "defensive", $chart = CHART_BASIC) {
  * @return mixed Chart array or $parameter
  */
 function parseTypeParameter($parameter) {
-    //	Get list of types for full chart
+    //  Get list of types for full chart
     if ($parameter == CHART_BASIC)
         $parameter = TYPE_LIST;
-    //	Check matchups for flying press and freeze-dry
+    //  Check matchups for flying press and freeze-dry
     elseif ($parameter == CHART_SPECIAL)
         $parameter = SPECIAL_TYPES;
-    //	Check all available matchups
+    //  Check all available matchups
     elseif ($parameter == CHART_BOTH)
         $parameter = array_merge(TYPE_LIST, SPECIAL_TYPES);
 
@@ -408,11 +408,11 @@ function parseTypeParameter($parameter) {
  *                           that array, each their own array with type name/combos as indexes.
  */
 function pokemonMatchup($attacking, Pokemon $pokemon, $depth = 0) {
-    //	Get type charts if necessary
+    //  Get type charts if necessary
     $attacking = parseTypeParameter($attacking);
     $result    = [ ];
 
-    //	Array of types, current recursion depth==0, so it's the list of matchups (depth==1 means components of a compound type, handled later)
+    //  Array of types, current recursion depth==0, so it's the list of matchups (depth==1 means components of a compound type, handled later)
     if (is_array($attacking) && $depth == 0) {
         foreach ($attacking as $type) {
             $matchup = pokemonMatchup($type, $pokemon, $depth + 1);
@@ -422,18 +422,18 @@ function pokemonMatchup($attacking, Pokemon $pokemon, $depth = 0) {
         return $result;
     }
 
-    //	If all type names are valid, this will be numeric
+    //  If all type names are valid, this will be numeric
     if (is_numeric($effectiveness = typeMatchup($attacking, array_filter($pokemon->getTypes())))) {
-        //	Can't have arrays as indexes, so form arrays (compound types) into slash/separated/strings
+        //  Can't have arrays as indexes, so form arrays (compound types) into slash/separated/strings
         $key            = (is_array($attacking) ? implode("/", $attacking) : $attacking);
         $result[ $key ] = $effectiveness;
 
-        //	Loop through pokemon abilities to check effectiveness for matchup
+        //  Loop through pokemon abilities to check effectiveness for matchup
         $abilities = $pokemon->getAbilities();
         foreach ($abilities as $ability) {
-            //	A multiplier that's not 1 has an effect on the type matchup. Also, filter out matchups that don't change either way (e.g. Normal type vs Shedinja's Wonder Guard)
+            //  A multiplier that's not 1 has an effect on the type matchup. Also, filter out matchups that don't change either way (e.g. Normal type vs Shedinja's Wonder Guard)
             if (($multiplier = defensiveAbilityEffect($attacking, $ability, $effectiveness)) != 1 && $effectiveness * $multiplier != $effectiveness) {
-                //	Normalize Dry Skin, Water Absorb, and Volt Absorb
+                //  Normalize Dry Skin, Water Absorb, and Volt Absorb
                 if ($multiplier < 0)
                     $result[ 'abilities' ][ $ability ][ $key ] = -1;
                 else
@@ -465,11 +465,11 @@ function defensiveAbilityEffect($attacking, $ability, $effectiveness = 1) {
     }
     $attacking = strtolower($attacking);
 
-    //	Majority of abilities
+    //  Majority of abilities
     if (array_key_exists($ability, DEFENSIVE_ABILITY_EFFECTS) && array_key_exists($attacking, DEFENSIVE_ABILITY_EFFECTS[ $ability ]))
         $mult = DEFENSIVE_ABILITY_EFFECTS[ $ability ][ $attacking ];
 
-    //	Filter, Solid Rock, Wonder Guard
+    //  Filter, Solid Rock, Wonder Guard
     elseif (array_key_exists($ability, DEFENSIVE_ABILITY_EFFECTS[ 'special' ])) {
         $params = DEFENSIVE_ABILITY_EFFECTS[ 'special' ][ $ability ];
         if (eval("return $effectiveness{$params['condition']}{$params['value']};"))

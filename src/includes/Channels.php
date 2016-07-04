@@ -37,7 +37,7 @@ class Channels extends Manager {
             $this->addItem($channel, true);
         }
 
-        #//	Attempt to auto-login to relevant account
+        #//  Attempt to auto-login to relevant account
         #$this->IRCBot->sendToModules("channel", clone $channel);
 
         return $channel;

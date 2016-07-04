@@ -178,7 +178,7 @@ class Converter {
      * @return float Returns the new quantity
      */
     public function convert(float $value): float {
-        //	Convert to base units, e.g. meters
+        //  Convert to base units, e.g. meters
         $base = $value * self::MEASURES[ $this->measure ][ $this->unitsIn->getUnit() ] * pow(10, $this->unitsIn->getPower());
 
         $out = $base / self::MEASURES[ $this->measure ][ $this->unitsOut->getUnit() ] / pow(10, $this->unitsOut->getPower());
@@ -213,7 +213,7 @@ class Converter {
             $unit  = array_search($match[ 2 ], $measuresShort);
         }
 
-        //	Check if only short unit is used with no prefix
+        //  Check if only short unit is used with no prefix
         elseif ($measureKey = array_search($string, $measuresShort))
             $unit = $measureKey;
 
@@ -222,7 +222,7 @@ class Converter {
         elseif (($string = strtolower($string)) && array_key_exists($string, $measuresShort))
             $unit = strtolower($string);
 
-        //	Check if full unit name is used with full prefix with a regex
+        //  Check if full unit name is used with full prefix with a regex
         else {
             $prefixString = implode("|", array_keys(self::METRIC_PREFIXES));
             if (preg_match("/^($prefixString)(.+)/", $string, $match) && array_key_exists($match[ 2 ], $measures)) {
@@ -231,7 +231,7 @@ class Converter {
             }
         }
 
-        //	No matches found
+        //  No matches found
         if (!$unit)
             throw new ConverterException("Invalid {$this->measure} unit '$string'.");
 

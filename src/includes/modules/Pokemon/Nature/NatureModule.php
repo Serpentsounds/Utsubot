@@ -81,10 +81,10 @@ class NatureModule extends ModuleWithPokemon {
         $this->requireParameters($msg, 1);
         $parameters = $msg->getCommandParameters();
 
-        //	Searching for nature given affected stats, need exactly 2 stats
+        //  Searching for nature given affected stats, need exactly 2 stats
         if (preg_match_all("/([+\-])([a-z]+)/i", $msg->getCommandParameterString(), $match, PREG_SET_ORDER) == 2) {
 
-            //	Validate both stats
+            //  Validate both stats
             $increases = $decreases = null;
             foreach ($match as $set) {
                 $stat = new Stat(Stat::findValue($set[ 2 ]));

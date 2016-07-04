@@ -95,7 +95,7 @@ class PokemonSuite extends ModuleWithPokemon {
     public function search(IRCMessage $msg) {
         $parameters = $msg->getCommandParameters();
 
-        //	Parse user-selected search category
+        //  Parse user-selected search category
         $categories = $this->listManagers();
         $category   = strtolower(array_shift($parameters));
         if (!in_array($category, $categories))
@@ -127,9 +127,9 @@ class PokemonSuite extends ModuleWithPokemon {
             $parameters = $copy;
         }
 
-        //	Compose collection of valid operators for input parsing
+        //  Compose collection of valid operators for input parsing
         $operators = Operator::listConstants();
-        /*	Make longer operators appear earlier in the array, so the resulting regex will match them before shorter ones that might begin the same
+        /*  Make longer operators appear earlier in the array, so the resulting regex will match them before shorter ones that might begin the same
             e.g., > will prevent >= from ever matching if it appears first in the capture group */
         usort($operators, function ($a, $b) {
             return strlen($b) - strlen($a);
@@ -137,7 +137,7 @@ class PokemonSuite extends ModuleWithPokemon {
 
         //  Regex to parse user input
         $operatorGroup = implode("|", preg_replace("/([*?^$-.])/", "\\\\$1", $operators));
-        $regex = "/^([^<>*=!:]+)(?:($operatorGroup|:)(.+))/";
+        $regex = "/^([^<>*=!:]+)(?:($operatorGroup|:)(.+))?/";
         $inParameter = false;
         /** @var MethodInfo $methodInfo */
         $field = $operator = $value = $methodInfo = null;
@@ -152,7 +152,14 @@ class PokemonSuite extends ModuleWithPokemon {
                 //  Closing quote found, create Criterion
                 if (($position = strpos($parameter, '"') !== FALSE)) {
                     $value .= " ". substr($parameter, 0, $position);
-                    $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+
+                    //  Use the : operator to pass parameters to a function
+                    if ($operator == ":")
+                        $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), [ $value ], new Operator("=="), 1);
+                    //  Default Criterion
+                    else
+                        $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+
                     $inParameter = false;
                 }
 
@@ -179,8 +186,14 @@ class PokemonSuite extends ModuleWithPokemon {
                         }
 
                         //  Single word parameter, create Criterion
-                        else
-                            $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                        else {
+                            //  Use the : operator to pass parameters to a function
+                            if ($operator == ":")
+                                $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), [ $value ], new Operator("=="), 1);
+                            //  Default Criterion
+                            else
+                                $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                        }
                     }
 
                     //  Boolean criterion, loose compare method result to 1 (true)
@@ -197,7 +210,7 @@ class PokemonSuite extends ModuleWithPokemon {
         /** @var PokemonBase[] $results */
         $results = $manager->advancedSearch($criteria, new SearchMode(SearchMode::All), $return);
 
-        //	Convert objects to strings in given language
+        //  Convert objects to strings in given language
         foreach ($results as $key => $result)
             $results[ $key ] = $result->getName($language);
 

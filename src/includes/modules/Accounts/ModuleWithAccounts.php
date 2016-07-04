@@ -99,7 +99,7 @@ abstract class ModuleWithAccounts extends Module {
         $users = $this->IRCBot->getUsers();
         $user = $users->createIfAbsent($msg->getNick() . "!" . $msg->getIdent() . "@" . $msg->getFullHost());
 
-        //	Confirm login and get level. May throw exception
+        //  Confirm login and get level. May throw exception
         $userLevel = $accounts->getAccessByUser($user);
 
         if ($userLevel < $level)

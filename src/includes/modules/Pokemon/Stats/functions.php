@@ -121,17 +121,17 @@ function getIVRange(int $baseStat, int $statValue, int $EV, int $level, float $n
         throw new StatCalculatorException("Stat value '$statValue' is too high for the given parameters.'", 1);
 
     for ($IV = 0; $IV <= 31; $IV++) {
-        //	Stat matches, this is an IV match
+        //  Stat matches, this is an IV match
         if ($statValue == calculateStat($baseStat, $IV, $EV, $level, $natureModifier, $HP)) {
-            //	Add lower bound if it doesn't exist
+            //  Add lower bound if it doesn't exist
             if (!isset($IVRange[ 0 ]))
                 $IVRange[ 0 ] = $IV;
-            //	Update upper bound
+            //  Update upper bound
             $IVRange[ 1 ] = $IV;
         }
     }
 
-    //	Remove range if bounds are the same
+    //  Remove range if bounds are the same
     if (isset($IVRange[ 1 ]) && $IVRange[ 0 ] == $IVRange[ 1 ])
         unset($IVRange[ 1 ]);
 

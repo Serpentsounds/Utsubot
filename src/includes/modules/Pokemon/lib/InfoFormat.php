@@ -60,11 +60,11 @@ abstract class InfoFormat {
      * @return string
      */
     public function parseFormat(string $format = ""): string {
-        //	Standard format
+        //  Standard format
         if (!$format)
             $format = static::$defaultFormat;
 
-        //	Replace ^text^ as teal colored headers
+        //  Replace ^text^ as teal colored headers
         $headerColors = [new Color(static::$headerColor), new Color(static::$headerBackgroundColor)];
         $format = preg_replace_callback('/\^([^\^]*)\^/',
             function ($match) use ($headerColors) {
@@ -72,33 +72,33 @@ abstract class InfoFormat {
             },
             $format);
 
-        //	Parse {text} for fields
+        //  Parse {text} for fields
         $format = preg_replace_callback('/\{([^}]*)\}/',
 
             function ($match) {
                 $userField = $match[1];
                 $hasField = false;
 
-                //	Check string for every valid field
+                //  Check string for every valid field
                 foreach (static::$validFields as $field) {
 
-                    //	Require word boundary to avoid overlapping of parameters
+                    //  Require word boundary to avoid overlapping of parameters
                     if (preg_match("/\\b$field/", $userField)) {
                         $fieldValue = $this->getField($field);
 
-                        //	A value was successfully retrieved, so this {group} will be displayed
+                        //  A value was successfully retrieved, so this {group} will be displayed
                         if (strlen($fieldValue)) {
                             $hasField = true;
                             $fieldValue = $this->formatField($field, $fieldValue);
 
-                            //	Again use a word boundary to prevent overlapping
+                            //  Again use a word boundary to prevent overlapping
                             $userField = preg_replace("/\\b$field/", $fieldValue, $userField);
                         }
                     }
 
                 }
 
-                //	No field had any values in this {group}, so omit it entirely
+                //  No field had any values in this {group}, so omit it entirely
                 if (!$hasField)
                     return "";
 
@@ -107,7 +107,7 @@ abstract class InfoFormat {
 
             $format);
 
-        //	Fix extra spaces cause by missing groups
+        //  Fix extra spaces cause by missing groups
         return mb_ereg_replace('\s+', " ", $format);
     }
 

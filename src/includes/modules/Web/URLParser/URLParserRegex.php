@@ -77,11 +77,11 @@ class URLParserRegex {
         if (!preg_match("/https?:\/\/([^\/]+)(?:\/(.*))?/i", $url, $urlParts))
             throw new URLParserRegexException("Malformed url '$url'.");
 
-        //	Grab http://domain/page
+        //  Grab http://domain/page
         array_shift($urlParts);
         list($domain, $page) = $urlParts;
 
-        //	Remove all subdomains
+        //  Remove all subdomains
         $mainDomain = $domain;
         if (substr_count($mainDomain, ".") > 1)
             $mainDomain = substr($mainDomain, 1 + strrpos($mainDomain, ".", strrpos($mainDomain, ".") - strlen($mainDomain) - 1));

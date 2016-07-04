@@ -75,23 +75,23 @@ class PokemonManager extends PokemonManagerBase {
                 $return = new MethodInfo("getBaseStatTotal", [ ]);
                 break;
 
-            case    "name":
+            case "name":
                 $return = new MethodInfo("getName", [ new Language(Language::English) ]);
                 break;
 
-            case    "english":
-            case    "romaji":
-            case    "katakana":
-            case    "french":
-            case    "german":
-            case    "korean":
-            case    "italian":
-            case    "chinese":
-            case    "spanish":
-            case    "czech":
-            case    "official roomaji":
-            case    "roumaji":
-            case    "japanese":
+            case "english":
+            case "romaji":
+            case "katakana":
+            case "french":
+            case "german":
+            case "korean":
+            case "italian":
+            case "chinese":
+            case "spanish":
+            case "czech":
+            case "official roomaji":
+            case "roumaji":
+            case "japanese":
                 $return = new MethodInfo("getName", [ Language::fromName($field) ]);
                 break;
 
@@ -109,6 +109,11 @@ class PokemonManager extends PokemonManagerBase {
                 $return = new MethodInfo("getAbilities", [ ]);
                 break;
 
+            case "hasabl":
+            case "hasability":
+                $return = new MethodInfo("hasAbility", [ ]);
+                break;
+
             case "type1":
             case "type2":
                 $return = new MethodInfo("getType", [ intval(substr($field, -1)) - 1 ]);
@@ -119,12 +124,20 @@ class PokemonManager extends PokemonManagerBase {
                 $return = new MethodInfo("getTypes", [ ]);
                 break;
 
+            case "hastype":
+                $return = new MethodInfo("hasType", [ ]);
+                break;
+
             case "species":
                 $return = new MethodInfo("getSpecies", [ ]);
                 break;
 
             case "generation":
                 $return = new MethodInfo("getGeneration", [ ]);
+                break;
+
+            case "baby":
+                $return = new MethodInfo("isBaby", [ ]);
                 break;
 
             default:

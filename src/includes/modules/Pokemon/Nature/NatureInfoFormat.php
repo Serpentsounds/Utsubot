@@ -43,7 +43,7 @@ class NatureInfoFormat extends InfoFormat {
         if ($field == "likesAttr" || $field == "dislikesAttr")
             $fieldValue = bold(Nature::colorAttribute(Attribute::fromName($fieldValue)));
 
-        //	Default case, just bold
+        //  Default case, just bold
         else
             $fieldValue = bold($fieldValue);
 

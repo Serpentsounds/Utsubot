@@ -125,7 +125,7 @@ abstract class Module {
             $response  = underline(italic(end($nameParts))." error:")." $response";
         }
 
-        //	If the error occured in a public channel, address the user directly for clarity
+        //  If the error occured in a public channel, address the user directly for clarity
         if (!$msg->inQuery())
             $response = "{$msg->getNick()}: $response";
 

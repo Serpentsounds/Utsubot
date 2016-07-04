@@ -125,47 +125,47 @@ class TypesModule extends ModuleWithPokemon {
         $types          = [ null, null ];
         $PokemonManager = $this->getOutsideManager("Pokemon");
         $MoveManager    = $this->getOutsideManager("Move");
-        //	Loop through words until we find 2 parameters
+        //  Loop through words until we find 2 parameters
         for ($i = 0; $i <= 1; $i++) {
-            //	No more words to check
+            //  No more words to check
             if (!isset($parameters[ $next ]))
                 break;
 
-            //	Save next two words to check for flying press
+            //  Save next two words to check for flying press
             $nextTwo = implode(" ", array_slice($parameters, $next, 2));
 
-            //	Two word type (flying press)
+            //  Two word type (flying press)
             if (hasChart($nextTwo)) {
                 $types[ $i ] = $nextTwo;
                 $next += 2;
             }
-            //	One word type (all others)
+            //  One word type (all others)
             elseif (hasChart($parameters[ $next ]))
                 $types[ $i ] = $parameters[ $next++ ];
 
-            //	Type list delimited by "/"
+            //  Type list delimited by "/"
             elseif (strpos($parameters[ $next ], "/") !== false) {
                 $userTypes = explode("/", $parameters[ $next ]);
 
-                //	Check each type individually
+                //  Check each type individually
 
                 $types[ $i ] = [ ];
                 foreach ($userTypes as $type) {
                     if (hasChart($type))
                         $types[ $i ][] = $type;
                     else
-                        //	Invalid type given, abort
+                        //  Invalid type given, abort
                         throw new TypesModuleException("Invalid type '$type'.");
                 }
                 $next++;
             }
 
-            //	Type name not found, check for pokemon or move names
+            //  Type name not found, check for pokemon or move names
             else {
-                //	Check for multi-word pokemon
+                //  Check for multi-word pokemon
                 $maxWordsPerPokemon = 3;
                 for ($words = $maxWordsPerPokemon; $words >= 1; $words--) {
-                    //	Add 1 word at a time
+                    //  Add 1 word at a time
                     $name = implode(" ", array_slice($parameters, $next, $words));
 
                     try {
@@ -186,7 +186,7 @@ class TypesModule extends ModuleWithPokemon {
                         }
                     }
 
-                    //	No Pokemon/move and we've no words left to check
+                    //  No Pokemon/move and we've no words left to check
                     if ($words == 1)
                         throw new TypesModuleException("Invalid type '$name'.");
 
@@ -197,7 +197,7 @@ class TypesModule extends ModuleWithPokemon {
 
         //  No user-overriden mode specified
         if (!$mode) {
-            //	Default to a defensive matchup for a single pokemon, or for multi-type
+            //  Default to a defensive matchup for a single pokemon, or for multi-type
             if (($types[ 0 ] instanceof Pokemon && !$types[ 1 ]) || (is_array($types[ 0 ]) && count($types[ 0 ]) > 1))
                 $mode = "defensive";
             //  Otherwise default to offensive
@@ -207,13 +207,13 @@ class TypesModule extends ModuleWithPokemon {
 
         $result = [ ];
 
-        //	Pokemon mode, search for pokemon whose typing matches what was given
+        //  Pokemon mode, search for pokemon whose typing matches what was given
         if ($mode == "pokemon") {
-            //	Replace pokemon with type list instead
+            //  Replace pokemon with type list instead
             if ($types[ 0 ] instanceof Pokemon)
                 $searchType = $types[ 0 ]->getTypes();
 
-            //	Normalize type list to array with indices beginning at 1
+            //  Normalize type list to array with indices beginning at 1
             elseif (!is_array($types[ 0 ]))
                 $searchType = [ 0 => $types[ 0 ] ];
             else
@@ -223,21 +223,21 @@ class TypesModule extends ModuleWithPokemon {
                 return strtolower($element);
             }, $searchType);
 
-            //	Add criteria to allow reverse order for dual types
+            //  Add criteria to allow reverse order for dual types
             $criteria   = new SearchCriteria();
             $criteria[] = new SearchCriterion("getTypes", [ ], new Operator("=="), $searchType);
             if (count($searchType) == 2)
                 $criteria[] = new SearchCriterion("getTypes", [ ], new Operator("=="), [ 0 => $searchType[ 1 ], 1 => $searchType[ 0 ] ]);
 
-            //	Search matching ANY criteria
+            //  Search matching ANY criteria
             /** @var $pokemon Pokemon[] */
             $pokemon = $PokemonManager->advancedSearch($criteria, new SearchMode(SearchMode::Any));
 
-            //	No results
+            //  No results
             if (!$pokemon)
                 throw new TypesModuleException("There are no ".colorType($searchType, true)."-type pokemon.");
 
-            //	Save names of resulting pokemon
+            //  Save names of resulting pokemon
             $pokemonNames = [ ];
             foreach ($pokemon as $object)
                 $pokemonNames[] = $object->getName(new Language(Language::English));
@@ -248,104 +248,104 @@ class TypesModule extends ModuleWithPokemon {
             return;
         }
 
-        //	Mode was not pokemon, output offensive or defense type info
+        //  Mode was not pokemon, output offensive or defense type info
 
-        //	Pokemon vs. ...
+        //  Pokemon vs. ...
         if ($types[ 0 ] instanceof Pokemon) {
-            //	Vs. nothing, get type charts
+            //  Vs. nothing, get type charts
             if (!$types[ 1 ]) {
-                //	Type chart vs. this pokemon
+                //  Type chart vs. this pokemon
                 if ($mode == "defensive")
                     $result = pokemonMatchup(CHART_BASIC, $types[ 0 ]);
-                //	This pokemon's compound types vs. type chart
+                //  This pokemon's compound types vs. type chart
                 elseif ($mode == "offensive")
                     $result = typeChart($types[ 0 ]->getTypes(), "offensive");
             }
 
-            //	Vs. another pokemon
+            //  Vs. another pokemon
             elseif ($types[ 1 ] instanceof Pokemon) {
-                //	This pokemon's compound types vs. other pokemon
+                //  This pokemon's compound types vs. other pokemon
                 if ($mode == "defensive")
                     $result = pokemonMatchup($types[ 0 ]->getTypes(), $types[ 1 ]);
-                //	Other pokemon's compound types vs. this pokemon
+                //  Other pokemon's compound types vs. this pokemon
                 elseif ($mode == "offensive")
                     $result = pokemonMatchup($types[ 1 ]->getTypes(), $types[ 0 ]);
             }
 
-            //	Vs. a type
+            //  Vs. a type
             else {
-                //	Type vs. this pokemon
+                //  Type vs. this pokemon
                 if ($mode == "defensive")
                     $result = pokemonMatchup($types[ 1 ], $types[ 0 ]);
-                //	This pokemon's compound types vs. type
+                //  This pokemon's compound types vs. type
                 elseif ($mode == "offensive")
                     $result = typeMatchup($types[ 0 ]->getTypes(), $types[ 1 ]);
             }
         }
 
-        //	Type vs. ...
+        //  Type vs. ...
         else {
-            //	Nothing, get type charts
+            //  Nothing, get type charts
             if (!$types[ 1 ])
                 $result = typeChart($types[ 0 ], $mode);
 
-            //	Vs. a pokemon
+            //  Vs. a pokemon
             elseif ($types[ 1 ] instanceof Pokemon) {
-                //	Pokemon's compound types vs. this type
+                //  Pokemon's compound types vs. this type
                 if ($mode == "defensive")
                     $result = typeMatchup($types[ 1 ]->getTypes(), $types[ 0 ]);
-                //	This type vs. pokemon
+                //  This type vs. pokemon
                 elseif ($mode == "offensive")
                     $result = pokemonMatchup($types[ 0 ], $types[ 1 ]);
             }
 
-            //	Vs. another type
+            //  Vs. another type
             else {
-                //	Other type vs. this type
+                //  Other type vs. this type
                 if ($mode == "defensive")
                     $result = typeMatchup($types[ 1 ], $types[ 0 ]);
-                //	This type vs. other type
+                //  This type vs. other type
                 elseif ($mode == "offensive")
                     $result = typeMatchup($types[ 0 ], $types[ 1 ]);
             }
         }
 
-        //	Vs. nothing, output chart results
+        //  Vs. nothing, output chart results
         if (!$types[ 1 ]) {
             $abilities = [ ];
-            //	Save ability effects, if applicable
+            //  Save ability effects, if applicable
             if ($types[ 0 ] instanceof Pokemon && isset($result[ 'abilities' ]))
                 $abilities = $result[ 'abilities' ];
 
-            //	Filter out 1x matchups
+            //  Filter out 1x matchups
             $result = array_filter($result, function ($element) {
                 return (is_numeric($element) && $element != 1);
             });
 
-            //	Function to format matchups. Save for additional use in ability charts if needed
+            //  Function to format matchups. Save for additional use in ability charts if needed
             $parseChart = function ($result) {
-                //	Group types of the same effectiveness together
+                //  Group types of the same effectiveness together
                 $chart = [ ];
                 foreach ($result as $type => $multiplier)
                     $chart[ (string)$multiplier ][] = colorType($type);
                 ksort($chart);
 
-                //	Append list of types to each multiplier for output
+                //  Append list of types to each multiplier for output
                 $output = [ ];
                 foreach ($chart as $multiplier => $entry)
                     $output[] = bold($multiplier."x").": ".implode(", ", $entry);
 
-                //	Each element has Multipler: type1, type2, etc
+                //  Each element has Multipler: type1, type2, etc
                 return $output;
             };
             $output     = $parseChart($result);
 
-            //	Add an extra line for abilities if needed, using the same $parseChart function
+            //  Add an extra line for abilities if needed, using the same $parseChart function
             $abilityOutput = [ ];
             foreach ($abilities as $ability => $abilityChart)
                 $abilityOutput[] = sprintf("[%s]: %s", bold($ability), implode(" :: ", $parseChart($abilityChart)));
 
-            //	Format intro with Pokemon name and type
+            //  Format intro with Pokemon name and type
             if ($types[ 0 ] instanceof Pokemon)
                 $outputString = sprintf(
                     "%s (%s)",
@@ -353,44 +353,44 @@ class TypesModule extends ModuleWithPokemon {
                     colorType($types[ 0 ]->getFormattedType(), true)
                 );
 
-            //	Just a type
+            //  Just a type
             else
                 $outputString = colorType($types[ 0 ], true);
 
-            //	Append formatted chart
+            //  Append formatted chart
             $outputString .= " $mode type chart: ".implode(" :: ", $output);
 
-            //	Stick ability output on a new line if we have any
+            //  Stick ability output on a new line if we have any
             if ($abilityOutput)
                 $outputString .= "\n".implode("; ", $abilityOutput);
 
             $this->respond($msg, $outputString);
         }
 
-        //	Vs. another type, output matchup
+        //  Vs. another type, output matchup
         else {
             $abilities = [ ];
-            //	Save ability effects, if applicable
+            //  Save ability effects, if applicable
             if (isset($result[ 'abilities' ])) {
                 $abilities = $result[ 'abilities' ];
                 unset($result[ 'abilities' ]);
             }
 
-            //	Flatten array after removal of abilities
+            //  Flatten array after removal of abilities
             if (is_array($result)) {
                 $key    = array_keys($result)[ 0 ];
                 $result = $result[ $key ];
             }
 
-            //	Add an extra line for abilities if needed
+            //  Add an extra line for abilities if needed
             $abilityOutput = [ ];
             foreach ($abilities as $ability => $abilityChart) {
-                //	There should only be a single entry
+                //  There should only be a single entry
                 $key             = array_keys($abilityChart)[ 0 ];
                 $abilityOutput[] = sprintf("[%s]: %sx", bold($ability), $abilityChart[ $key ]);
             }
 
-            //	Format intro with Pokemon name and type
+            //  Format intro with Pokemon name and type
             if ($types[ 0 ] instanceof Pokemon)
                 $outputString = sprintf(
                     "%s (%s)",
@@ -398,23 +398,23 @@ class TypesModule extends ModuleWithPokemon {
                     colorType($types[ 0 ]->getFormattedType(), true)
                 );
 
-            //	Just a type
+            //  Just a type
             else
                 $outputString = colorType($types[ 0 ], true);
 
             $outputString .= " vs ";
-            //	Format opponent
+            //  Format opponent
             if ($types[ 1 ] instanceof Pokemon)
                 $outputString .= sprintf(
                     "%s (%s)",
                     bold($types[ 1 ]->getName(new Language(Language::English))),
                     colorType($types[ 1 ]->getFormattedType(), true));
-            //	Just a type
+            //  Just a type
             else
                 $outputString .= colorType($types[ 1 ], true);
 
             $outputString .= ": ".bold((string)$result)."x";
-            //	Stick ability output on a new line if we have any
+            //  Stick ability output on a new line if we have any
             if ($abilityOutput)
                 $outputString .= "\n".implode("; ", $abilityOutput);
 

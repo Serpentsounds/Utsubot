@@ -53,15 +53,15 @@ abstract class PokemonBase implements Manageable {
      */
     public function search($search): bool {
 
-        //	Numeric search
+        //  Numeric search
         if (is_int($search)) {
             if ($search == $this->id)
                 return true;
         }
 
-        //	String search
+        //  String search
         elseif (is_string($search)) {
-            //	Case insensitive
+            //  Case insensitive
             $normalize = function (string $str) {
                 return strtolower(
                     str_replace(
@@ -72,7 +72,7 @@ abstract class PokemonBase implements Manageable {
                 );
             };
 
-            //	Check search vs names, allowing wildcards
+            //  Check search vs names, allowing wildcards
             foreach ($this->names as $name) {
                 if (fnmatch($search, $name) || fnmatch($normalize($search), $normalize($name)))
                     return true;
@@ -80,7 +80,7 @@ abstract class PokemonBase implements Manageable {
 
         }
 
-        //	No match
+        //  No match
         return false;
     }
 

@@ -148,11 +148,11 @@ EOF;
         elseif ($field == "ability3")
             $fieldValue = italic(bold($fieldValue));
 
-        //	Special case for evolutions, bold already added
+        //  Special case for evolutions, bold already added
         elseif (substr($field, -9) == "evolution" || $field == "evs" || $field == "eggGroup" || (($field == "height" || $field == "weight") && $this->units == "both")) {
         }
 
-        //	Default case, just bold
+        //  Default case, just bold
         else
             $fieldValue = bold($fieldValue);
 

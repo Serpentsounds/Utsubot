@@ -70,7 +70,7 @@ class URLParser extends WebModule {
     public function privmsg(IRCMessage $msg) {
         parent::privmsg($msg);
 
-        //	Not a command, parse URLs if applicable
+        //  Not a command, parse URLs if applicable
         if (!$msg->isCommand()) {
 
             //  Link parsing is disabled
@@ -114,15 +114,15 @@ class URLParser extends WebModule {
         //  Don't look up recent links
         $this->checkCache($url, "url", $msg->getResponseTarget());
 
-        //	HTTP header only, if necessary individual parsers can download content later
+        //  HTTP header only, if necessary individual parsers can download content later
         $headers = resourceHeader($url);
 
-        //	Check content type
+        //  Check content type
         if (!preg_match("/\sContent-Type: ?([^\s;]+)/i", $headers, $match))
             throw new URLParserException("Content-Type header missing in '$url'.");
         $contentType = $match[ 1 ];
 
-        //	text/html is a webpage, check for domain specific parsing or fall to default
+        //  text/html is a webpage, check for domain specific parsing or fall to default
         if ($contentType == "text/html") {
             foreach ($this->URLRegexes as $URLRegex) {
 
@@ -143,9 +143,9 @@ class URLParser extends WebModule {
                 return $this->URLTitle($url, $msg->getResponseTarget());
         }
 
-        //	Not a page, but some other resource (image, song, etc)
+        //  Not a page, but some other resource (image, song, etc)
         elseif ($this->hasPermission($msg, "remotefile")) {
-            //	Show only file size and type from header
+            //  Show only file size and type from header
             $contentLength = (preg_match("/\sContent-Length: ?(\d+)/", $headers, $match)) ? ", ".self::formatBytes((int)$match[ 1 ]) : "";
 
             $filteredURL = preg_split("/[#?]/", $url)[ 0 ];
@@ -169,7 +169,7 @@ class URLParser extends WebModule {
      * @return string Bytes divided to the most sensible units
      */
     public static function formatBytes(int $size, int $precision = 2): string {
-        //	$base determines the most sensible power of 1024 to divide by
+        //  $base determines the most sensible power of 1024 to divide by
         $base     = log($size) / log(1024);
         $suffixes = [ "B", "kB", "MB", "GB", "TB" ];
 
@@ -232,18 +232,18 @@ class URLParser extends WebModule {
      */
     public function youtube($match, $channel) {
         $video = $match[ 1 ];
-        //	Don't fetch recent videos
+        //  Don't fetch recent videos
         $this->checkCache($video, "youtube", $channel);
 
-        //	Access API and validate existence
+        //  Access API and validate existence
         $json = resourceBody("https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=$video&key={$this->getAPIKey('youtube')}");
         $data = json_decode($json, true);
 
-        //	Invalid video
+        //  Invalid video
         if ($data[ 'pageInfo' ][ 'totalResults' ] < 1)
             throw new URLParserException("Video '$video' not found.");
 
-        //	Assign and format relevant information
+        //  Assign and format relevant information
         $info     = $data[ 'items' ][ 0 ];
         $title    = italic(str_replace("''", "\"", $info[ 'snippet' ][ 'title' ]));
         $uploader = italic($info[ 'snippet' ][ 'channelTitle' ]);
@@ -255,7 +255,7 @@ class URLParser extends WebModule {
         $comments = italic(number_format((float)$info[ 'statistics' ][ 'commentCount' ]));
         $duration = self::duration($duration);
 
-        //	Add in individual information sections to be joined
+        //  Add in individual information sections to be joined
         $output = [
             $title,
             $duration,
@@ -265,7 +265,7 @@ class URLParser extends WebModule {
             "Uploaded by $uploader on $date",
         ];
 
-        //	Special info for live broadcasts
+        //  Special info for live broadcasts
         if ($info[ 'snippet' ][ 'liveBroadcastContent' ] == "live") {
             $json = resourceBody("https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=$video&key={$this->getAPIKey('youtube')}");
             $data = json_decode($json, true);
@@ -273,7 +273,7 @@ class URLParser extends WebModule {
                 throw new URLParserException("Error getting live streaming info for '$video'.");
             $info = $data[ 'items' ][ 0 ];
 
-            //	Format information and determine broadcast length
+            //  Format information and determine broadcast length
             $currentTime            = new \DateTime();
             $startTime              = $info[ 'liveStreamingDetails' ][ 'actualStartTime' ];
             $currentBroadcastLength = $currentTime->diff(new \DateTime($startTime));
@@ -281,7 +281,7 @@ class URLParser extends WebModule {
             $viewers                = italic($info[ 'liveStreamingDetails' ][ 'concurrentViewers' ]);
             $startDate              = italic(date("H:i:s", strtotime($startTime)))." on ".italic(date("m/d/y", strtotime($startTime)));
 
-            //	Information sections for broadcast
+            //  Information sections for broadcast
             $output = [
                 $title,
                 "Broadcasting for $duration",
@@ -304,7 +304,7 @@ class URLParser extends WebModule {
      */
     public function wikipedia($match, $channel) {
         $article = $match[ 1 ];
-        //	Don't parse recent articles
+        //  Don't parse recent articles
         $this->checkCache($article, "wikipedia", $channel);
 
         $content = resourceBody("https://en.wikipedia.org/w/api.php?action=query&prop=text&action=parse&format=json&page=$article");
@@ -412,58 +412,58 @@ class URLParser extends WebModule {
         if (preg_match("/<title>([^<]+)<\/title>/mi", $page, $match)) {
             $title = $match[ 1 ];
 
-            //	Attempt to find encoding of page, assume UTF-8 if none found
+            //  Attempt to find encoding of page, assume UTF-8 if none found
             $encoding = "UTF-8";
-            //	Get from HTTP headers
+            //  Get from HTTP headers
             if (preg_match('/Content-Type: [^;]*; ?charset=([0-9a-z\-_]+)/is', $page, $match))
                 $encoding = strtoupper($match[ 1 ]);
-            //	Or, get from HTML tags
+            //  Or, get from HTML tags
             elseif (preg_match('/<meta http-equiv="Content-Type" content="[^;]*; ?charset=([^"]+)"/is', $page, $match))
                 $encoding = strtoupper($match[ 1 ]);
 
-            //	Convert encoding if necessary
+            //  Convert encoding if necessary
             $encoding = str_replace("SHIFT_JIS", "SJIS", $encoding);
             if ($encoding != "UTF-8" && $encoding != "ISO-8859-1")
                 $title = (string)iconv($encoding, "UTF-8", $title);
 
-            //	Convert entities
+            //  Convert entities
             $title = stripHTML($title);
 
-            //	Compare words in title to part of the URL. If a certain percentage are present, abort returning the title
+            //  Compare words in title to part of the URL. If a certain percentage are present, abort returning the title
             if ($skipSimilar) {
                 $words  = explode(" ", $title);
                 $common = 0;
 
-                //	A word counts as "in" the title if it passes a regex with word boundaries, not including underscores
+                //  A word counts as "in" the title if it passes a regex with word boundaries, not including underscores
                 foreach ($words as $key => $word) {
-                    //	Remove special characters for comparison
+                    //  Remove special characters for comparison
                     $word = str_replace(
                         [ "(", ")", ":", "[", "]", "/", "\\", "{", "}", "'", "\"", "_" ],
                         "",
                         $word
                     );
 
-                    //	If "word" was only special characters, factor it out of the calculations
+                    //  If "word" was only special characters, factor it out of the calculations
                     if (!trim($word)) {
                         unset($words[ $key ]);
                         continue;
                     }
 
-                    //	Word appears in URL
+                    //  Word appears in URL
                     if (preg_match("/(\b|_)$word(\b|_)/i", $url))
                         $common++;
                 }
 
-                //	Too similar, not enough new information provided to output
+                //  Too similar, not enough new information provided to output
                 if ($common >= count($words) * $similarPercent)
                     return "";
             }
 
-            //	Trim long titles
+            //  Trim long titles
             if (mb_strlen($title) > 300)
                 $title = mb_substr($title, 0, 300)."...";
 
-            //	Don't show recent titles
+            //  Don't show recent titles
             $this->checkCache($title, "title", $channel);
 
             return sprintf("(%ss): %s", $fetchTime, $title);

@@ -233,8 +233,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     public function editCommand(IRCMessage $msg) {
         $this->requireLevel($msg, 50);
-        //	!editcommand bartender list add 1 beer
-        //	!editcommand bartender trigger add !drink
+        //  !editcommand bartender list add 1 beer
+        //  !editcommand bartender trigger add !drink
 
         $parameters = $msg->getCommandParameters();
         list($command, $property, $mode) = $parameters;
@@ -357,7 +357,7 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
         );
 
         #if (!$results)
-        #	throw new CommandCreatorException("There are no list items for command '{$commandInfo['name']}'.");
+        #  throw new CommandCreatorException("There are no list items for command '{$commandInfo['name']}'.");
 
         $listItems = [ ];
         foreach ($results as $row)

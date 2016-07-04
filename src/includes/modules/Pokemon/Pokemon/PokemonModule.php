@@ -115,7 +115,7 @@ class PokemonModule extends ModuleWithPokemon {
         $info   = new PokemonInfoFormat($result->current());
 
         $format = null;
-        //	Try to replace default format with user-defined format, if possible
+        //  Try to replace default format with user-defined format, if possible
         switch ($msg->getCommand()) {
 
             case "pinfo":
@@ -171,7 +171,7 @@ class PokemonModule extends ModuleWithPokemon {
             $info->setUnits(PokemonInfoFormat::UNITS_IMPERIAL);
         }
 
-        //	Pass format into info function for results
+        //  Pass format into info function for results
         $this->respond($msg, $info->parseFormat($format));
 
         //  Output spell check suggestions if they are available
@@ -243,15 +243,15 @@ class PokemonModule extends ModuleWithPokemon {
         $pokemonList = [ null, null ];
         //  Iterate twice for two Pokemon
         for ($i = 0; $i <= 1; $i++) {
-            //	No more words to check
+            //  No more words to check
             if (!isset($parameters[ $next ]))
                 throw new PokemonModuleException("2 Pokemon must be provided.");
 
-            //	Up to 3 words for Pokemon identifiers (e.g. Mega Charizard Y)
+            //  Up to 3 words for Pokemon identifiers (e.g. Mega Charizard Y)
             $maxWordsPerPokemon = 3;
 
             for ($words = 1; $words <= 3; $words++) {
-                //	Add 1 word at a time
+                //  Add 1 word at a time
                 $name = implode(" ", array_slice($parameters, $next, $words));
 
                 try {
@@ -265,7 +265,7 @@ class PokemonModule extends ModuleWithPokemon {
                 }
                     //  No results
                 catch (ModuleWithPokemonException $e) {
-                    //	No additional words left to add and check
+                    //  No additional words left to add and check
                     if ($words == $maxWordsPerPokemon)
                         throw new PokemonModuleException("Invalid pokemon '$name'.");
                 }

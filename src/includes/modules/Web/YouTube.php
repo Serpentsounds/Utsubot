@@ -93,7 +93,7 @@ class YouTube extends WebModule {
     public function youtube(IRCMessage $msg) {
         $this->requireParameters($msg, 1);
         
-        //	Try and get user's # of results settings
+        //  Try and get user's # of results settings
         try {
             $results = (int)$this->getSetting($msg->getNick(), $this->getSettingObject("youtuberesults"));
         }
@@ -104,7 +104,7 @@ class YouTube extends WebModule {
         
         $parameters = $copy = $msg->getCommandParameters();
         $first = array_shift($copy);
-        //	Optionally accept an override for result count
+        //  Optionally accept an override for result count
         if (preg_match('/^results:(\d+)$/i', $first, $match)) {
             $results = min(self::MaxResults, (int)$match[1]);
             $parameters = $copy;

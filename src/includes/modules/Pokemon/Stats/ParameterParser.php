@@ -90,15 +90,15 @@ class ParameterParser {
         $manages = $manager->getManages();
 
         for ($words = 1; $words <= $maxWords; $words++) {
-            //	Add 1 word at a time
+            //  Add 1 word at a time
             $name   = implode(" ", array_slice($parameters, 0, $words));
             $object = $manager->findFirst($name);
 
-            //	Object found
+            //  Object found
             if ($object instanceof $manages)
                 break;
 
-            //	No object and we've no words left to check
+            //  No object and we've no words left to check
             elseif ($words == $maxWords)
                 throw new ParameterParserException("Unable to find a valid {$manager->getManages()}.");
 
@@ -116,11 +116,11 @@ class ParameterParser {
      * @throws ParameterParserException Invalid parameter
      */
     public function parseIVStatParameters(array $parameters): IVStatParameterResult {
-        //	Parse first words into pokemon
+        //  Parse first words into pokemon
         /** @var $pokemon Pokemon */
         $pokemon = $this->getValid("Pokemon", $parameters);
 
-        //	Shave pokemon name off front of parameters
+        //  Shave pokemon name off front of parameters
         $parameters = array_slice($parameters, substr_count($pokemon->getName(new Language(Language::English)), " ") + 1);
 
         if (count($parameters) < 8)
@@ -134,37 +134,37 @@ class ParameterParser {
         /** @var $nature Nature */
         $nature = $this->getValid("Nature", [ array_shift($parameters) ], 1);
 
-        //	Initialize nature information
+        //  Initialize nature information
         $natureMultipliers = array_combine(self::$statList, array_fill(0, count(self::$statList), 1));
         $increases         = $nature->getIncreases();
         $decreases         = $nature->getDecreases();
 
-        //	Update nature multipliers
+        //  Update nature multipliers
         if (isset($natureMultipliers[ $increases ]))
             $natureMultipliers[ $increases ] = 1.1;
         if (isset($natureMultipliers[ $decreases ]))
             $natureMultipliers[ $decreases ] = 0.9;
 
-        //	Normalize array
+        //  Normalize array
         $natureMultipliers = array_values($natureMultipliers);
 
-        //	Check each parameter individually
+        //  Check each parameter individually
         $statValues = $EVs = [ 0, 0, 0, 0, 0, 0 ];
         for ($i = 0; $i <= 5; $i++) {
 
-            //	Effort values specified
+            //  Effort values specified
             if (strpos($parameters[ $i ], ':') !== false) {
                 list($stat, $EV) = explode(':', $parameters[ $i ]);
-                //	Stat and EV minimum values
+                //  Stat and EV minimum values
                 if (!($stat >= 0 && $EV >= 0 && $EV <= 255))
                     throw new ParameterParserException("Invalid stat or EV parameter.");
 
                 $statValues[ $i ] = intval($stat);
                 $EVs[ $i ]        = intval($EV);
             }
-            //	No effort value specified
+            //  No effort value specified
             else {
-                //	Stat minimum value
+                //  Stat minimum value
                 if (!($parameters[ $i ] >= 0))
                     throw new ParameterParserException("Invalid stat or EV parameter.");
 
@@ -188,7 +188,7 @@ class ParameterParser {
         if (!$parameters)
             throw new ParameterParserException("No base given.");
 
-        //	Stat must be a positive integer
+        //  Stat must be a positive integer
         if (!is_numeric($parameters[ 0 ]) || ($stat = intval($parameters[ 0 ])) != $parameters[ 0 ] || $stat < 0)
             throw new ParameterParserException("Invalid stat value.");
 

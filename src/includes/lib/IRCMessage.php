@@ -49,7 +49,7 @@ class IRCMessage {
     private $kickTarget     = "";
     private $quitUser       = null;
 
-    //	Used by modules to determine if this is a command issued to the bot
+    //  Used by modules to determine if this is a command issued to the bot
     private $isCommand              = false;
     private $command                = "";
     private $commandParameters      = [ ];
@@ -65,23 +65,23 @@ class IRCMessage {
      * @throws IRCMessageException If passed string is determined to be invalid
      */
     public function __construct(string $raw) {
-        //	First check against invalid parameter
+        //  First check against invalid parameter
         if (!strlen($raw))
             throw new IRCMessageException("IRCMessage can not be constructed from an empty string.");
 
-        //	Save string and prepare word array
+        //  Save string and prepare word array
         $this->fullString = $raw;
         $words            = explode(" ", $raw);
 
-        //	PING and ERROR have different structures, so parse them separately
+        //  PING and ERROR have different structures, so parse them separately
         if ($words[ 0 ] == "PING" || $words[ 0 ] == "ERROR") {
             $this->type = strtolower($words[ 0 ]);
             $this->setParameters(self::removeColon(self::restOfString($words, 1)));
         }
 
-        //	Parse all other messages
+        //  Parse all other messages
         else {
-            //	Fill in source, target, and default parameters
+            //  Fill in source, target, and default parameters
             $this->parseSource($words[ 0 ]);
             $this->parseTarget($words[ 2 ]);
             $this->setParameters(self::removeColon(self::restOfString($words, 3)));
@@ -89,7 +89,7 @@ class IRCMessage {
 
             switch ($words[ 1 ]) {
                 case "PRIVMSG":
-                    //	A PRIVMSG of this form is either a /me command or a CTCP request, adjust accordingly
+                    //  A PRIVMSG of this form is either a /me command or a CTCP request, adjust accordingly
                     if (preg_match('/^\x01(\S+) ?(.*?)\x01?$/', $this->parameterString, $match)) {
                         if ($match[ 1 ] == "ACTION") {
                             $this->isAction = true;
@@ -98,7 +98,7 @@ class IRCMessage {
 
                         else {
                             $this->type = "ctcp";
-                            //	Separate first word of params as the CTCP request
+                            //  Separate first word of params as the CTCP request
                             $this->ctcp = $match[ 1 ];
                             $this->setParameters($match[ 2 ]);
                         }
@@ -106,10 +106,10 @@ class IRCMessage {
                     break;
 
                 case "NOTICE":
-                    //	A NOTICE of this form is responding to a CTCP request
+                    //  A NOTICE of this form is responding to a CTCP request
                     if (preg_match('/^\x01(\S+) ?(.*?)\x01?$/', $this->parameterString, $match)) {
                         $this->type = "ctcpResponse";
-                        //	Separate just like with a CTCP request
+                        //  Separate just like with a CTCP request
                         $this->ctcp = $match[ 1 ];
                         $this->setParameters($match[ 2 ]);
                     }
@@ -125,7 +125,7 @@ class IRCMessage {
 
                 case "QUIT":
                 case "NICK":
-                    //	QUIT and NICK will have the param string start one word earlier, since it doesn't target a single channel/user
+                    //  QUIT and NICK will have the param string start one word earlier, since it doesn't target a single channel/user
                     $this->setParameters(self::removeColon(self::restOfString($words, 2)));
                     break;
 
@@ -135,13 +135,13 @@ class IRCMessage {
                     break;
 
                 default:
-                    //	Raw numeric command, save the numeric
+                    //  Raw numeric command, save the numeric
                     if (is_numeric($words[ 1 ])) {
                         $this->type = "raw";
                         $this->raw  = intval($words[ 1 ]);
                     }
 
-                    //	No additional processing needed for MODE, TOPIC, etc.
+                    //  No additional processing needed for MODE, TOPIC, etc.
                     break;
 
             }
@@ -241,9 +241,9 @@ class IRCMessage {
      * @param array $prefixes An array of command prefixes/triggers (e.g., ! for !command)
      */
     public function parseCommand(array $prefixes = [ "!" ]) {
-        //	Check each command prefix with the beginning of string
+        //  Check each command prefix with the beginning of string
         foreach ($prefixes as $prefix) {
-            //	Command found, update properties
+            //  Command found, update properties
             if (strlen($this->parameterString) > strlen($prefix) && substr($this->parameterString, 0, strlen($prefix)) == $prefix) {
                 $this->isCommand = true;
                 $parameters      = explode(" ", substr($this->parameterString, strlen($prefix)));
@@ -255,7 +255,7 @@ class IRCMessage {
             }
         }
 
-        //	All query commands should be evaluated as a command. No need to strip the prefix, the loop would have caught it already if it had one
+        //  All query commands should be evaluated as a command. No need to strip the prefix, the loop would have caught it already if it had one
         if ($this->inQuery && !$this->isCommand) {
             $this->isCommand = true;
             $parameters      = $this->parameters;

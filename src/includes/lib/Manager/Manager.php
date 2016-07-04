@@ -25,7 +25,7 @@ class ManagerException extends \Exception {
  */
 abstract class Manager {
 
-    //	Holds the manager's collection of objects
+    //  Holds the manager's collection of objects
     protected $collection = [ ];
 
     protected static $manages = "";

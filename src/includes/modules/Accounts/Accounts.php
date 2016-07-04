@@ -257,16 +257,16 @@ class Accounts extends ModuleWithAccounts implements IHelp {
             case 307:
             case 330:
                 $parameters = $msg->getParameters();
-                //	Adjust to format for different raws
+                //  Adjust to format for different raws
                 $nick = ($msg->getRaw() == 307) ? $parameters[ 0 ] : $parameters[ 1 ];
 
-                //	Make sure user is in the verification process
+                //  Make sure user is in the verification process
                 if (isset($this->defaultNickCheck[ $nick ])) {
-                    //	Remove user from list of pending verifications
+                    //  Remove user from list of pending verifications
                     $info = $this->defaultNickCheck[ $nick ];
                     unset($this->defaultNickCheck[ $nick ]);
 
-                    //	Make sure that this response corresponds to the recent request, but allow 5 seconds for server latency
+                    //  Make sure that this response corresponds to the recent request, but allow 5 seconds for server latency
                     if (time() - $info[ 'time' ] <= 5) {
                         try {
                             $this->interface->setUserSetting($info[ 'accountID' ], $this->getSettingObject("nick"), $nick);
@@ -281,11 +281,11 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                 break;
 
             /*
-             *	End of /WHOIS, report default nickname verification failure
+             *  End of /WHOIS, report default nickname verification failure
              */
             case 318:
                 $nick = $msg->getParameters()[ 0 ];
-                //	Make sure user is in the verification process
+                //  Make sure user is in the verification process
                 if (isset($this->defaultNickCheck[ $nick ])) {
                     unset($this->defaultNickCheck[ $nick ]);
                     $this->IRCBot->message($nick, "Unable to save your default nickname because you are not identified with NickServ.");
@@ -304,7 +304,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
     public function user(User $user) {
 
         try {
-            //	Account ID to be logged in to
+            //  Account ID to be logged in to
             $accountID = $this->getAutoLogin("{$user->getNick()}!{$user->getAddress()}");
             $this->loginUser($user, $accountID);
             $this->status("{$user->getNick()} has automatically logged in to account ID $accountID.");
@@ -340,15 +340,15 @@ class Accounts extends ModuleWithAccounts implements IHelp {
     private function getAutoLogin(string $host) {
         $results = [ ];
 
-        //	Test wildcard match vs every host
+        //  Test wildcard match vs every host
         foreach ($this->autoLoginCache as $id => $wildcardHosts) {
             foreach ($wildcardHosts as $wildcardHost) {
                 if (fnmatch($wildcardHost, $host)) {
-                    /*	Associate the account with the number of non-wildcard characters in a host. In the event that more than 1 host matches, the account with the highest value is logged in to
-                        This is to help prevent a user from accidentally being logged into someone else's account, if that person has an ambiguous auto-login mask	*/
+                    /*  Associate the account with the number of non-wildcard characters in a host. In the event that more than 1 host matches, the account with the highest value is logged in to
+                        This is to help prevent a user from accidentally being logged into someone else's account, if that person has an ambiguous auto-login mask  */
                     $significantCharacters = strlen(str_replace([ "*", "?", "[", "]" ], "", $wildcardHost));
 
-                    //	Only overwrite the same account's entry with a higher value
+                    //  Only overwrite the same account's entry with a higher value
                     if (!isset($results[ $id ]) || $results[ $id ] < $significantCharacters)
                         $results[ $id ] = $significantCharacters;
                 }
@@ -358,7 +358,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         if (!$results)
             throw new AccountsException("No auto-login entries found matching '$host'.");
 
-        //	Place the highest value of significant characters at the front of the array
+        //  Place the highest value of significant characters at the front of the array
         arsort($results);
 
         return (int)(array_keys($results)[ 0 ]);
@@ -451,7 +451,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $settingObject = $this->getSettingObject($option);
         $value         = implode(" ", $parameters);
 
-        //	Exception thrown if settings are invalid or unsuccessful
+        //  Exception thrown if settings are invalid or unsuccessful
         $this->interface->removeUserSetting($accountID, $settingObject, $value);
 
         $this->respond($msg, "'{$settingObject->getDisplay()}' settings have been removed.");
@@ -468,7 +468,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $users = $this->IRCBot->getUsers();
         $user  = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
 
-        //	Must be logged in
+        //  Must be logged in
         $accountID = $this->getAccountIDByUser($user);
 
         $parameters = $msg->getCommandParameters();
@@ -476,23 +476,23 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         if (count($parameters)) {
             $settingName = strtolower(array_shift($parameters));
 
-            //	Exception thrown if all settings are invalid
+            //  Exception thrown if all settings are invalid
             $settingObject = $this->getSettingObject($settingName);
             $settings      = $this->interface->getUserSetting($accountID, $settingObject);
         }
         else
             $settings = $this->interface->getSettingsForUser($accountID);
 
-        //	Construct reply
+        //  Construct reply
         $response = $responseString = [ ];
 
-        //	List each setting under name of setting
+        //  List each setting under name of setting
         foreach ($settings as $setting) {
             $key                = "{$setting['name']} ({$setting['display']})";
             $response[ $key ][] = (strlen($setting[ 'value' ])) ? $setting[ 'value' ] : "enabled";
         }
 
-        //	Convert name => settings[] entries into readable format
+        //  Convert name => settings[] entries into readable format
         foreach ($response as $setting => $values)
             $responseString[] = "$setting: ".implode(", ", $values);
 
@@ -531,7 +531,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
         list($username, $password) = $parameters;
 
-        //	Attempt login, exception thrown if unsuccessful
+        //  Attempt login, exception thrown if unsuccessful
         $this->interface->verifyPassword($username, $password);
         $accountID = $this->interface->getAccountIDByUsername($username);
         $this->loginUser($user, $accountID);
@@ -582,7 +582,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $user       = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
         $parameters = $msg->getCommandParameters();
 
-        //	Cannot be logged in
+        //  Cannot be logged in
         try {
             $this->getAccountIDByUser($user);
             throw new AccountsException("You are already registered!", 1);
@@ -592,32 +592,32 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                 throw $e;
         }
 
-        //	Not enough parameters
+        //  Not enough parameters
         if (count($parameters) < 2)
             throw new AccountsException("Syntax: REGISTER <username> <password>");
         list($username, $password) = $parameters;
 
-        //	Validate credentials
+        //  Validate credentials
         if (!is_string($username) || preg_match('/\s/', $username))
             throw new AccountsException("Invalid username format. Pass a string with no whitespace.");
         if (!is_string($password) || preg_match('/\s/', $password))
             throw new AccountsException("Invalid password format. Pass a string with no whitespace.");
 
-        //	Attempt registration, will throw exception on existing username
+        //  Attempt registration, will throw exception on existing username
         $this->interface->registerUser($username, $password);
 
-        //	Success
+        //  Success
         $this->respond($msg, "Registration successful. Please remember your username and password for later use: '$username', '$password'. You will now be automatically logged in.");
 
-        //	Add autologin host
+        //  Add autologin host
         $autoLogin = "*!*{$msg->getIdent()}@{$msg->getFullHost()}";
         $accountID = $this->interface->getAccountIDByUsername($username);
         $this->interface->setUserSetting($accountID, $this->getSettingObject("autologin"), $autoLogin);
-        //	Automatically login upon registration
+        //  Automatically login upon registration
         $this->loginUser($user, $accountID);
         $this->respond($msg, "$autoLogin has been added as an autologin host for this account. You will automatically be logged in when connecting from this host. To remove this, please use 'unset autologin'.");
 
-        //	Attempt to automatically set nickname, if it's not already set
+        //  Attempt to automatically set nickname, if it's not already set
         $settings = $this->interface->getUsersWithSetting($this->getSettingObject("nick"), $msg->getNick());
         if ($settings)
             $this->respond($msg, "Your nickname could not be linked to your account because it is already linked to another account.");
@@ -638,7 +638,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
         $parameters = $msg->getCommandParameters();
         $userLevel  = $this->getAccessByUser($user);
 
-        //	No parameters, return user's access level
+        //  No parameters, return user's access level
         if (empty($parameters))
             $this->respond($msg, "Your current level is $userLevel.");
 
@@ -651,7 +651,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                 case "add":
                     $this->requireLevel($msg, 90);
 
-                    //	Require a 3rd parameter as level for add
+                    //  Require a 3rd parameter as level for add
                     $this->requireParameters($msg, 3, "Syntax: ACCESS ADD <user> <value>");
                     list($nickname, $level) = $parameters;
 
@@ -659,11 +659,11 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                     if ($level >= $userLevel)
                         throw new AccountsException("You do not have permission to grant level $level.");
 
-                    //	Make sure target user is online. Access can only be modified through nickname, not account name.
+                    //  Make sure target user is online. Access can only be modified through nickname, not account name.
                     $targetUser = $users->findFirst($nickname);
                     $accountID  = $this->getAccountIDByUser($targetUser);
 
-                    //	Prevent modifying somebody with higher access than you
+                    //  Prevent modifying somebody with higher access than you
                     $targetUserLevel = $this->interface->getAccessByID($accountID);
                     if ($targetUserLevel >= $userLevel)
                         throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
@@ -672,7 +672,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                     if ($intLevel != $level)
                         throw new AccountsException("Level must be an integer.");
 
-                    //	Attempt to set level. A malformed $level will thrown an exception
+                    //  Attempt to set level. A malformed $level will thrown an exception
                     $this->interface->setAccess($accountID, $intLevel);
 
                     $this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
@@ -685,16 +685,16 @@ class Accounts extends ModuleWithAccounts implements IHelp {
                     $this->requireParameters($msg, 2, "Syntax: ACCESS REMOVE <user>");
                     $nickname = array_shift($parameters);
 
-                    //	Make sure target user is online. Access can only be modified through nickname, not account name.
+                    //  Make sure target user is online. Access can only be modified through nickname, not account name.
                     $targetUser = $users->findFirst($nickname);
                     $accountID  = $this->getAccountIDByUser($targetUser);
 
-                    //	Prevent modifying somebody with higher access than you
+                    //  Prevent modifying somebody with higher access than you
                     $targetUserLevel = $this->interface->getAccessByID($accountID);
                     if ($targetUserLevel >= $userLevel)
                         throw new AccountsException("You do not have permission to modify settings for user '{$targetUser->getNick()}'.");
 
-                    //	Attempt to set level
+                    //  Attempt to set level
                     $this->interface->setAccess($accountID, 0);
 
                     $this->respond($msg, "Access has been updated for '{$targetUser->getNick()}'.");
@@ -702,7 +702,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
 
                 // Get the access of an online user
                 case "list":
-                    //	Not enough parameters, default to user
+                    //  Not enough parameters, default to user
                     if ($parameters)
                         $nickname = array_shift($parameters);
                     else
@@ -745,7 +745,7 @@ class Accounts extends ModuleWithAccounts implements IHelp {
      * @param IRCMessage $msg
      */
     protected function parseTriggers(IRCMessage $msg) {
-        //	Account modification should only be done in private message
+        //  Account modification should only be done in private message
         if (!$msg->inQuery())
             return;
 

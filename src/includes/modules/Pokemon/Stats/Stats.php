@@ -242,9 +242,9 @@ class Stats extends ModuleWithPokemon {
     public function hiddenPower(IRCMessage $msg) {
         $parameterString = $msg->getCommandParameterString();
 
-        //	Match 6 numbers in a row
+        //  Match 6 numbers in a row
         if (preg_match('/^(\d{1,2}[\/ \\\\]){5}\d{1,2}$/', $parameterString)) {
-            //	Split into individual numbers
+            //  Split into individual numbers
             $ivs = array_map("intval", preg_split('/[\/ \\\\]/', $parameterString));
 
             $hiddenPower = (new HiddenPowerCalculator(...$ivs))->calculate();

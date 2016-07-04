@@ -49,7 +49,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      */
     private $validCodes = [ ];
 
-    //	GameNetworkingDatabase interface
+    //  GameNetworkingDatabase interface
     private $interface;
 
 
@@ -202,42 +202,42 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws DatabaseInterfaceException PDO error
      */
     public function findCode(IRCMessage $msg) {
-        //	Shave off first word to see what we're looking up
+        //  Shave off first word to see what we're looking up
         $parameters      = $msg->getCommandParameters();
         $action          = array_shift($parameters);
         $parameterString = implode(" ", $parameters);
 
-        //	Bool to ignore or request verification of code type, if limiting lookup to one type
+        //  Bool to ignore or request verification of code type, if limiting lookup to one type
         $requireCodeID = false;
         $nick          = $msg->getNick();
 
-        //	Valid code type given, look up codes of that type for calling user
+        //  Valid code type given, look up codes of that type for calling user
         if ($this->getCode($msg->getCommandParameterString())) {
-            //	Re-include code title for parameter parsing
+            //  Re-include code title for parameter parsing
             $parameterString = $msg->getCommandParameterString();
             $requireCodeID   = true;
         }
 
-        //	User given, look up codes of that user instead
+        //  User given, look up codes of that user instead
         elseif ($action !== null) {
             $nick = $action;
-            //	Valid code type also given, restrict output
+            //  Valid code type also given, restrict output
             if ($this->getCode($parameterString))
                 $requireCodeID = true;
         }
 
-        //	Parse input and get relevant codes from the db
+        //  Parse input and get relevant codes from the db
         $input = $this->parseInput($parameterString, $requireCodeID, false);
         $codes = $this->interface->select($nick, $input[ 'codeID' ], $input[ 'code' ], $msg->getNick());
 
-        //	No results
+        //  No results
         if (!$codes) {
             if (is_int($input[ 'codeID' ]))
                 throw new GameNetworkingException("There are no codes for '$nick' for '{$this->validCodes[$input['codeID']]->getTitle()}'.");
             throw new GameNetworkingException("There are no codes for '$nick'.");
         }
 
-        //	Organize codes by type for output
+        //  Organize codes by type for output
         $codeTypes = [ ];
         foreach ($codes as $row) {
             $value = $row[ 'value' ];
@@ -247,11 +247,11 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
         }
 
         $output = "Codes for ".bold($nick);
-        //	Output single type of code if it was requested (Type: code1, code2)
+        //  Output single type of code if it was requested (Type: code1, code2)
         if (is_int($input[ 'codeID' ]))
             $output .= sprintf(" for %s: %s", bold($this->validCodes[ $input[ 'codeID' ] ]->getTitle()), implode(", ", $codeTypes[ $input[ 'codeID' ] ]));
 
-        //	Output all codes by type ([Type: code1, code2] [Type2: code1, code2])
+        //  Output all codes by type ([Type: code1, code2] [Type2: code1, code2])
         else {
             $response = [ ];
             foreach ($codeTypes as $codeType => $list)
@@ -272,43 +272,43 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws DatabaseInterfaceException PDO error
      */
     public function addCode(IRCMessage $msg) {
-        //	Shave off "add" from user input
+        //  Shave off "add" from user input
         $parameters = $msg->getCommandParameters();
         array_shift($parameters);
-        //	Verify input
+        //  Verify input
         $input = $this->parseInput(implode(" ", $parameters));
 
-        //	Attempt insertion
+        //  Attempt insertion
         try {
             $rowCount = $this->interface->insert($msg->getNick(), $input[ 'codeID' ], $input[ 'code' ]);
         }
-            //	Insert failed with valid input, so unique constraint on table is the culprit
+            //  Insert failed with valid input, so unique constraint on table is the culprit
         catch (\PDOException $e) {
             $rowCount = 0;
         }
 
-        //	Duplicate entry, retrieve original owner (helpful if user forgot they added a code in the past)
+        //  Duplicate entry, retrieve original owner (helpful if user forgot they added a code in the past)
         if (!$rowCount) {
             $results = $this->interface->selectValue($input[ 'codeID' ], $input[ 'code' ]);
 
-            //	Owner found
+            //  Owner found
             if (isset($results[ 0 ]) && $row = $results[ 0 ]) {
                 $nickname = null;
-                //	Nickname entry
+                //  Nickname entry
                 if ($row[ 'nickname' ])
                     $nickname = $row[ 'nickname' ];
 
-                //	Account entry
+                //  Account entry
                 else
                     $nickname = $this->interface->getNicknameFor($row[ 'user_id' ]);
 
                 if (strlen($nickname))
                     throw new GameNetworkingException("'{$input['code']}' already exists as a(n) {$this->validCodes[$input['codeID']]->getTitle()} code for '$nickname'.");
-                //	Offline user account with no default nick
+                //  Offline user account with no default nick
                 throw new GameNetworkingException("'{$input['code']}' already exists as a(n) {$this->validCodes[$input['codeID']]->getTitle()} code under a user account.");
             }
 
-            //	No existing entry, unknown error
+            //  No existing entry, unknown error
             throw new GameNetworkingException("An error occured while attempting to add your code.");
         }
 
@@ -327,13 +327,13 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws DatabaseInterfaceException PDO error
      */
     public function removeCode(IRCMessage $msg) {
-        //	Shave off "remove" from user input
+        //  Shave off "remove" from user input
         $parameters = $msg->getCommandParameters();
         array_shift($parameters);
-        //	Parse input
+        //  Parse input
         $input = $this->parseInput(implode(" ", $parameters), true, false);
 
-        //	Abort if the user has no codes to remove
+        //  Abort if the user has no codes to remove
         $currentCode = $this->interface->select($msg->getNick(), $input[ 'codeID' ], $input[ 'code' ]);
         if (!$currentCode) {
             if ($input[ 'code' ])
@@ -341,7 +341,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
             throw new GameNetworkingException("You have no ".$this->validCodes[ $input[ 'codeID' ] ]->getTitle()." codes.");
         }
 
-        //	Delete codes
+        //  Delete codes
         $rowCount = $this->interface->delete($msg->getNick(), $input[ 'codeID' ], $input[ 'code' ]);
         if (!$rowCount)
             throw new GameNetworkingException("An error occured while attempting to remove your code.");
@@ -363,24 +363,24 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws GameNetworkingException Validation failed
      */
     protected function parseInput($userInput, $requireCodeID = true, $requireCode = true) {
-        //	Get this out of the way
+        //  Get this out of the way
         if (!is_string($userInput))
             throw new GameNetworkingException("Invalid user input.");
 
         $newCode = $codeID = $code = $newCode = null;
-        //	Loop through valid code types to see if code string matches any
+        //  Loop through valid code types to see if code string matches any
         foreach ($this->validCodes as $currentCode) {
-            //	Check if entered string matches current code type
+            //  Check if entered string matches current code type
             if (preg_match($currentCode->getValidTitleRegex(), $userInput, $match)) {
                 $codeID = $currentCode->getId();
 
-                //	Get remaining part of code string
+                //  Get remaining part of code string
                 $newCode = trim(substr($userInput, strlen($match[ 0 ])));
 
-                //	Check if remaining part matches proper code format
+                //  Check if remaining part matches proper code format
                 if (preg_match($currentCode->getValidFormatRegex(), $newCode, $match)) {
 
-                    //	In case of multiple capture groups, join all with a space to normalize entries
+                    //  In case of multiple capture groups, join all with a space to normalize entries
                     $construct = [ ];
                     for ($i = 1; $i < count($match); $i++)
                         $construct[] = $match[ $i ];
@@ -392,7 +392,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
             }
         }
 
-        //	Code type required but not found
+        //  Code type required but not found
         if ($codeID === null && $requireCodeID)
             throw new GameNetworkingException("Invalid code type specified. Valid codes are: ".implode(", ",
                                                                                                        array_map(function ($entry) {
@@ -403,7 +403,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
                                                                                                        },
                                                                                                            $this->validCodes)));
 
-        //	Code value required but not found
+        //  Code value required but not found
         if ($code === null && ($requireCode || $newCode))
             throw new GameNetworkingException("Invalid code format for '{$this->validCodes[$codeID]->getTitle()}'.");
 
@@ -423,24 +423,24 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws GameNetworkingException If a matching code entry is not found
      */
     public function editNotes(IRCMessage $msg) {
-        //	Shave off "note" from user input
+        //  Shave off "note" from user input
         $parameters = $msg->getCommandParameters();
         array_shift($parameters);
-        //	Get add or remove function
+        //  Get add or remove function
         $mode = array_shift($parameters);
-        //	Parse input
+        //  Parse input
         $input = $this->parseInput(implode(" ", $parameters), true, true);
 
         $note = null;
-        /*	Grab existing codes to try and match one against the user input string
+        /*  Grab existing codes to try and match one against the user input string
             We have to do a custom match, because parseInput generalizes using the valid code format, and may not be able to correctly separate the code from the user note
         */
         $codes = $this->interface->select($msg->getNick(), $input[ 'codeID' ]);
-        //	Sort longer codes first to prevent greedy duplicate matches
+        //  Sort longer codes first to prevent greedy duplicate matches
         usort($codes, function ($a, $b) {
             return strlen($b[ 'value' ]) - strlen($a[ 'value' ]);
         });
-        //	If code matches, grab the remaining part of the string as the note
+        //  If code matches, grab the remaining part of the string as the note
         foreach ($codes as $key => $code) {
             if (stripos($input[ 'restOfString' ], $code[ 'value' ]) === 0) {
                 $input[ 'code' ] = $code[ 'value' ];
@@ -448,7 +448,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
                 break;
             }
 
-            //	Out of codes to match
+            //  Out of codes to match
             if ($key + 1 == count($codes))
                 throw new GameNetworkingException("You have no ".$this->validCodes[ $input[ 'codeID' ] ]->getTitle()." codes matching '{$input['code']}'.");
         }
@@ -457,14 +457,14 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
             throw new GameNetworkingException("You have no ".$this->validCodes[ $input[ 'codeID' ] ]->getTitle()." codes.");
 
         switch ($mode) {
-            //	Add or overwrite note
+            //  Add or overwrite note
             case "add":
             case "set":
                 $this->interface->update($msg->getNick(), $input[ 'codeID' ], $input[ 'code' ], "notes", $note);
                 $this->respond($msg, bold($note)." has been added as a note for ".bold($msg->getNick())."'s code.");
                 break;
 
-            //	Remove note
+            //  Remove note
             case "remove":
             case "rem":
             case "delete":
@@ -473,7 +473,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
                 $this->respond($msg, "Note has been removed from ".bold($msg->getNick())."'s code.");
                 break;
 
-            //	Invalid parameters
+            //  Invalid parameters
             default:
                 throw new GameNetworkingException("Invalid notes action '$mode'.");
                 break;
@@ -489,32 +489,32 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
      * @throws GameNetworkingException If a matching code entry is not found
      */
     public function lockCode(IRCMessage $msg) {
-        //	Shave off "lock" or "unlock" from user input
+        //  Shave off "lock" or "unlock" from user input
         $parameters = $msg->getCommandParameters();
         $mode       = array_shift($parameters);
 
-        //	Parse input
+        //  Parse input
         $input = $this->parseInput(implode(" ", $parameters), true, true);
 
-        //	Verify specified code exists
+        //  Verify specified code exists
         $currentCode = $this->interface->select($msg->getNick(), $input[ 'codeID' ], $input[ 'code' ]);
         if (!$currentCode)
             throw new GameNetworkingException("You have no ".$this->validCodes[ $input[ 'codeID' ] ]->getTitle()." codes matching '{$input['code']}'.");
 
         switch ($mode) {
-            //	Mark code as private
+            //  Mark code as private
             case "lock":
                 $this->interface->update($msg->getNick(), $input[ 'codeID' ], $input[ 'code' ], "locked", 1);
                 $this->respond($msg, "Code for ".bold($msg->getNick())." has been locked.");
                 break;
 
-            //	Mark code as public
+            //  Mark code as public
             case "unlock":
                 $this->interface->update($msg->getNick(), $input[ 'codeID' ], $input[ 'code' ], "locked", null);
                 $this->respond($msg, "Code for ".bold($msg->getNick())." has been unlocked.");
                 break;
 
-            //	Invalid parameters
+            //  Invalid parameters
             default:
                 throw new GameNetworkingException("Invalid lock action '$mode'.");
                 break;

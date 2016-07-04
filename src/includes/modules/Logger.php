@@ -71,14 +71,14 @@ class Logger extends ModuleWithAccounts {
     public function privmsg(IRCMessage $msg) {
         parent::privmsg($msg);
 
-        //	Log command
+        //  Log command
         if ($msg->isCommand() && $msg->responded()) {
 
             $channel = ($msg->inChannel()) ? $msg->getResponseTarget() : "";
 
             $users = $this->IRCBot->getUsers();
 
-            //	Get user ID if applicable, to put into database
+            //  Get user ID if applicable, to put into database
             $user = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
 
             try {
@@ -101,15 +101,15 @@ class Logger extends ModuleWithAccounts {
      * @throws LoggerException If no command is given, or database insert fails
      */
     private function log(string $command, int $user = null, string $channel = null): bool {
-        //	Command name is the only requirement
+        //  Command name is the only requirement
         if (!strlen($command))
             throw new LoggerException("Command can not be blank.");
 
-        //	Part of SQL query
+        //  Part of SQL query
         $values     = [ "?" ];
         $parameters = [ $command ];
 
-        //	Specify User, if applicable
+        //  Specify User, if applicable
         if (is_int($user)) {
             $values[]     = "?";
             $parameters[] = $user;
@@ -117,7 +117,7 @@ class Logger extends ModuleWithAccounts {
         else
             $values[] = "null";
 
-        //	Specify channel, if applicable
+        //  Specify channel, if applicable
         if ($channel) {
             $values[]     = "?";
             $parameters[] = $channel;
@@ -149,17 +149,17 @@ class Logger extends ModuleWithAccounts {
      */
     public function getLogs(string $command, int $user, string $channel): array {
         $constraints = $parameters = [ ];
-        //	Search for a command
+        //  Search for a command
         if (strlen($command)) {
             $constraints[] = "`command`=?";
             $parameters[]  = $command;
         }
-        //	Search for command(s) done by a specific account
+        //  Search for command(s) done by a specific account
         if (is_int($user)) {
             $constraints[] = "`user_id`=?";
             $parameters[]  = $user;
         }
-        //	Search for commands done in a specific channel
+        //  Search for commands done in a specific channel
         if ($channel) {
             $constraints[] = "`channel`=?";
             $parameters[]  = $channel;
@@ -182,12 +182,12 @@ class Logger extends ModuleWithAccounts {
     public function logs(IRCMessage $msg) {
         $parameters = $msg->getCommandParameters();
 
-        //	Get login if available, some command modes require it
+        //  Get login if available, some command modes require it
         $users  = $this->IRCBot->getUsers();
         $user   = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
         $userID = $this->getAccountIDByUser($user);
 
-        //	No parameters specified, return all logged commands by this user
+        //  No parameters specified, return all logged commands by this user
         if (!isset($parameters[ 0 ]) || !strlen($parameters[ 0 ])) {
             if (!is_int($userID))
                 throw new LoggerException("You must be logged in to show your personal log stats.");
@@ -196,12 +196,12 @@ class Logger extends ModuleWithAccounts {
             if (!$logs)
                 throw new LoggerException("You have no logs on record.");
 
-            //	Count each command separately
+            //  Count each command separately
             $count = [ ];
             foreach ($logs as $log)
                 @$count[ $log[ 'command' ] ]++;
 
-            //	Sort and format array
+            //  Sort and format array
             arsort($count);
             array_walk($count, function (&$val, $key) {
                 $val = "$key: $val";
@@ -210,16 +210,16 @@ class Logger extends ModuleWithAccounts {
             $this->respond($msg, "Usage summary for ".bold($msg->getNick()).": ".implode(", ", $count));
         }
 
-        //	A parameter was given
+        //  A parameter was given
         else {
             $cmd = strtolower($parameters[ 0 ]);
 
-            //	'all' was appended to the command, get public usage stats
+            //  'all' was appended to the command, get public usage stats
             $all = false;
             if (isset($parameters[ 1 ]) && strtolower($parameters[ 1 ]) == "all")
                 $all = true;
 
-            //	Personal usage stats
+            //  Personal usage stats
             if (!$all) {
                 if (!is_int($userID))
                     throw new LoggerException("You must be logged in to show your personal log stats.");
@@ -231,7 +231,7 @@ class Logger extends ModuleWithAccounts {
                 $this->respond($msg, $msg->getNick()." has used '$cmd' ".bold(count($logs))." times.");
             }
 
-            //	Public usage stats
+            //  Public usage stats
             else {
                 if (!($users instanceof Users))
                     throw new LoggerException("Users module not loaded, unable to list usages.");
@@ -240,27 +240,27 @@ class Logger extends ModuleWithAccounts {
                 if (!$logs)
                     throw new LoggerException("There are no logs on record for '$cmd'.");
 
-                //	Count each user separately
+                //  Count each user separately
                 $count = [ ];
                 foreach ($logs as $log)
                     @$count[ $log[ 'user_id' ] ]++;
 
-                //	Sort users and prepare to get nicknames
+                //  Sort users and prepare to get nicknames
                 arsort($count);
                 $return = [ ];
 
-                //	Get "Top online users" by attempting to match the list of user IDs to logged in accounts
+                //  Get "Top online users" by attempting to match the list of user IDs to logged in accounts
                 foreach ($count as $userID => $used) {
                     if (($user = $this->getAccounts()->getUserByAccountID($userID)) instanceof User)
                         $return[] = $user->getNick().": $used";
 
-                    //	Max 5 users on leaderboard
+                    //  Max 5 users on leaderboard
                     if (count($return) == 5)
                         break;
                 }
 
                 $this->respond($msg, bold($cmd)." has been used ".bold(count($logs))." times.");
-                //	There were some nick matching results
+                //  There were some nick matching results
                 if (count($return))
                     $this->respond($msg, "Top online users: ".implode(", ", $return));
             }

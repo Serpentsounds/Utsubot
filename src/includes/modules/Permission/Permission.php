@@ -174,35 +174,35 @@ class Permission extends ModuleWithPermission implements IHelp {
                 break;
         }
 
-        //	Grab command in question from the front of parameters
+        //  Grab command in question from the front of parameters
         $trigger      = array_shift($parameters);
         $channelField = $userField = $nickField = $addressField = $parametersField = "";
 
         foreach ($parameters as $parameter) {
-            //	Parameters should be passed as field:value
+            //  Parameters should be passed as field:value
             $parts = explode(":", $parameter);
-            //	Malformed parameter
+            //  Malformed parameter
             if (count($parts) != 2)
                 continue;
 
             list($constraint, $value) = $parts;
 
             switch ($constraint) {
-                //	Restrict based on channel
+                //  Restrict based on channel
                 case "channel":
                     if (substr($value, 0, 1) == "#")
                         $channelField = $value;
                     break;
 
-                //	Restrict based on account
+                //  Restrict based on account
                 case "user":
                     $id = null;
 
-                    //	Access Users to get account name
+                    //  Access Users to get account name
                     $users = $this->IRCBot->getUsers();
                     $user  = $users->findFirst($value);
 
-                    //	Find account User is logged into
+                    //  Find account User is logged into
                     if ($user instanceof User) {
                         $userField = $this->getAccountIDByUser($user);
 
@@ -210,37 +210,37 @@ class Permission extends ModuleWithPermission implements IHelp {
                             throw new \Exception();
                     }
 
-                    //	User is invalid or not logged in, send control to catch block
+                    //  User is invalid or not logged in, send control to catch block
                     else
                         throw new PermissionException("'$value' is not a logged in user.");
 
                     break;
 
-                //	Restrict based on nickname
+                //  Restrict based on nickname
                 case "nickname":
                     $nickField = $value;
                     break;
-                //	Restrict based on address
+                //  Restrict based on address
                 case "address":
                     $addressField = $value;
                     break;
-                //	Restrict based on parameters
+                //  Restrict based on parameters
                 case "parameters":
                     $parametersField = $value;
                     break;
 
-                //	Abort if any parameters are invalid
+                //  Abort if any parameters are invalid
                 default:
                     throw new PermissionException("Not all constraints are valid.");
                     break;
             }
         }
 
-        //	Start with all parameters, and weed out blank ones
+        //  Start with all parameters, and weed out blank ones
         $queryParameters = [ $trigger, $type ];
         $values          = [ "?", "?", "?", "?", "?", "?", "?" ];
 
-        //	For every field, either replace the sql query placeholder if blank, or add a value to the parameters if it's there
+        //  For every field, either replace the sql query placeholder if blank, or add a value to the parameters if it's there
         if (!$channelField)
             $values[ 2 ] = null;
         else
@@ -280,7 +280,7 @@ class Permission extends ModuleWithPermission implements IHelp {
     private function addPermission(int $type, IRCMessage $msg) {
         list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
-        //	Replace null values with "null" to put into database
+        //  Replace null values with "null" to put into database
         array_walk($values, function (&$element) {
             if ($element === null)
                 $element = "null";
@@ -309,7 +309,7 @@ class Permission extends ModuleWithPermission implements IHelp {
     private function removePermission(int $type, IRCMessage $msg) {
         list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
-        //	Form conditionals for each column
+        //  Form conditionals for each column
         $columns = [ "`trigger`", "`type`", "`channel`", "`user_id`", "`nickname`", "`address`", "`parameters`" ];
         array_walk($values, function (&$element, $key) use ($columns) {
             if ($element === null)
@@ -346,11 +346,11 @@ class Permission extends ModuleWithPermission implements IHelp {
             [ $trigger ]
         );
 
-        //	No rows affecting this command
+        //  No rows affecting this command
         if (!$results)
             return $permission;
 
-        //	Sort results to put allows at the end, so they trump denies
+        //  Sort results to put allows at the end, so they trump denies
         usort($results, function ($row1, $row2) {
             if ($row1[ 'type' ] == $row2[ 'type' ])
                 return 0;
@@ -360,14 +360,14 @@ class Permission extends ModuleWithPermission implements IHelp {
             return -1;
         });
 
-        //	Info from IRCMessage
+        //  Info from IRCMessage
         $inChannel  = $msg->inChannel();
         $channel    = $msg->getResponseTarget();
         $nick       = $msg->getNick();
         $address    = "$nick!{$msg->getIdent()}@{$msg->getFullHost()}";
         $parameters = $msg->getParameterString();
 
-        //	Attempt to grab user ID for comparison
+        //  Attempt to grab user ID for comparison
         $users = $this->IRCBot->getUsers();
         $user  = $users->createIfAbsent($address);
         try {
@@ -377,9 +377,9 @@ class Permission extends ModuleWithPermission implements IHelp {
             $id = null;
         }
 
-        //	Apply rows 1 by 1
+        //  Apply rows 1 by 1
         foreach ($results as $row) {
-            //	All of these must be true for the rule to apply. If the db value is NULL, it will automatically apply
+            //  All of these must be true for the rule to apply. If the db value is NULL, it will automatically apply
             $channelMatch = $userMatch = $nickMatch = $addressMatch = $parameterMatch = false;
 
             //  Channel name (exact match)
@@ -402,11 +402,11 @@ class Permission extends ModuleWithPermission implements IHelp {
             if (!$row[ 'parameters' ] || fnmatch(strtolower($row[ 'parameters' ]), strtolower($parameters)))
                 $parameterMatch = true;
 
-            //	Enforce passing of all checks
+            //  Enforce passing of all checks
             if (!$channelMatch || !$userMatch || !$nickMatch || !$addressMatch || !$parameterMatch)
                 continue;
 
-            //	Adjust permission accordingly
+            //  Adjust permission accordingly
             if ($row[ 'type' ] == "allow")
                 $permission = true;
             elseif ($row[ 'type' ] == "deny")

@@ -59,13 +59,13 @@ class DatabaseInterface {
         try {
             $statement->execute($parameters);
         }
-            //	If statement fails, clean up before bubbling exception
+            //  If statement fails, clean up before bubbling exception
         catch (\PDOException $e) {
             $this->disconnect($statements);
             throw $e;
         }
 
-        //	Determine return type
+        //  Determine return type
         $return = false;
         $query  = trim($query);
         if (stripos($query, "INSERT") === 0 || stripos($query, "DELETE") === 0 || stripos($query, "UPDATE") === 0)

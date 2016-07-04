@@ -149,7 +149,7 @@ class Weather extends WebModule {
     public function weather(IRCMessage $msg) {
         $location = $msg->getCommandParameterString();
         if (!$location) {
-            //	Try and get default location from user settings
+            //  Try and get default location from user settings
             try {
                 $location = $this->getSetting($msg->getNick(), $this->getSettingObject("weather"));
             }
@@ -159,7 +159,7 @@ class Weather extends WebModule {
             }
         }
 
-        //	Try and fetch units preferences from user settings
+        //  Try and fetch units preferences from user settings
         try {
             $units = Units::fromName($this->getSetting($msg->getNick(), $this->getSettingObject("units")));
         }
@@ -168,12 +168,12 @@ class Weather extends WebModule {
             $units = new Units(Units::Both);
         }
 
-        //	If the user specified "forecast" or "conditions" rather than just "weather" for both, we exclude the other one
+        //  If the user specified "forecast" or "conditions" rather than just "weather" for both, we exclude the other one
         $command = strtolower($msg->getCommand());
         $conditions = ($command == "forecast") ? false : true;
         $forecast = ($command == "conditions") ? false : true;
 
-        //	Get weather info. WeatherException may be thrown if an error occurs
+        //  Get weather info. WeatherException may be thrown if an error occurs
         $result = $this->weatherSearch($location, $units, $conditions, $forecast);
 
         $this->respond($msg, $result);
@@ -190,11 +190,11 @@ class Weather extends WebModule {
      * @return string
      */
     public function weatherSearch(string $search, Units $units, bool $conditions, bool $forecast): string {
-        //	Convert location name into a string usable by the API
+        //  Convert location name into a string usable by the API
         $location = $this->weatherLocation($search);
         $output = [ ];
 
-        //	Default to showing both conditions and forecast, but allow override
+        //  Default to showing both conditions and forecast, but allow override
         if ($conditions)
             $output[] = $this->conditions($location, $units);
         if ($forecast)
@@ -212,15 +212,15 @@ class Weather extends WebModule {
      * @throws WeatherException If the location isn't found
      */
     public function weatherLocation(string $search): string {
-        //	Convert from UTF-8 to UTF-8 to fix some special character errors
+        //  Convert from UTF-8 to UTF-8 to fix some special character errors
         $string = mb_convert_encoding(resourceBody("http://autocomplete.wunderground.com/aq?query=". urlencode($search)), "UTF-8", "UTF-8");
 
         $results = json_decode($string, TRUE);
 
-        //	$query is set to an API-specific identifier returned by this search page
+        //  $query is set to an API-specific identifier returned by this search page
         $i = 0;
         $query = "";
-        //	Save the identifier of the first result that matches the identifier format
+        //  Save the identifier of the first result that matches the identifier format
         do {
             if (isset($results['RESULTS'][$i]['l']))
                 $query = $results['RESULTS'][$i++]['l'];
@@ -228,7 +228,7 @@ class Weather extends WebModule {
                 break;
         } while (strpos($query, '/q/zmw:') === FALSE);
 
-        //	List of results exhausted with no success
+        //  List of results exhausted with no success
         if (!$query)
             throw new WeatherException("No location found for '$search'.");
 
@@ -249,13 +249,13 @@ class Weather extends WebModule {
         $page = resourceBody("http://api.wunderground.com/api/$APIKey/conditions$location.json");
         $results = json_decode($page, TRUE);
 
-        //	Check for this index to verify the search was successful
+        //  Check for this index to verify the search was successful
         if (!isset($results['current_observation']) || !($conditions = $results['current_observation']))
             throw new WeatherException("Weather::weather: Current observation not available for '$location'.");
 
         $output = [ ];
 
-        //	Location, conditions, temperature
+        //  Location, conditions, temperature
         $output[] = sprintf(
             "Current conditions for %s: %s (%s).",
             bold($conditions['display_location']['full']),
@@ -268,7 +268,7 @@ class Weather extends WebModule {
             )
         );
 
-        //	Only include heat index/wind chill if it is different
+        //  Only include heat index/wind chill if it is different
         if ($conditions['temp_f'] != $conditions['feelslike_f'])
             $output[] = sprintf(
                 "Feels like %s.",
@@ -280,7 +280,7 @@ class Weather extends WebModule {
                 )
             );
 
-        //	Humidity, wind
+        //  Humidity, wind
         $output[] = sprintf(
             "Humidity: %s. Wind: From %s at %s.",
             $conditions['relative_humidity'],
@@ -293,7 +293,7 @@ class Weather extends WebModule {
             )
         );
 
-        //	Only include wind gusts if they are different
+        //  Only include wind gusts if they are different
         if ($conditions['wind_mph'] < $conditions['wind_gust_mph'])
             $output[] = sprintf(
                 "Gusting to %s.",
@@ -322,13 +322,13 @@ class Weather extends WebModule {
         $page = resourceBody("http://api.wunderground.com/api/$APIKey/forecast$location.json");
         $results = json_decode($page, TRUE);
 
-        //	Check for this index to verify the search was successful
+        //  Check for this index to verify the search was successful
         if (empty($results['forecast']['simpleforecast']['forecastday']))
             throw new WeatherException("Forecast is not available for '$location'.");
         $forecast = $results['forecast']['simpleforecast']['forecastday'];
 
         $output = [ ];
-        //	Add a configurable number of days
+        //  Add a configurable number of days
         for ($day = 0; $day < self::FORECAST_DAYS; $day++) {
             $conditions = $forecast[$day];
 

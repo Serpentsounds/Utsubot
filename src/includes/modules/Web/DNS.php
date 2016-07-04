@@ -68,22 +68,22 @@ class DNS extends WebModule {
      * @usage !dns <host>
      */
     public function dns(IRCMessage $msg) {
-        //	Make sure the host isn't bogus before attempting dns
+        //  Make sure the host isn't bogus before attempting dns
         if (!preg_match('/^([A-Z0-9\-]+\.)+[A-Z0-9\-]+\.?$/i', $msg->getCommandParameterString(), $match))
             throw new DNSException("Invalid hostname format.");
 
-        //	Append trailing . to speed up the return in some cases
+        //  Append trailing . to speed up the return in some cases
         if (substr($match[0], -1) != ".")
             $match[0] .= ".";
 
-        //	dns_get_record will throw an error if lookup fails, so @suppress it and throw an exception instead
+        //  dns_get_record will throw an error if lookup fails, so @suppress it and throw an exception instead
         $records = @dns_get_record($match[0], DNS_A + DNS_AAAA + DNS_CNAME);
         if (!$records)
             throw new DNSException("No DNS record found.");
 
         $result = [ ];
 
-        //	Filter DNS record array based on record type
+        //  Filter DNS record array based on record type
         foreach ($records as $entry) {
             switch ($entry['type']) {
 
@@ -101,7 +101,7 @@ class DNS extends WebModule {
             }
         }
 
-        //	Join multiple entries of the same type with a comma
+        //  Join multiple entries of the same type with a comma
         $response = [ ];
         foreach ($result as $type => $arr)
             $response[] = implode(", ", $arr)." [$type]";

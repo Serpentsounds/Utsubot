@@ -44,7 +44,7 @@ class PokemonException extends PokemonBaseException {
  */
 class Pokemon extends PokemonBase {
 
-    //	Max number of each attribute per pokemon
+    //  Max number of each attribute per pokemon
     const Number_of_Types     = 2;
     const Number_of_Abilities = 3;
     const Number_of_EggGroups = 2;
@@ -70,7 +70,7 @@ class Pokemon extends PokemonBase {
     private $preEvolutions  = [ ];
     private $alternateForms = [ ];
 
-    //	Attributes
+    //  Attributes
     private $baseStats     = [ 0, 0, 0, 0, 0, 0 ];
     private $evYield       = [ 0, 0, 0, 0, 0, 0 ];
     private $types         = [ "", "" ];
@@ -82,14 +82,14 @@ class Pokemon extends PokemonBase {
     private $baseHappiness = 0;
     private $isBaby        = false;
 
-    //	Pokedex Fields
+    //  Pokedex Fields
     private $dexNumbers = [ ];
     private $dexEntries = [ ];
     private $species    = [ ];
     private $habitat    = "";
     private $color      = "";
-    private $height     = 0;    //	In meters
-    private $weight     = 0;    //	In kilograms
+    private $height     = 0;    //  In meters
+    private $weight     = 0;    //  In kilograms
 
 
     /**
@@ -107,15 +107,15 @@ class Pokemon extends PokemonBase {
      * @return bool Search result
      */
     public function search($search): bool {
-        //	Test base search function in PokemonBase
+        //  Test base search function in PokemonBase
         if (parent::search($search))
             return true;
 
-        //	If no match, attempt to match this pokemon's regular expression search
+        //  If no match, attempt to match this pokemon's regular expression search
         elseif ($this->regexSearch != "//" && preg_match($this->regexSearch, $search))
             return true;
 
-        //	No match
+        //  No match
         return false;
     }
 
@@ -244,6 +244,15 @@ class Pokemon extends PokemonBase {
 
 
     /**
+     * @param string $ability
+     * @return bool
+     */
+    public function hasAbility(string $ability): bool {
+        return (in_array(strtolower($ability), array_map("strtolower", $this->abilities)));
+    }
+
+
+    /**
      * Get a base stat value
      *
      * @param Stat $stat
@@ -315,6 +324,15 @@ class Pokemon extends PokemonBase {
      */
     public function getTypes(): array {
         return array_filter($this->types);
+    }
+
+
+    /**
+     * @param string $type
+     * @return bool
+     */
+    public function hasType(string $type): bool {
+        return (in_array(strtolower($type), array_map("strtolower", $this->types)));
     }
 
 
@@ -555,11 +573,11 @@ class Pokemon extends PokemonBase {
      * @throws PokemonException Expression can't be compiled
      */
     public function setRegexSearch(string $regex) {
-        //	Ensure regex delimeters are in place
+        //  Ensure regex delimeters are in place
         if (substr($regex, 0, 1) != substr($regex, -1))
             $regex = "/$regex/";
 
-        //	Must be a valid regular expression
+        //  Must be a valid regular expression
         if (@preg_match($regex, null) === false)
             throw new PokemonException("Invalid regular expression '$regex'.");
 

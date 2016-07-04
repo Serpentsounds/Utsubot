@@ -99,7 +99,7 @@ class Google extends WebModule {
     public function google(IRCMessage $msg) {
         $this->requireParameters($msg, 1);
 
-        //	Try and get user's safe-search settings
+        //  Try and get user's safe-search settings
         try {
             $this->getSetting($msg->getNick(), $this->getSettingObject("safesearch"));
             $safe = true;
@@ -109,7 +109,7 @@ class Google extends WebModule {
             $safe = self::SafeSearch;
         }
 
-        //	Try and get user's # of results settings
+        //  Try and get user's # of results settings
         try {
             $results = (int)$this->getSetting($msg->getNick(), $this->getSettingObject("googleresults"));
         }
@@ -120,13 +120,13 @@ class Google extends WebModule {
 
         $parameters = $copy = $msg->getCommandParameters();
         $first = array_shift($copy);
-        //	Optionally accept an override for result count
+        //  Optionally accept an override for result count
         if (preg_match('/^results:(\d+)$/i', $first, $match)) {
             $results = min(self::MaxResults, (int)$match[1]);
             $parameters = $copy;
         }
 
-        //	Perform google search. May throw a GoogleException, if no results are found
+        //  Perform google search. May throw a GoogleException, if no results are found
         $result = $this->googleSearch(implode(" ", $parameters), $results, $safe);
 
         $this->respond($msg, $result);

@@ -60,8 +60,8 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
         $nationalDex = new Dex(Dex::National);
 
-        /*	Main pokemon, no forms
-            Includes generation, capture rate, color, base happiness, habitat, baby (y/n), steps to hatch, gender ratio	*/
+        /*  Main pokemon, no forms
+            Includes generation, capture rate, color, base happiness, habitat, baby (y/n), steps to hatch, gender ratio  */
         $species = $this->getSpecies();
         foreach ($species as $row) {
             $newPokemon = new Pokemon();
@@ -91,7 +91,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
             $pokemon[ $row[ 'id' ] ] = $newPokemon;
         }
 
-        //	Populate names in all languages, as well as dex species ("genus")
+        //  Populate names in all languages, as well as dex species ("genus")
         $name = $this->getName();
         foreach ($name as $row) {
             $language = Language::fromName($row[ 'language' ]);
@@ -102,21 +102,21 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                 ->setSpecies((string)$row[ 'genus' ], $language);
         }
 
-        //	Populate egg breeding groups
+        //  Populate egg breeding groups
         $eggGroup = $this->getEggGroup();
         foreach ($eggGroup as $row)
             $pokemon[ $row[ 'species_id' ] ]
                 ->addEggGroup((string)$row[ 'name' ]);
 
-        /*	Add entries for forms with stat/type changes
-            Update these and base entries with height, weight, base experience, and dexnum	*/
+        /*  Add entries for forms with stat/type changes
+            Update these and base entries with height, weight, base experience, and dexnum  */
         $pokemonRow = $this->getPokemonRow();
         foreach ($pokemonRow as $row) {
-            //	Copy base info from main species for alts
+            //  Copy base info from main species for alts
             if (!isset($pokemon[ $row[ 'id' ] ]))
                 $pokemon[ $row[ 'id' ] ] = clone $pokemon[ $row[ 'species_id' ] ];
 
-            //	Alt pokemon, update main name to reflect that
+            //  Alt pokemon, update main name to reflect that
             if ($row[ 'id' ] > 10000) {
                 #$pokemon[$row['id']]
                 #    ->setName(ucwords($row['identifier']), new Language(Language::English));
@@ -134,10 +134,10 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                 ->setDexNumber((int)$row[ 'species_id' ], $nationalDex);
         }
 
-        //	Populate other alt forms (semantic changes), create references to all alts in main pokemon
+        //  Populate other alt forms (semantic changes), create references to all alts in main pokemon
         $alt = $this->getAlt();
         foreach ($alt as $row) {
-            //	If form_identifier isn't blank, it is an actual alt form, not a row for base pokemon
+            //  If form_identifier isn't blank, it is an actual alt form, not a row for base pokemon
             if ($row[ 'form_identifier' ]) {
                 $info = [
                     'name' => $row[ 'identifier' ],
@@ -145,31 +145,31 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                     'id'   => $row[ 'pokemon_id' ]
                 ];
 
-                //	References a form with its own 'pokemon' entry, meaning changed stats/type/etc, but we want a reference entry under the original pokemon
+                //  References a form with its own 'pokemon' entry, meaning changed stats/type/etc, but we want a reference entry under the original pokemon
                 if ($row[ 'pokemon_id' ] > 10000)
                     $pokemon[ $pokemon[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
                         ->addToAlternateForm($row[ 'form_order' ] - 1, $info);
 
-                //	Semantic form change, the pokemon_id will be the same as the original pokemon
+                //  Semantic form change, the pokemon_id will be the same as the original pokemon
                 else
                     $pokemon[ $row[ 'pokemon_id' ] ]
                         ->addToAlternateForm($row[ 'form_order' ] - 1, $info);
             }
         }
 
-        //	Populate names in all languages for alt forms
+        //  Populate names in all languages for alt forms
         $altName = $this->getAltName();
         foreach ($altName as $row) {
             $language = Language::fromName($row[ 'language' ]);
 
-            //	Compound form name with original pokemon name
+            //  Compound form name with original pokemon name
             if ($row[ 'pokemon_id' ] > 10000) {
                 $name = $row[ 'pokemon_name' ] ?? $row[ 'form_name' ];
                 $pokemon[ $row[ 'pokemon_id' ] ]
                     ->setName($name, $language);
             }
 
-            //	Save form name in original pokemon
+            //  Save form name in original pokemon
             else
                 $pokemon[ $pokemon[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
                     ->addToAlternateForm(
@@ -178,13 +178,13 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                     );
         }
 
-        //	Populate all dex numbers
+        //  Populate all dex numbers
         $dexnum = $this->getDexnum();
         foreach ($dexnum as $row)
             $pokemon[ $row[ 'species_id' ] ]
                 ->setDexNumber((int)$row[ 'pokedex_number' ], new Dex(Dex::findValue($row[ 'name' ])));
 
-        //	Populate evolution data
+        //  Populate evolution data
         $evoData       = $this->getEvolution();
         $genderIds     = [ 1 => "Female", 2 => "Male" ];
         $relativeStats = [ -1 => "Atk<Def", 0 => "Atk=Def", 1 => "Atk>Def" ];
@@ -317,13 +317,13 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                 $pokemon[ $row[ 'evo' ] ]->addPreEvolution(clone $evolution);
         }
 
-        //	Populate type(s)
+        //  Populate type(s)
         $type = $this->getPokemonType();
         foreach ($type as $row)
             $pokemon[ $row[ 'pokemon_id' ] ]
                 ->setType($row[ 'slot' ] - 1, $row[ 'identifier' ]);
 
-        //	Populate base stats and effort values rewarded
+        //  Populate base stats and effort values rewarded
         $stats = $this->getPokemonStats();
         foreach ($stats as $row) {
             $stat = new Stat(Stat::findValue($row[ 'identifier' ]));
@@ -334,7 +334,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                 ->setEVYield($stat, $row[ 'effort' ]);
         }
 
-        //	Populate abilities
+        //  Populate abilities
         $ability = $this->getPokemonAbility();
         foreach ($ability as $row)
             $pokemon[ $row[ 'pokemon_id' ] ]
@@ -936,11 +936,11 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getMoveRow() {
         return $this->query(
-            "SELECT	  `m`.*, `t`.`identifier` AS `type`, `mdc`.`identifier` AS `damage`, `mt`.`identifier` AS `target`, `mep`.`effect`, `mep`.`short_effect`
+            "SELECT    `m`.*, `t`.`identifier` AS `type`, `mdc`.`identifier` AS `damage`, `mt`.`identifier` AS `target`, `mep`.`effect`, `mep`.`short_effect`
 
             FROM      `moves` `m`, `types` `t`, `move_damage_classes` `mdc`, `move_targets` `mt`, `move_effect_prose` `mep`
             
-            WHERE	  `m`.`type_id`=`t`.`id` AND `m`.`damage_class_id`=`mdc`.`id` AND `m`.`target_id`=`mt`.`id` AND `m`.`effect_id`=`mep`.`move_effect_id` AND `mep`.`local_language_id`=9
+            WHERE    `m`.`type_id`=`t`.`id` AND `m`.`damage_class_id`=`mdc`.`id` AND `m`.`target_id`=`mt`.`id` AND `m`.`effect_id`=`mep`.`move_effect_id` AND `mep`.`local_language_id`=9
             
             ORDER BY  `m`.`id` ASC"
         );
@@ -952,12 +952,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getMoveContest() {
         return $this->query(
-            "SELECT	  `m`.*, `ct`.`identifier` AS `contestType`, `ce`.`appeal` AS `contestAppeal`, `ce`.`jam`, `cep`.`flavor_text` AS `contestFlavor`, `cep`.`effect` AS `contestEffect`,
+            "SELECT    `m`.*, `ct`.`identifier` AS `contestType`, `ce`.`appeal` AS `contestAppeal`, `ce`.`jam`, `cep`.`flavor_text` AS `contestFlavor`, `cep`.`effect` AS `contestEffect`,
                       `sce`.`appeal` AS `superContestAppeal`, `scep`.`flavor_text` AS `superContestFlavor`
                       
-            FROM	  `moves` `m`, `contest_types` `ct`, `contest_effects` `ce`, `contest_effect_prose` `cep`, `super_contest_effects` `sce`, `super_contest_effect_prose` `scep`
+            FROM    `moves` `m`, `contest_types` `ct`, `contest_effects` `ce`, `contest_effect_prose` `cep`, `super_contest_effects` `sce`, `super_contest_effect_prose` `scep`
             
-            WHERE	  `m`.`contest_type_id`=`ct`.`id` AND `m`.`contest_effect_id`=`ce`.`id` AND `ce`.`id`=`cep`.`contest_effect_id` AND `cep`.`local_language_id`=9 AND
+            WHERE    `m`.`contest_type_id`=`ct`.`id` AND `m`.`contest_effect_id`=`ce`.`id` AND `ce`.`id`=`cep`.`contest_effect_id` AND `cep`.`local_language_id`=9 AND
                       `m`.`super_contest_effect_id`=`sce`.`id` AND `sce`.`id`=`scep`.`super_contest_effect_id` AND `scep`.`local_language_id`=9
                       
             ORDER BY  `m`.`id` ASC"
