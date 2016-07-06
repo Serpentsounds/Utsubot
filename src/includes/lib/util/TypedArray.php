@@ -38,6 +38,7 @@ abstract class TypedArray extends ArrayObject {
 
     /**
      * TypedArray constructor.
+     * Verify each element matches the configured class.
      *
      * @param array  $input
      * @param int    $flags
@@ -55,6 +56,8 @@ abstract class TypedArray extends ArrayObject {
 
 
     /**
+     * Only allow items of the configured class to be added.
+     * 
      * @param mixed $key
      * @param mixed $value
      * @throws TypedArrayException

@@ -8,17 +8,18 @@ declare(strict_types = 1);
 
 namespace Utsubot\Includes;
 
-
 /**
  * Class ItemList
  * Base class for ClassList and FileList used in !includes processing
  *
  * @package Utsubot\Includes
  */
-class ItemList {
+class ItemList implements \Iterator {
 
+    protected $index = 0;
     /** @var string[] $list */
     protected $list = [ ];
+
 
     /**
      * ItemList constructor.
@@ -30,6 +31,7 @@ class ItemList {
             $this->add($item);
     }
 
+
     /**
      * Add an item to the list
      *
@@ -38,6 +40,7 @@ class ItemList {
     public function add(string $item) {
         $this->list[] = $item;
     }
+
 
     /**
      * Get the number of saved items
@@ -48,6 +51,7 @@ class ItemList {
         return count($this->list);
     }
 
+
     /**
      * Sort the internal list
      */
@@ -55,9 +59,10 @@ class ItemList {
         sort($this->list);
     }
 
+
     /**
      * Filter down the internal list to a subset if it contains a given string
-     * 
+     *
      * @param string $search
      */
     public function filterList(string $search) {
@@ -68,6 +73,7 @@ class ItemList {
             }
         );
     }
+
 
     /**
      * Get a concatenated string of the saved classes
@@ -84,8 +90,55 @@ class ItemList {
         //  Append the count of omitted items if any had to be omitted
         $numberOfItems = count($this->list);
         if ($cutoff > 0 && $numberOfItems > $cutoff)
-            $output[] = "and ". ($numberOfItems - $cutoff). " more.";
+            $output[] = "and ".($numberOfItems - $cutoff)." more.";
 
-        return "There are {$this->getItemCount()} items: ". implode(", ", $output);
+        return "There are {$this->getItemCount()} items: ".implode(", ", $output);
     }
+
+
+    /**
+     * Reset Iterator position
+     */
+    public function rewind() {
+        $this->index = 0;
+    }
+
+
+    /**
+     * Get current object from Iterator
+     *
+     * @return mixed
+     */
+    public function current() {
+        return $this->list[ $this->index ];
+    }
+
+
+    /**
+     * Get current position from Iterator
+     *
+     * @return int
+     */
+    public function key() {
+        return $this->index;
+    }
+
+
+    /**
+     * Advance Iterator to next position
+     */
+    public function next() {
+        ++$this->index;
+    }
+
+
+    /**
+     * Check if Iterator has a valid item to give
+     *
+     * @return bool
+     */
+    public function valid(): bool {
+        return isset($this->list[ $this->index ]);
+    }
+
 }

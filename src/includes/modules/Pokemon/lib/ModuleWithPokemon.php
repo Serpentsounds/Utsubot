@@ -124,7 +124,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
                         if (is_numeric($firstWord) && intval($firstWord) == $firstWord) {
                             /** @var PokemonBase $item */
                             $item = $this->getManager()->get(intval($firstWord));
-                            $result->addItem($item);
+                            $result->append($item);
                         }
                         //  Throw control to catch block to stay in loop
                         else
@@ -135,7 +135,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
                     case 1:
                         /** @var PokemonBase $item */
                         $item = $this->getManager()->findFirst($parameterString);
-                        $result->addItem($item);
+                        $result->append($item);
                         break;
 
                     //  Attempt to spell check parameters vs. English names of Pokemon
@@ -162,7 +162,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
         }
 
         //  Still no results, end with error
-        if (!$result->itemCount())
+        if (!$result->count())
             throw new ModuleWithPokemonException("No items matching '$parameterString' were found.");
 
         return $result;

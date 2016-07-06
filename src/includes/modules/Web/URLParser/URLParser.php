@@ -9,6 +9,7 @@ declare(strict_types = 1);
 
 namespace Utsubot\Web;
 
+
 use Utsubot\{
     IRCBot,
     IRCMessage
@@ -28,6 +29,7 @@ class URLParserException extends WebModuleException {
 
 }
 
+
 /**
  * Class URLParser
  *
@@ -35,9 +37,9 @@ class URLParserException extends WebModuleException {
  */
 class URLParser extends WebModule {
 
-    const MAX_URLS_PER_LINE        = 3;
-    const WIKIPEDIA_PREVIEW_LENGTH = 350;
-    const URL_CACHE_DELAY          = 1800;
+    const Max_URLs_Per_Line        = 3;
+    const Wikipedia_Preview_Length = 350;
+    const URL_Cache_Time           = 1800;
 
     /** @var URLParserRegex[] $URLRegexes */
     private $URLRegexes = [ ];
@@ -81,16 +83,19 @@ class URLParser extends WebModule {
             $return = [ ];
             if (preg_match_all('/https?:\/\/[^\s\x01\x02\x03\x0F\x1D\x1F]+|(?:https?:\/\/)?www\.[^\s\x01\x02\x03\x0F\x1D\x1F]+/i', $msg->getParameterString(), $match, PREG_PATTERN_ORDER)) {
 
+                //  For each URL
                 foreach ($match[ 0 ] as $url) {
+                    //  Parse into relevant info
                     try {
                         $return[] = $this->parseURL($url, $msg);
                     }
+                        //  Or output error to console
                     catch (\Exception $e) {
                         $this->status($e->getMessage());
                     }
 
                     //  URL limit reached, jump to output
-                    if (count($return) >= self::MAX_URLS_PER_LINE)
+                    if (count($return) >= self::Max_URLs_Per_Line)
                         break;
                 }
 
@@ -213,8 +218,9 @@ class URLParser extends WebModule {
      */
     private function checkCache(string $item, string $cache, string $target) {
         $time = time();
-        if (isset($this->URLCache[ $cache ][ $target ][ $item ]) &&
-            $time - $this->URLCache[ $cache ][ $target ][ $item ] <= self::URL_CACHE_DELAY
+        if (
+            isset($this->URLCache[ $cache ][ $target ][ $item ]) &&
+            $time - $this->URLCache[ $cache ][ $target ][ $item ] <= self::URL_Cache_Time
         )
             throw new URLParserException("Item '$item' is currently cached for '$target' under '$cache'.");
 
@@ -335,8 +341,8 @@ class URLParser extends WebModule {
                 $output   = implode(" ", $return);
 
                 //  Preview length exceeded, crop and break for output
-                if (mb_strlen($output) > self::WIKIPEDIA_PREVIEW_LENGTH) {
-                    $output = mb_substr($output, 0, self::WIKIPEDIA_PREVIEW_LENGTH)."...";
+                if (mb_strlen($output) > self::Wikipedia_Preview_Length) {
+                    $output = mb_substr($output, 0, self::Wikipedia_Preview_Length)."...";
                     break;
                 }
             }

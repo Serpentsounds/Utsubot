@@ -35,7 +35,7 @@ class Admin extends ModuleWithPermission {
         $this->addTrigger(new Trigger("part", [ $this, "_part" ]));
 
         $this->addTrigger(new Trigger("say", [ $this, "say" ]));
-        $this->addTrigger(new Trigger("act", [ $this, "act" ]));
+        $this->addTrigger(new Trigger("act", [ $this, "say" ]));
     }
 
 

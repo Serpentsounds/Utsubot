@@ -16,9 +16,9 @@ use Utsubot\Help\{
 use Utsubot\{
     IRCBot,
     IRCMessage,
+    SQLiteDatbaseCredentials,
     Trigger,
     ModuleException,
-    MySQLDatabaseCredentials,
     DatabaseInterfaceException
 };
 use function Utsubot\bold;
@@ -62,7 +62,7 @@ class GameNetworking extends ModuleWithPermission implements IHelp {
         parent::__construct($irc);
 
         $this->interface = new GameNetworkingDatabaseInterface(
-            MySQLDatabaseCredentials::createFromConfig("utsubot"),
+            SQLiteDatbaseCredentials::createFromConfig("utsulite"),
             $users = $this->IRCBot->getUsers(),
             $accounts = $this->getAccounts()
         );

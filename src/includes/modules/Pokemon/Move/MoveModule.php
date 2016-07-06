@@ -85,7 +85,7 @@ class MoveModule extends ModuleWithPokemon {
 
         $result = $this->getObject(implode(" ",  $parameters));
         /** @var Move $move */
-        $move = $result->current();
+        $move = $result->offsetGet(0);
         $moveInfo = new MoveInfoFormat($move);
         $return = $moveInfo->parseFormat();
 

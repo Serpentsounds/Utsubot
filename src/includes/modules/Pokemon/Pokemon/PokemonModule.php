@@ -112,7 +112,7 @@ class PokemonModule extends ModuleWithPokemon {
             throw new PokemonModuleException("No Pokemon given.");
 
         $result = $this->getObject($msg->getCommandParameterString());
-        $info   = new PokemonInfoFormat($result->current());
+        $info   = new PokemonInfoFormat($result->offsetGet(0));
 
         $format = null;
         //  Try to replace default format with user-defined format, if possible
@@ -218,7 +218,7 @@ class PokemonModule extends ModuleWithPokemon {
         array_unshift($parameters, $switch);
 
         /** @var Pokemon $result */
-        $result = $this->getObject(implode(" ", $parameters))->current();
+        $result = $this->getObject(implode(" ", $parameters))->offsetGet(0);
 
         if ($version === null)
             $output = $result->getLatestFormattedDexEntry($language);
@@ -259,7 +259,7 @@ class PokemonModule extends ModuleWithPokemon {
                     $result = $this->getObject($name, false);
 
                     //  Success, save and move to next section of input
-                    $pokemonList[ $i ] = $result->current();
+                    $pokemonList[ $i ] = $result->offsetGet(0);
                     $next += $words;
                     break;
                 }

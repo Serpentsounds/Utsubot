@@ -14,12 +14,7 @@ use Utsubot\Help\{
     THelp
 };
 use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    ModuleException,
-    DatabaseInterface,
-    MySQLDatabaseCredentials
+    IRCBot, IRCMessage, SQLiteDatbaseCredentials, Trigger, ModuleException, DatabaseInterface, MySQLDatabaseCredentials
 };
 
 
@@ -56,7 +51,7 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
         parent::__construct($irc);
 
-        $this->interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        $this->interface = new DatabaseInterface(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
         $this->updateCustomTriggerCache();
 
         //  Command triggers
@@ -327,7 +322,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     public function updateCustomTriggerCache() {
         $results = $this->interface->query(
-            "SELECT * FROM `custom_commands_triggers`",
+            'SELECT *
+            FROM "custom_commands_triggers"',
             [ ]);
 
         $this->customTriggers = [ ];
@@ -343,7 +339,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     private function triggerCommand($commandID, IRCMessage $msg) {
         $commandInfo = $this->interface->query(
-            "SELECT * FROM `custom_commands` WHERE `id`=? LIMIT 1",
+            'SELECT *
+            FROM "custom_commands"
+            WHERE "id"=?',
             [ $commandID ]
         );
 
@@ -352,7 +350,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
         $commandInfo = $commandInfo[ 0 ];
 
         $results = $this->interface->query(
-            "SELECT * FROM `custom_commands_parameters` WHERE `custom_commands_id`=?",
+            'SELECT *
+            FROM "custom_commands_parameters"
+            WHERE "custom_commands_id"=?',
             [ $commandID ]
         );
 
@@ -399,7 +399,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     private function createCommand($command, $type, $format) {
         $rowCount = $this->interface->query(
-            "INSERT INTO `custom_commands` (`name`, `type`, `format`) VALUES (?, ?, ?)",
+            'INSERT INTO "custom_commands" ("name", "type", "format")
+            VALUES (?, ?, ?)',
             [ $command, $type, $format ]
         );
 
@@ -417,7 +418,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     private function destroyCommand($command) {
         $rowCount = $this->interface->query(
-            "DELETE FROM `custom_commands` WHERE `name`=? LIMIT 1",
+            'DELETE FROM "custom_commands"
+            WHERE "name"=?',
             [ $command ]
         );
 
@@ -437,7 +439,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     private function getCommandId($command) {
         $results = $this->interface->query(
-            "SELECT `id` FROM `custom_commands` WHERE `name`=? LIMIT 1",
+            'SELECT "id"
+            FROM "custom_commands"
+            WHERE "name"=?',
             [ $command ]
         );
 
@@ -457,7 +461,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function setFormat($command, $format) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
-            "UPDATE `custom_commands` SET `format`=? WHERE `id`=? LIMIT 1",
+            'UPDATE "custom_commands"
+            SET "format"=?
+            WHERE "id"=?',
             [ $format, $id ]
         );
 
@@ -475,7 +481,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     private function getFormat($command) {
         $results = $this->interface->query(
-            "SELECT `format` FROM `custom_commands` WHERE `name`=? LIMIT 1",
+            'SELECT "format"
+            FROM "custom_commands"
+            WHERE "name"=?',
             [ $command ]
         );
 
@@ -495,7 +503,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function setType($command, $type) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
-            "UPDATE `custom_commands` SET `type`=? WHERE `id`=? LIMIT 1",
+            'UPDATE "custom_commands"
+            SET "type"=?
+            WHERE "id"=?',
             [ $type, $id ]
         );
 
@@ -513,7 +523,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
      */
     private function getType($command) {
         $results = $this->interface->query(
-            "SELECT `type` FROM `custom_commands` WHERE `name`=? LIMIT 1",
+            'SELECT "type"
+            FROM "custom_commands"
+            WHERE "name"=?',
             [ $command ]
         );
 
@@ -537,7 +549,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
         $id = $this->getCommandId($command);
         try {
             $this->interface->query(
-                "INSERT INTO `custom_commands_triggers` (`custom_commands_id`, `value`) VALUES (?, ?)",
+                'INSERT INTO "custom_commands_triggers" ("custom_commands_id", "value")
+                VALUES (?, ?)',
                 [ $id, $trigger ]
             );
 
@@ -560,7 +573,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function removeCustomTrigger($command, $trigger) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
-            "DELETE FROM `custom_commands_triggers` WHERE `custom_commands_id`=? AND `value`=? LIMIT 1",
+            'DELETE FROM "custom_commands_triggers"
+            WHERE "custom_commands_id"=?
+            AND "value"=?',
             [ $id, $trigger ]
         );
 
@@ -581,7 +596,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function clearCustomTriggers($command) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
-            "DELETE FROM `custom_commands_triggers` WHERE `custom_commands_id`=?",
+            'DELETE FROM "custom_commands_triggers"
+            WHERE "custom_commands_id"=?',
             [ $id ]
         );
 
@@ -620,7 +636,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function addListItem($command, $item, $slot = 1) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
-            "INSERT INTO `custom_commands_parameters` (`custom_commands_id`, `slot`, `value`) VALUES (?, ?, ?)",
+            'INSERT INTO "custom_commands_parameters" ("custom_commands_id", "slot", "value")
+            VALUES (?, ?, ?)',
             [ $id, $slot, $item ]
         );
 
@@ -641,7 +658,10 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function removeListItem($command, $item, $slot = 1) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
-            "DELETE FROM `custom_commands_parameters` WHERE `custom_commands_id`=? AND `slot`=? AND `value`=? LIMIT 1",
+            'DELETE FROM "custom_commands_parameters"
+            WHERE "custom_commands_id"=?
+            AND "slot"=?
+            AND "value"=?',
             [ $id, $slot, $item ]
         );
 
@@ -661,7 +681,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function clearListItems($command, $slot = 1) {
         $id       = $this->getCommandId($command);
         $rowCount = $this->interface->query(
-            "DELETE FROM `custom_commands_parameters` WHERE `custom_commands_id`=? AND `slot`=?",
+            'DELETE FROM "custom_commands_parameters"
+            WHERE "custom_commands_id"=?
+            AND "slot"=?',
             [ $id, $slot ]
         );
 
@@ -681,7 +703,10 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
     private function getListItems($command, $slot = 1) {
         $id      = $this->getCommandId($command);
         $results = $this->interface->query(
-            "SELECT `value` FROM `custom_commands_parameters` WHERE `custom_commands_id`=? AND `slot`=?",
+            'SELECT "value"
+            FROM "custom_commands_parameters"
+            WHERE "custom_commands_id"=?
+            AND "slot"=?',
             [ $id, $slot ]
         );
 

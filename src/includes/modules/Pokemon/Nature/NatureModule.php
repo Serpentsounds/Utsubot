@@ -111,7 +111,7 @@ class NatureModule extends ModuleWithPokemon {
         }
 
         else
-            $nature = $this->getObject($parameters[ 0 ])->current();
+            $nature = $this->getObject($parameters[ 0 ])->offsetGet(0);
 
         $natureInfo = new NatureInfoFormat($nature);
         $this->respond($msg, $natureInfo->parseFormat());

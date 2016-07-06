@@ -26,8 +26,8 @@ class FileException extends \Exception {
  */
 class File {
 
-    const SIZE_FORMAT  = "%.2fKiB";
-    const SIZE_DIVISOR = 1024;
+    const Size_Format  = "%.2fKiB";
+    const Size_Divisor = 1024;
 
     /** @var int $lineCount */
     private $lineCount;
@@ -89,7 +89,7 @@ class File {
      * @return string
      */
     public function getFormattedSize(): string {
-        return sprintf(self::SIZE_FORMAT, $this->size / self::SIZE_DIVISOR);
+        return sprintf(self::Size_Format, $this->size / self::Size_Divisor);
     }
 
 

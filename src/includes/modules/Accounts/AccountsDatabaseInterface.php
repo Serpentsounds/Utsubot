@@ -7,8 +7,11 @@
 
 namespace Utsubot\Accounts;
 
+
 use Utsubot\{
-    DatabaseInterface, DatabaseInterfaceException, SQLiteDatbaseCredentials
+    DatabaseInterface,
+    DatabaseInterfaceException,
+    SQLiteDatbaseCredentials
 };
 
 
@@ -21,6 +24,7 @@ class AccountsDatabaseInterfaceException extends DatabaseInterfaceException {
 
 }
 
+
 /**
  * Class AccountsDatabaseInterface
  *
@@ -32,7 +36,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      * AccountsDatabaseInterface constructor.
      */
     public function __construct() {
-        parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsubot"));
+        parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
 
         $this->createTables();
         $this->checkForAdmin();
@@ -58,6 +62,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
 
             echo "Accounts 'users' table was successfully created.\n\n";
         }
+
             //  Table already exists, do nothing
         catch (\PDOException $e) {
         }
@@ -73,8 +78,10 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                   "max_entries" INTEGER DEFAULT 0 NOT NULL
                 )'
             );
+
             echo "Accounts 'account_settings' table was successfully created.\n\n";
         }
+
             //  Table already exists, do nothing
         catch (\PDOException $e) {
         }
@@ -91,8 +98,10 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                   FOREIGN KEY ("account_setting_id") REFERENCES "account_settings" ("id")
                 )'
             );
+
             echo "Accounts 'users_account_settings' table was successfully created.\n\n";
         }
+
             //  Table already exists, do nothing
         catch (\PDOException $e) {
         }
@@ -111,8 +120,8 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         );
 
         //  No users with level 100, likely first run
-        if (!count($admins)) {
-            echo "There are no administrator users in the Accounts database. Please create one now.\n";
+        if (!$admins) {
+            echo "There is no administrator user in the Accounts database. Please create one now.\n";
 
             //  Prompt for username
             do {
@@ -131,12 +140,13 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                     VALUES (?, ?, ?)',
                     [ $username, md5($password), 100 ]
                 );
+
                 echo "Your account has successfully been registered as the administrator.\n\n";
             }
-                //  Kill the program if we cannot create an administrator user.
+
+                //  Unable to create an administrator user.
             catch (\PDOException $e) {
-                echo "Unable to create administrator user. The program will now exit.\n";
-                exit;
+                echo "An error occured while attempting to create the administrator user.\n";
             }
         }
 
@@ -151,14 +161,18 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      * @throws AccountsDatabaseInterfaceException
      */
     public function registerUser(string $username, string $password) {
-        $rowCount = $this->query(
-            'INSERT INTO "users" ("username", "password")
-            VALUES (?, ?)',
-            [ $username, md5($password) ]
-        );
+        try {
+            $this->query(
+                'INSERT INTO "users" ("username", "password")
+                VALUES (?, ?)',
+                [ $username, md5($password) ]
+            );
+        }
 
-        if (!$rowCount)
+        //  Change default PDO error output
+        catch (\PDOException $e) {
             throw new AccountsDatabaseInterfaceException("Username '$username' already exists!");
+        }
     }
 
 
@@ -219,7 +233,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      * @throws AccountsDatabaseInterfaceException If $level isn't an integer or is above 99
      */
     public function setAccess(int $accountID, int $level) {
-        //  Make sure level is an int, and don't give anyone else root access
+        //  Don't give anyone else root access
         if ($level > 99)
             throw new AccountsDatabaseInterfaceException("Level must be an integer below 99.");
 
@@ -376,7 +390,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
             'DELETE FROM "users_account_settings"
             WHERE "user_id"=?
             AND "account_setting_id"=?';
-        
+
         $rowCount = $this->query(
             $query.$constraint,
             $parameters

@@ -7,6 +7,7 @@
 
 namespace Utsubot\Permission;
 
+
 use Utsubot\Accounts\AccountsException;
 use Utsubot\Help\{
     HelpEntry,
@@ -18,8 +19,6 @@ use Utsubot\{
     IRCBot,
     IRCMessage,
     Trigger,
-    DatabaseInterface,
-    MySQLDatabaseCredentials,
     User
 };
 
@@ -33,6 +32,7 @@ class PermissionException extends ModuleException {
 
 }
 
+
 /**
  * Class Permission
  *
@@ -42,8 +42,8 @@ class Permission extends ModuleWithPermission implements IHelp {
 
     use THelp;
 
-    const PERMISSION_ALLOW = 0;
-    const PERMISSION_DENY  = 1;
+    const Allow = 0;
+    const Deny  = 1;
 
     private $interface;
 
@@ -54,12 +54,9 @@ class Permission extends ModuleWithPermission implements IHelp {
      * @param IRCBot $irc
      */
     public function __construct(IRCBot $irc) {
-        $this->_require("Utsubot\\DatabaseInterface");
-        $this->_require("Utsubot\\MySQLDatabaseCredentials");
-
         parent::__construct($irc);
 
-        $this->interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        $this->interface = new PermissionDatabaseInterface();
 
         //  Command triggers
         $triggers              = [ ];
@@ -110,7 +107,7 @@ class Permission extends ModuleWithPermission implements IHelp {
      */
     public function allow(IRCMessage $msg) {
         $this->requireLevel($msg, 75);
-        $this->addPermission(self::PERMISSION_ALLOW, $msg);
+        $this->addPermission(self::Allow, $msg);
     }
 
 
@@ -122,7 +119,7 @@ class Permission extends ModuleWithPermission implements IHelp {
      */
     public function deny(IRCMessage $msg) {
         $this->requireLevel($msg, 75);
-        $this->addPermission(self::PERMISSION_DENY, $msg);
+        $this->addPermission(self::Deny, $msg);
     }
 
 
@@ -134,7 +131,7 @@ class Permission extends ModuleWithPermission implements IHelp {
      */
     public function unallow(IRCMessage $msg) {
         $this->requireLevel($msg, 75);
-        $this->removePermission(self::PERMISSION_ALLOW, $msg);
+        $this->removePermission(self::Allow, $msg);
     }
 
 
@@ -146,7 +143,7 @@ class Permission extends ModuleWithPermission implements IHelp {
      */
     public function undeny(IRCMessage $msg) {
         $this->requireLevel($msg, 75);
-        $this->removePermission(self::PERMISSION_DENY, $msg);
+        $this->removePermission(self::Deny, $msg);
     }
 
 
@@ -163,10 +160,10 @@ class Permission extends ModuleWithPermission implements IHelp {
     private function parseParameters(int $type, array $parameters) {
         //  Validate type
         switch ($type) {
-            case self::PERMISSION_ALLOW:
+            case self::Allow:
                 $type = "allow";
                 break;
-            case self::PERMISSION_DENY:
+            case self::Deny:
                 $type = "deny";
                 break;
             default:
@@ -280,20 +277,7 @@ class Permission extends ModuleWithPermission implements IHelp {
     private function addPermission(int $type, IRCMessage $msg) {
         list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
-        //  Replace null values with "null" to put into database
-        array_walk($values, function (&$element) {
-            if ($element === null)
-                $element = "null";
-        });
-        $value = implode(", ", $values);
-
-        $rowCount = $this->interface->query(
-            "INSERT INTO `command_permission` (`trigger`, `type`, `channel`, `user_id`, `nickname`, `address`, `parameters`) VALUES ($value)",
-            $queryParameters
-        );
-
-        if (!$rowCount)
-            throw new PermissionException("Permission already exists.");
+        $this->interface->addPermission($queryParameters, $values);
 
         $this->respond($msg, "Permission has been added.");
     }
@@ -309,23 +293,7 @@ class Permission extends ModuleWithPermission implements IHelp {
     private function removePermission(int $type, IRCMessage $msg) {
         list($queryParameters, $values) = $this->parseParameters($type, $msg->getCommandParameters());
 
-        //  Form conditionals for each column
-        $columns = [ "`trigger`", "`type`", "`channel`", "`user_id`", "`nickname`", "`address`", "`parameters`" ];
-        array_walk($values, function (&$element, $key) use ($columns) {
-            if ($element === null)
-                $element = $columns[ $key ]." IS NULL";
-            else
-                $element = $columns[ $key ]."=?";
-        });
-        $value = implode(" AND ", $values);
-
-        $rowCount = $this->interface->query(
-            "DELETE FROM `command_permission` WHERE $value LIMIT 1",
-            $queryParameters
-        );
-
-        if (!$rowCount)
-            throw new PermissionException("Permission does not exist.");
+        $this->interface->removePermission($queryParameters, $values);
 
         $this->respond($msg, "Permission has been removed.");
     }
@@ -341,10 +309,7 @@ class Permission extends ModuleWithPermission implements IHelp {
     public function hasPermission(IRCMessage $msg, string $trigger): bool {
         $permission = true;
 
-        $results = $this->interface->query(
-            "SELECT * FROM `command_permission` WHERE `trigger`=?",
-            [ $trigger ]
-        );
+        $results = $this->interface->getPermissionsByTrigger($trigger);
 
         //  No rows affecting this command
         if (!$results)

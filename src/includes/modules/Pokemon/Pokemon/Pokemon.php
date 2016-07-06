@@ -8,7 +8,6 @@
 namespace Utsubot\Pokemon\Pokemon;
 
 
-use Utsubot\Manager\Manageable;
 use Utsubot\Pokemon\{
     Language,
     PokemonBase,

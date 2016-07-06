@@ -84,7 +84,7 @@ class ItemModule extends ModuleWithPokemon {
 
         $result = $this->getObject(implode(" ", $parameters));
         /** @var Item $item */
-        $item     = $result->current();
+        $item     = $result->offsetGet(0);
         $itemInfo = new ItemInfoFormat($item);
         $return   = $itemInfo->parseFormat();
 

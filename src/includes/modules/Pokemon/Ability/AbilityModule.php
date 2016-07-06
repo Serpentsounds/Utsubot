@@ -8,6 +8,7 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon\Ability;
 
+
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
     Gen7DatabaseInterface, ModuleWithPokemon, ModuleWithPokemonException, VeekunDatabaseInterface, Language
@@ -31,6 +32,7 @@ use function Utsubot\bold;
 class AbilityModuleException extends ModuleWithPokemonException {
 
 }
+
 
 /**
  * Class AbilityModule
@@ -92,7 +94,7 @@ class AbilityModule extends ModuleWithPokemon {
 
         $result = $this->getObject(implode(" ", $parameters));
         /** @var Ability $ability */
-        $ability     = $result->current();
+        $ability     = $result->offsetGet(0);
         $abilityInfo = new AbilityInfoFormat($ability);
         $return      = $abilityInfo->parseFormat();
 
@@ -111,11 +113,12 @@ class AbilityModule extends ModuleWithPokemon {
 
                 //  Grab PokemonManager from the Pokemon Module. Exception if it's not loaded
                 $pokemonManager = $this->getOutsideManager("Pokemon");
-                $criteria = new SearchCriteria([
-                                             new SearchCriterion("getAbility", array( 0), new Operator("=="), $abilityName),
-                                             new SearchCriterion("getAbility", array( 1), new Operator("=="), $abilityName),
-                                             new SearchCriterion("getAbility", array( 2), new Operator("=="), $abilityName)
-                ]);
+                $criteria       = new SearchCriteria(
+                    [
+                        new SearchCriterion("getAbility", [ 0 ], new Operator("=="), $abilityName),
+                        new SearchCriterion("getAbility", [ 1 ], new Operator("=="), $abilityName),
+                        new SearchCriterion("getAbility", [ 2 ], new Operator("=="), $abilityName)
+                    ]);
 
                 // Perform a loose search to match any criteria
                 $pokemon = $pokemonManager->advancedSearch($criteria, SearchMode::fromName("Any"));

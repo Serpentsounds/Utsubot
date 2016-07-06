@@ -16,12 +16,12 @@ use Utsubot\Accounts\{
 use Utsubot\{
     IRCBot,
     IRCMessage,
+    SQLiteDatbaseCredentials,
     Trigger,
     Users,
     User,
     ModuleException,
-    DatabaseInterface,
-    MySQLDatabaseCredentials
+    DatabaseInterface
 };
 use function Utsubot\bold;
 
@@ -51,12 +51,9 @@ class Logger extends ModuleWithAccounts {
      * @param IRCBot $irc
      */
     public function __construct(IRCBot $irc) {
-        $this->_require("Utsubot\\DatabaseInterface");
-        $this->_require("Utsubot\\MySQLDatabaseCredentials");
-
         parent::__construct($irc);
 
-        $this->interface = new DatabaseInterface(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        $this->interface = new DatabaseInterface(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
 
         $this->addTrigger(new Trigger("logs", [ $this, "logs" ]));
     }
@@ -74,18 +71,21 @@ class Logger extends ModuleWithAccounts {
         //  Log command
         if ($msg->isCommand() && $msg->responded()) {
 
-            $channel = ($msg->inChannel()) ? $msg->getResponseTarget() : "";
+            $channel = ($msg->inChannel()) ? $msg->getResponseTarget() : null;
 
             $users = $this->IRCBot->getUsers();
 
             //  Get user ID if applicable, to put into database
             $user = $users->createIfAbsent($msg->getNick()."!".$msg->getIdent()."@".$msg->getFullHost());
 
+            //  Log command with user ID
             try {
                 $userID = $this->getAccountIDByUser($user);
                 $this->log(strtolower($msg->responded()), $userID, $channel);
             }
+            //  Log generic user
             catch (AccountsException $e) {
+                $this->log(strtolower($msg->responded()), null, $channel);
             }
         }
     }

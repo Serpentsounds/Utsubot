@@ -8,6 +8,7 @@ declare(strict_types = 1);
 
 namespace Utsubot\Pokemon;
 use Iterator;
+use Utsubot\TypedArray;
 
 
 /**
@@ -15,37 +16,23 @@ use Iterator;
  *
  * @package Utsubot\Pokemon
  */
-class PokemonObjectResult implements Iterator {
-    private $items = [ ];
-    private $index = 0;
+class PokemonObjectResult extends TypedArray {
 
-    /**
-     * @param PokemonBase $item
-     */
-    public function addItem(PokemonBase $item) {
-        $this->items[] = $item;
-    }
+    protected  static $contains = "Utsubot\\Pokemon\\PokemonBase";
 
     /**
      * @param array $items
      */
     public function addItems(array $items) {
         foreach ($items as $item)
-            $this->addItem($item);
-    }
-
-    /**
-     * @return int
-     */
-    public function itemCount(): int {
-        return count($this->items);
+            $this->append($item);
     }
 
     /**
      * If a Jaro search was used, this method will sort results from most similar to least similar
      */
     public function jaroSort() {
-        usort($this->items,
+        $this->uasort(
             //  Sort results to put higher string similarities first
             function(PokemonBase $first, PokemonBase $second) {
                 $jaroFirst = $first->getLastJaroResult()->getSimilarity();
@@ -59,6 +46,9 @@ class PokemonObjectResult implements Iterator {
                 return 0;
             }
         );
+
+        //  No usort method on ArrayObject, so we have to use this lousy workaround to reset key association...
+        $this->exchangeArray(array_values($this->getArrayCopy()));
     }
 
     /**
@@ -67,7 +57,7 @@ class PokemonObjectResult implements Iterator {
      * @return array
      */
     public function getSuggestions(): array {
-        if (count($this->items) <= 1)
+        if ($this->count() <= 1)
             return [ ];
 
         //  Call __toString on all items
@@ -77,7 +67,7 @@ class PokemonObjectResult implements Iterator {
                 return (string)$item;
             },
 
-            array_slice($this->items, 1)
+            array_slice($this->getArrayCopy(), 1)
 
         );
     }
@@ -95,44 +85,5 @@ class PokemonObjectResult implements Iterator {
         return "You may also be looking for ". implode(", ", $suggestions). ".";
     }
 
-    /**
-     * Reset Iterator position
-     */
-    public function rewind() {
-        $this->index = 0;
-    }
 
-    /**
-     * Get current object from Iterator
-     *
-     * @return PokemonBase
-     */
-    public function current(): PokemonBase {
-        return $this->items[$this->index];
-    }
-
-    /**
-     * Get current position from Iterator
-     *
-     * @return int
-     */
-    public function key() {
-        return $this->index;
-    }
-
-    /**
-     * Advance Iterator to next position
-     */
-    public function next() {
-        ++$this->index;
-    }
-
-    /**
-     * Check if Iterator has a valid item to give
-     *
-     * @return bool
-     */
-    public function valid(): bool {
-        return isset($this->items[$this->index]);
-    }
 }

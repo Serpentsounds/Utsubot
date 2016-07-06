@@ -8,7 +8,9 @@
 namespace Utsubot\Pokemon;
 
 use Utsubot\{
-    DatabaseInterface, DatabaseInterfaceException, MySQLDatabaseCredentials, SQLiteDatbaseCredentials
+    DatabaseInterface,
+    DatabaseInterfaceException,
+    SQLiteDatbaseCredentials
 };
 use Utsubot\Pokemon\Pokemon\{
     Pokemon,
@@ -352,7 +354,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getSpecies() {
         return $this->query(
@@ -365,7 +367,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getName() {
         return $this->query(
@@ -378,7 +380,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getEggGroup() {
         return $this->query(
@@ -391,7 +393,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getPokemonRow() {
         return $this->query(
@@ -403,7 +405,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getAlt() {
         return $this->query(
@@ -415,7 +417,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getAltName() {
         return $this->query(
@@ -428,7 +430,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getDexnum() {
         return $this->query(
@@ -441,7 +443,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getEvolution() {
         return $this->query(
@@ -480,7 +482,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getPokemonType() {
         return $this->query(
@@ -493,7 +495,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getPokemonStats() {
         return $this->query(
@@ -506,7 +508,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getPokemonAbility() {
         return $this->query(
@@ -519,7 +521,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getPokemonDexEntries() {
         return $this->query(
@@ -578,7 +580,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getAbilityNames() {
         return $this->query(
@@ -591,7 +593,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getAbilityText() {
         return $this->query(
@@ -627,7 +629,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getAbilityEffect() {
         return $this->query(
@@ -702,7 +704,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getItemRow() {
         return $this->query(
@@ -716,7 +718,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getItemFling() {
         return $this->query(
@@ -729,7 +731,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getItemNames() {
         return $this->query(
@@ -742,7 +744,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getItemText() {
         return $this->query(
@@ -755,7 +757,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getItemEffect() {
         return $this->query(
@@ -768,7 +770,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getItemFlags() {
         return $this->query(
@@ -817,7 +819,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getNatureAttributes() {
         return $this->query(
@@ -836,7 +838,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getNatureNames() {
         return $this->query(
@@ -930,7 +932,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getMoveRow() {
         return $this->query(
@@ -946,7 +948,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getMoveContest() {
         return $this->query(
@@ -964,7 +966,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @return array|bool|int
+     * @return array
      */
     public function getMovesNames() {
         return $this->query(
