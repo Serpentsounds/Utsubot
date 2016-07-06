@@ -8,9 +8,7 @@
 namespace Utsubot\Pokemon;
 
 use Utsubot\{
-    DatabaseInterface,
-    DatabaseInterfaceException,
-    MySQLDatabaseCredentials
+    DatabaseInterface, DatabaseInterfaceException, MySQLDatabaseCredentials, SQLiteDatbaseCredentials
 };
 use Utsubot\Pokemon\Pokemon\{
     Pokemon,
@@ -44,7 +42,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      * VeekunDatabaseInterface constructor.
      */
     public function __construct() {
-        parent::__construct(MySQLDatabaseCredentials::createFromConfig("veekun"));
+        parent::__construct(SQLiteDatbaseCredentials::createFromConfig("veekun"));
     }
 
 

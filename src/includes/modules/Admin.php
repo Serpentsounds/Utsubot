@@ -27,9 +27,15 @@ class Admin extends ModuleWithPermission {
     public function __construct(IRCBot $irc) {
         parent::__construct($irc);
 
-        $this->addTrigger(new Trigger("eval",       [ $this, "_eval"    ]));
-        $this->addTrigger(new Trigger("return",     [ $this, "_return"  ]));
-        $this->addTrigger(new Trigger("restart",    [ $this, "restart"  ]));
+        $this->addTrigger(new Trigger("eval", [ $this, "_eval" ]));
+        $this->addTrigger(new Trigger("return", [ $this, "_return" ]));
+
+        $this->addTrigger(new Trigger("restart", [ $this, "restart" ]));
+        $this->addTrigger(new Trigger("quit", [ $this, "_quit" ]));
+        $this->addTrigger(new Trigger("part", [ $this, "_part" ]));
+
+        $this->addTrigger(new Trigger("say", [ $this, "say" ]));
+        $this->addTrigger(new Trigger("act", [ $this, "act" ]));
     }
 
 
@@ -67,4 +73,70 @@ class Admin extends ModuleWithPermission {
         $this->requireLevel($msg, 100);
         $this->IRCBot->restart($msg->getCommandParameterString());
     }
+
+
+    /**
+     * Quit IRC with an optional quit message, and terminate the program
+     *
+     * @param IRCMessage $msg
+     * @throws ModuleWithAccountsException
+     */
+    public function _quit(IRCMessage $msg) {
+        $this->requireLevel($msg, 100);
+        $this->IRCBot->quit($msg->getCommandParameterString());
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     * @throws ModuleException
+     * @throws ModuleWithAccountsException
+     */
+    public function _join(IRCMessage $msg) {
+        $this->requireLevel($msg, 75);
+        $this->requireParameters($msg, 1);
+
+        $this->IRCBot->join($msg->getCommandParameters());
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     * @throws ModuleException
+     * @throws ModuleWithAccountsException
+     */
+    public function _part(IRCMessage $msg) {
+        $this->requireLevel($msg, 75);
+        $this->requireParameters($msg, 1);
+
+        $this->IRCBot->part($msg->getCommandParameterString());
+    }
+
+
+    /**
+     * Send a message on IRC to the given target
+     *
+     * @param IRCMessage $msg
+     * @throws ModuleException
+     * @throws ModuleWithAccountsException
+     */
+    public function say(IRCMessage $msg) {
+        $this->requireLevel($msg, 75);
+        $this->requireParameters($msg, 2);
+
+        $parameters = $msg->getCommandParameters();
+        $target     = array_shift($parameters);
+        $message    = implode(" ", $parameters);
+
+        switch ($msg->getCommand()) {
+            case "say":
+                $this->IRCBot->message($target, $message);
+                break;
+            case "act":
+                $this->IRCBot->action($target, $message);
+                break;
+        }
+
+    }
+
 }

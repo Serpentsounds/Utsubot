@@ -7,11 +7,11 @@
 
 namespace Utsubot;
 
-/**
- * Class IRCBotException
- *
- * @package Utsubot
- */
+    /**
+     * Class IRCBotException
+     *
+     * @package Utsubot
+     */
 /**
  * Class IRCBotException
  *
@@ -21,7 +21,6 @@ class IRCBotException extends \Exception {
 
 }
 
-
 /**
  * Class IRCBot
  *
@@ -29,12 +28,17 @@ class IRCBotException extends \Exception {
  */
 class IRCBot {
 
-    const SOCKET_POLL_TIME  = 100000;
-    const RECONNECT_TIMEOUT = 7;
-    const RECONNECT_DELAY   = 10;
+    /* Delay for checking for data in microseconds */
+    const Socket_Poll_Time = 100000;
 
-    const PING_FREQUENCY   = 90;
-    const ACTIVITY_TIMEOUT = 150;
+    const Reconnect_Timeout = 7;
+    /* Delay between reconnect attempts to the server */
+    const Reconnect_Delay = 10;
+
+    /* Time to wait from last received data until initiating manual ping */
+    const Ping_Frequency = 90;
+    /* Time to wait from last received data to force a reconnect */
+    const Activity_Timeout = 120;
 
     /** @var IRCNetwork $IRCNetwork */
     private $IRCNetwork;
@@ -78,7 +82,7 @@ class IRCBot {
         $server = $this->IRCNetwork->getServerCycle()->get();
         $port   = $this->IRCNetwork->getPort();
         $this->console("Attempting to connect to $server:$port...");
-        $this->socket = @fsockopen($server, $port, $errno, $errstr, self::RECONNECT_TIMEOUT);
+        $this->socket = @fsockopen($server, $port, $errno, $errstr, self::Reconnect_Timeout);
 
         //  Connection was unsuccessful
         if (!$this->socket) {
@@ -116,7 +120,7 @@ class IRCBot {
     public function reconnectCountdown() {
         fwrite(STDOUT, "Error connecting, retrying in");
 
-        for ($seconds = self::RECONNECT_DELAY; $seconds > 0; $seconds--) {
+        for ($seconds = self::Reconnect_Delay; $seconds > 0; $seconds--) {
             fwrite(STDOUT, " $seconds...");
             sleep(1);
         }
@@ -143,7 +147,7 @@ class IRCBot {
     public function read() {
         $arr   = [ $this->socket ];
         $write = $except = null;
-        if (($changed = stream_select($arr, $write, $except, 0, self::SOCKET_POLL_TIME)) > 0)
+        if (($changed = stream_select($arr, $write, $except, 0, self::Socket_Poll_Time)) > 0)
             return trim(fgets($this->socket, 512));
 
         return "";
@@ -173,7 +177,7 @@ class IRCBot {
      *
      * @param $channel
      */
-    public function join($channel) {
+    public function join(string $channel) {
         $this->raw("JOIN :$channel");
     }
 
@@ -379,11 +383,33 @@ class IRCBot {
      *
      * @param string $message Optional quit message
      */
-    public function restart($message = "") {
+    public function restart(string $message = "") {
         $this->raw("QUIT :$message");
         sleep(1);
         pclose(popen("start php -f Utsubot.php {$this->IRCNetwork->getName()}", "r"));
         exit;
+    }
+
+
+    /**
+     * Quit the server and terminate the program
+     *
+     * @param string $message
+     */
+    public function quit(string $message = "") {
+        $this->raw("QUIT: $message");
+        exit;
+    }
+
+
+    /**
+     * Part a channel
+     *
+     * @param string $channel
+     * @param string $message
+     */
+    public function part(string $channel, string $message = "") {
+        $this->raw("PART $channel: $message");
     }
 
 

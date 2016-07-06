@@ -21,12 +21,15 @@ class ModuleException extends \Exception {
 
 }
 
-
-/** @property IRCBot */
+/**
+ * Class Module
+ *
+ * @package Utsubot
+ */
 abstract class Module {
 
     /**
-     * @var IRCBot
+     * @var IRCBot $IRCbot
      */
     protected $IRCBot;
 

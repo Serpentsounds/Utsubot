@@ -8,9 +8,7 @@
 namespace Utsubot\Accounts;
 
 use Utsubot\{
-    DatabaseInterface,
-    MySQLDatabaseCredentials,
-    DatabaseInterfaceException
+    DatabaseInterface, DatabaseInterfaceException, SQLiteDatbaseCredentials
 };
 
 
@@ -34,7 +32,114 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      * AccountsDatabaseInterface constructor.
      */
     public function __construct() {
-        parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
+        parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsubot"));
+
+        $this->createTables();
+        $this->checkForAdmin();
+    }
+
+
+    /**
+     * Create tables for first run
+     */
+    private function createTables() {
+
+        //  Create users table
+        try {
+            $this->query(
+                'CREATE TABLE "users"
+                (
+                  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                  "username" TEXT UNIQUE NOT NULL,
+                  "password" TEXT NOT NULL,
+                  "level" INTEGER DEFAULT 0 NOT NULL
+                )'
+            );
+
+            echo "Accounts 'users' table was successfully created.\n\n";
+        }
+            //  Table already exists, do nothing
+        catch (\PDOException $e) {
+        }
+
+        //  Create settings table
+        try {
+            $this->query(
+                'CREATE TABLE "account_settings"
+                (
+                  "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                  "name" TEXT UNIQUE NOT NULL,
+                  "display" TEXT NOT NULL,
+                  "max_entries" INTEGER DEFAULT 0 NOT NULL
+                )'
+            );
+            echo "Accounts 'account_settings' table was successfully created.\n\n";
+        }
+            //  Table already exists, do nothing
+        catch (\PDOException $e) {
+        }
+
+        //  Create users<->settings relation table
+        try {
+            $this->query(
+                'CREATE TABLE "users_account_settings"
+                (
+                  "user_id" INTEGER NOT NULL,
+                  "account_setting_id" INTEGER NOT NULL,
+                  "value" TEXT,
+                  FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+                  FOREIGN KEY ("account_setting_id") REFERENCES "account_settings" ("id")
+                )'
+            );
+            echo "Accounts 'users_account_settings' table was successfully created.\n\n";
+        }
+            //  Table already exists, do nothing
+        catch (\PDOException $e) {
+        }
+
+    }
+
+
+    /**
+     * Verify that an administrator user exists, or prompt to create one
+     */
+    private function checkForAdmin() {
+        $admins = $this->query(
+            'SELECT *
+            FROM "users"
+            WHERE "level"=100'
+        );
+
+        //  No users with level 100, likely first run
+        if (!count($admins)) {
+            echo "There are no administrator users in the Accounts database. Please create one now.\n";
+
+            //  Prompt for username
+            do {
+                echo "Username: ";
+            } while (!strlen($username = trim(fgets(STDIN, 64))));
+
+            //  Prompt for password
+            do {
+                echo "Password: ";
+            } while (!strlen($password = trim(fgets(STDIN, 64))));
+
+            //  Create administrator
+            try {
+                $this->query(
+                    'INSERT INTO "users" ("username", "password", "level")
+                    VALUES (?, ?, ?)',
+                    [ $username, md5($password), 100 ]
+                );
+                echo "Your account has successfully been registered as the administrator.\n\n";
+            }
+                //  Kill the program if we cannot create an administrator user.
+            catch (\PDOException $e) {
+                echo "Unable to create administrator user. The program will now exit.\n";
+                exit;
+            }
+        }
+
     }
 
 
@@ -47,10 +152,8 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function registerUser(string $username, string $password) {
         $rowCount = $this->query(
-
-            "  INSERT INTO `users` (`user`, `password`)
-               VALUES (?, ?)",
-
+            'INSERT INTO "users" ("username", "password")
+            VALUES (?, ?)',
             [ $username, md5($password) ]
         );
 
@@ -68,12 +171,9 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function setPassword(string $username, string $newPassword) {
         $rowCount = $this->query(
-
-            "  UPDATE `users`
-               SET `password`=?
-               WHERE `user`=?
-               LIMIT 1",
-
+            'UPDATE "users"
+            SET "password"=?
+            WHERE "username"=?',
             [ md5($newPassword), $username ]
         );
 
@@ -93,12 +193,9 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function verifyPassword(string $username, string $password) {
         $results = $this->query(
-
-            "  SELECT `password`
-               FROM `users`
-               WHERE `user`=?
-               LIMIT 1",
-
+            'SELECT "password"
+            FROM "users"
+            WHERE "username"=?'
             [ $username ]
         );
 
@@ -127,12 +224,9 @@ class AccountsDatabaseInterface extends DatabaseInterface {
             throw new AccountsDatabaseInterfaceException("Level must be an integer below 99.");
 
         $rowCount = $this->query(
-
-            "  UPDATE `users`
-               SET `level`=?
-               WHERE `id`=?
-               LIMIT 1",
-
+            'UPDATE "users"
+            SET "level"=?
+            WHERE "id"=?',
             [ $level, $accountID ]
         );
 
@@ -148,33 +242,24 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      * @throws AccountsDatabaseInterfaceException
      */
     public function registerSetting(Setting $setting) {
-        $exists = $this->query(
-
-            "  SELECT `id`
-               FROM `account_settings`
-               WHERE `name`=?
-               LIMIT 1",
-
-            [ $setting->getName() ]
-        );
-
-        //  Settings name doesn't exist
-        if (!$exists) {
-            if ($this->query(
-                "  INSERT INTO `account_settings` (`name`, `display`, `max_entries`)
-                   VALUES (?, ?, ?)",
+        try {
+            $this->query(
+                'INSERT INTO "account_settings" ("name", "display", "max_entries")
+                VALUES (?, ?, ?)',
                 [
                     $setting->getName(),
                     $setting->getDisplay(),
                     $setting->getMaxEntries()
                 ]
-            )
-            )
-                echo "Registered new settings field '{$setting->getName()}' (display: {$setting->getDisplay()}, maximum entries: {$setting->getMaxEntries()}).\n\n";
-
-            else
-                throw new AccountsDatabaseInterfaceException("Unable to add settings field '{$setting->getName()}'.");
+            );
+            echo "Registered new settings field '{$setting->getName()}' (display: {$setting->getDisplay()}, maximum entries: {$setting->getMaxEntries()}).\n\n";
         }
+
+            //  UNIQUE constraint triggered
+        catch (\PDOException $e) {
+            #echo "Settings field '{$setting->getName()}' already exists.\n\n";
+        }
+
     }
 
 
@@ -189,10 +274,8 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     private function addUserSetting(int $accountID, int $settingID, string $value) {
         $rowCount = $this->query(
-
-            "  INSERT INTO `users_account_settings` (`user_id`, `account_settings_id`, `value`)
-               VALUES (?, ?, ?)",
-
+            'INSERT INTO "users_account_settings" ("user_id", "account_setting_id", "value")
+            VALUES (?, ?, ?)',
             [ $accountID, $settingID, $value ]
         );
 
@@ -244,12 +327,10 @@ class AccountsDatabaseInterface extends DatabaseInterface {
                 else {
 
                     $rowCount = $this->query(
-
-                        "  UPDATE `users_account_settings`
-                           SET `value`=?
-                           WHERE `user_id`=? AND `account_settings_id`=?
-                           LIMIT 1",
-
+                        'UPDATE "users_account_settings"
+                        SET "value"=?
+                        WHERE "user_id"=?
+                        AND "account_setting_id"=?',
                         [ $value, $accountID, $settingID ]
                     );
 
@@ -284,17 +365,20 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         //  Default to deleting all entries
         $constraint = "";
         $parameters = [ $accountID, $settingsID ];
+
         //  Looking to delete a specific value, update query and parameters
         if (strlen($value)) {
-            $constraint   = " AND `value`=?";
+            $constraint   = ' AND "value"=?';
             $parameters[] = $value;
         }
 
+        $query =
+            'DELETE FROM "users_account_settings"
+            WHERE "user_id"=?
+            AND "account_setting_id"=?';
+        
         $rowCount = $this->query(
-
-            "  DELETE FROM `users_account_settings`
-               WHERE `user_id`=? AND `account_settings_id`=?$constraint",
-
+            $query.$constraint,
             $parameters
         );
 
@@ -317,13 +401,12 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         $settingID = $this->getSettingID($setting);
 
         $results = $this->query(
-
-            "  SELECT `uas`.`value`, `as`.`name`, `as`.`display`
-               FROM `users_account_settings` `uas`
-               INNER JOIN `account_settings` `as`
-               ON `as`.`id`=`uas`.`account_settings_id`
-               WHERE `uas`.`user_id`=? AND `as`.`id`=?",
-
+            'SELECT "uas"."value", "as"."name", "as"."display"
+            FROM "users_account_settings" "uas"
+            INNER JOIN "account_settings" "as"
+            ON "as"."id"="uas"."account_setting_id"
+            WHERE "uas"."user_id"=?
+            AND "as"."id"=?',
             [ $accountID, $settingID ]
         );
 
@@ -342,15 +425,13 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getSettingsForUser(int $accountID) {
         return $this->query(
-
-            "  SELECT `uas`.`value`, `as`.`name`, `as`.`display`
-               FROM `users` `u`
-               INNER JOIN `users_account_settings` `uas`
-               ON `u`.`id`=`uas`.`user_id`
-               INNER JOIN `account_settings` `as`
-               ON `as`.`id`=`uas`.`account_settings_id`
-               WHERE `u`.`id`=?",
-
+            'SELECT "uas"."value", "as"."name", "as"."display"
+            FROM "users" "u"
+            INNER JOIN "users_account_settings" "uas"
+            ON "u"."id"="uas"."user_id"
+            INNER JOIN "account_settings" "as"
+            ON "as"."id"="uas"."account_settings_id"
+            WHERE "u"."id"=?',
             [ $accountID ]
         );
     }
@@ -364,15 +445,13 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getEntriesForSetting(Setting $setting): array {
         return $this->query(
-
-            "  SELECT `uas`.`value`, `u`.`id`
-               FROM `users` `u`
-               INNER JOIN `users_account_settings` `uas`
-               ON `u`.`id`=`uas`.`user_id`
-               INNER JOIN `account_settings` `as`
-               ON `as`.`id`=`uas`.`account_settings_id`
-               WHERE `as`.`name`=?",
-
+            'SELECT "uas"."value", "u"."id"
+            FROM "users" "u"
+            INNER JOIN "users_account_settings" "uas"
+            ON "u"."id"="uas"."user_id"
+            INNER JOIN "account_settings" "as"
+            ON "as"."id"="uas"."account_setting_id"
+            WHERE "as"."name"=?',
             [ $setting->getName() ]
         );
     }
@@ -388,14 +467,13 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getUsersWithSetting(Setting $setting, string $value): array {
         return $this->query(
-
-            "  SELECT `uas`.`user_id`
-               FROM `users_account_settings` `uas`
-               INNER JOIN `account_settings` `as`
-               ON `uas`.`account_settings_id`=`as`.`id`
-               WHERE `uas`.`value`=? AND `as`.`name`=?
-               ORDER BY `uas`.`user_id` ASC",
-
+            'SELECT "uas"."user_id"
+            FROM "users_account_settings" "uas"
+            INNER JOIN "account_settings" "as"
+            ON "uas"."account_setting_id"="as"."id"
+            WHERE "uas"."value"=?
+            AND "as"."name"=?
+            ORDER BY "uas"."user_id" ASC',
             [ $value, $setting->getName() ]
         );
     }
@@ -410,14 +488,12 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getUsersWithWildcardSetting(Setting $setting, string $pattern): array {
         return $this->query(
-
-            "  SELECT `uas`.`user_id`, `uas`.`value`
-               FROM `users_account_settings` `uas`
-               INNER JOIN `account_settings` `as`
-               ON `uas`.`account_settings_id`=`as`.`id`
-               WHERE `uas`.`value` LIKE ? AND `as`.`name`=?
-               ORDER BY `uas`.`user_id` ASC",
-
+            'SELECT "uas"."user_id", "uas"."value"
+            FROM "users_account_settings" "uas"
+            INNER JOIN "account_settings" "as"
+            ON "uas"."account_setting_id"="as"."id"
+            WHERE "uas"."value" LIKE ? AND "as"."name"=?
+            ORDER BY "uas"."user_id" ASC',
             [ $pattern, $setting->getName() ]
         );
     }
@@ -432,12 +508,9 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     private function getSettingID(Setting $setting): int {
         $results = $this->query(
-
-            "  SELECT `id`
-               FROM `account_settings`
-               WHERE `name`=?
-               LIMIT 1",
-
+            'SELECT "id"
+            FROM "account_settings"
+            WHERE "name"=?',
             [ $setting->getName() ]
         );
 
@@ -456,12 +529,9 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getAccessByID(int $accountID): int {
         $results = $this->query(
-
-            "  SELECT `level`
-               FROM `users`
-               WHERE `id`=?
-               LIMIT 1",
-
+            'SELECT "level"
+            FROM "users"
+            WHERE "id"=?',
             [ $accountID ]
         );
 
@@ -483,12 +553,10 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getUsernameByID(int $accountID): string {
         $results = $this->query(
-
-            "  SELECT `user`
-               FROM `users`
-               WHERE `id`=?
-               LIMIT 1",
-
+            'SELECT "user"
+            FROM "users"
+            WHERE "id"=?
+            LIMIT 1',
             [ $accountID ]
         );
 
@@ -508,12 +576,9 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getAccountIDByUsername(string $username): int {
         $results = $this->query(
-
-            "  SELECT `id`
-               FROM `users`
-               WHERE `user`=?
-               LIMIT 1",
-
+            'SELECT "id"
+            FROM "users"
+            WHERE "user"=?',
             [ $username ]
         );
 

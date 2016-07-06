@@ -10,7 +10,6 @@ namespace Utsubot\Web;
 use Utsubot\{
     DatabaseInterface,
     DatabaseInterfaceException,
-    MySQLDatabaseCredentials,
     SQLiteDatbaseCredentials
 };
 
@@ -35,7 +34,7 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
     public function __construct() {
         #parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
         parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
-        
+
         $this->createAPIKeyTable();
     }
 
@@ -47,8 +46,8 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
             $this->query(
                 'CREATE TABLE "apikeys"
                 (
-                  "service" varchar(64) NOT NULL,
-                  "key" varchar(256) NOT NULL,
+                  "service" TEXT NOT NULL,
+                  "key" TEXT NOT NULL,
                   PRIMARY KEY ("service")
                 )'
             );
@@ -62,7 +61,7 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
 
     /**
      * Add a new API key to the database
-     * 
+     *
      * @param string $service
      * @param string $key
      * @throws APIKeysDatabaseInterfaceException
@@ -75,14 +74,13 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
                 [ $service, $key ]
             );
         }
-        
+
         //  Duplicate service, attempt update
         catch (\PDOException $e) {
             $rowCount = $this->query(
                 'UPDATE "apikeys"
                 SET "key"=?
-                WHERE "service"=?
-                LIMIT 1',
+                WHERE "service"=?',
                 [ $key, $service ]
             );
 
@@ -94,15 +92,14 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
 
     /**
      * Remove an API key from the database
-     * 
+     *
      * @param string $service
      * @throws APIKeysDatabaseInterfaceException
      */
     public function deleteAPIKey(string $service) {
         $rowCount = $this->query(
             'DELETE FROM "apikeys"
-            WHERE "service"=?
-            LIMIT 1',
+            WHERE "service"=?',
             [ $service ]
         );
 
@@ -113,7 +110,7 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
 
     /**
      * Fetch all API keys in the database
-     * 
+     *
      * @return array
      */
     public function getAPIKeys(): array {

@@ -93,6 +93,12 @@ $config['network'] = $argv[1];
 
 $network = new Utsubot\IRCNetwork($config['network'], $config['host'], $config['port'], $config['nickname'], (array)@$config['channel'], (array)@$config['onConnect'], (array)@$config['commandPrefix']);
 $ircBot = new Utsubot\IRCBot($network);
+
+//  Default modules
+$config['modules'] = array_unique(array_merge(
+    [ "Core", "Accounts\\Accounts" ],
+    $config['modules']
+                                  ));
 //  Load all the good stuff
 if (isset($config['modules'])) {
     foreach ($config['modules'] as $key => $module) {
@@ -139,13 +145,13 @@ while (true) {
     $time = time();
 
     //  Manual ping after no activity for a while
-    if ($time - $lastData >= Utsubot\IRCBot::PING_FREQUENCY && $time - $lastPing >= Utsubot\IRCBot::PING_FREQUENCY) {
+    if ($time - $lastData >= Utsubot\IRCBot::Ping_Frequency && $time - $lastPing >= Utsubot\IRCBot::Ping_Frequency) {
         $ircBot->raw("PING " . $ircBot->getHost());
         $lastPing = $time;
     }
 
     //  Manual reconnect after no activity for a longer while and no response to ping
-    if ($time - $lastData >= Utsubot\IRCBot::ACTIVITY_TIMEOUT && $time - $lastReconnect >= Utsubot\IRCBot::RECONNECT_DELAY) {
+    if ($time - $lastData >= Utsubot\IRCBot::Activity_Timeout && $time - $lastReconnect >= Utsubot\IRCBot::Reconnect_Delay) {
         $ircBot->sendToModules("disconnect");
         $lastReconnect = $time;
         $ircBot->connect();
