@@ -32,7 +32,6 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
      * APIKeysDatabaseInterface constructor.
      */
     public function __construct() {
-        #parent::__construct(MySQLDatabaseCredentials::createFromConfig("utsubot"));
         parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
 
         $this->createAPIKeyTable();
@@ -46,9 +45,9 @@ class APIKeysDatabaseInterface extends DatabaseInterface {
             $this->query(
                 'CREATE TABLE "apikeys"
                 (
-                  "service" TEXT NOT NULL,
-                  "key" TEXT NOT NULL,
-                  PRIMARY KEY ("service")
+                  "id" INTEGER PRIMARY KEY NOT NULL,
+                  "service" TEXT UNIQUE NOT NULL,
+                  "key" TEXT NOT NULL
                 )'
             );
 

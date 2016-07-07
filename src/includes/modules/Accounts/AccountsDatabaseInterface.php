@@ -91,11 +91,11 @@ class AccountsDatabaseInterface extends DatabaseInterface {
             $this->query(
                 'CREATE TABLE "users_account_settings"
                 (
-                  "user_id" INTEGER NOT NULL,
-                  "account_setting_id" INTEGER NOT NULL,
-                  "value" TEXT,
-                  FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
-                  FOREIGN KEY ("account_setting_id") REFERENCES "account_settings" ("id")
+                  "user_id" INTEGER NOT NULL
+                  REFERENCES "users" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
+                  "account_setting_id" INTEGER NOT NULL
+                  REFERENCES "account_settings" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
+                  "value" TEXT
                 )'
             );
 

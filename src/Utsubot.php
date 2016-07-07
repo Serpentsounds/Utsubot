@@ -96,7 +96,7 @@ $ircBot = new Utsubot\IRCBot($network);
 
 //  Default modules
 $config['modules'] = array_unique(array_merge(
-    [ "Core", "Accounts\\Accounts" ],
+    [ "Core" ],
     $config['modules']
                                   ));
 //  Load all the good stuff

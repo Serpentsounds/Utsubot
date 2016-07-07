@@ -25,9 +25,9 @@ class DatabaseInterface {
 
     /** @var $pdo \PDO */
     protected $pdo;
-    protected $dsn;
-    protected $username;
-    protected $password;
+
+    /** @var DatabaseCredentials $credentials */
+    protected $credentials;
 
 
     /**
@@ -35,9 +35,7 @@ class DatabaseInterface {
      * @throws DatabaseInterfaceException If config is invalid
      */
     public function __construct(DatabaseCredentials $credentials) {
-        $this->dsn      = $credentials->getDSN();
-        $this->username = $credentials->getUsername();
-        $this->password = $credentials->getPassword();
+        $this->credentials = $credentials;
     }
 
 
@@ -86,17 +84,28 @@ class DatabaseInterface {
      * @throws DatabaseInterfaceException If PDO creation fails
      */
     protected function connect(bool $hard = true) {
-        if (!($this->pdo instanceof \PDO) || $hard)
+        if (!($this->pdo instanceof \PDO) || $hard) {
             $this->pdo = new \PDO(
-                $this->dsn,
-                $this->username,
-                $this->password,
+                $this->credentials->getDSN(),
+                $this->credentials->getUsername(),
+                $this->credentials->getPassword(),
                 [
                     \PDO::ATTR_EMULATE_PREPARES   => false,
                     \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
                     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
                 ]
             );
+
+            //  Perform connection commands
+            foreach ($this->credentials->getConnectionCommands() as $command) {
+                try {
+                    $this->pdo->exec($command);
+                }
+                catch (\PDOException $e) {
+                    echo "Unable to perform connection command '$command': {$e->getMessage()}\n\n";
+                }
+            }
+        }
 
         $this->verifyPDO();
     }

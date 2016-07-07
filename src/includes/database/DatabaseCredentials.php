@@ -50,6 +50,8 @@ abstract class DatabaseCredentials {
     protected $username;
     protected $password;
 
+    protected $connectionCommands = [ ];
+
 
     /**
      * Manually construct credentials rather than using config file
@@ -126,6 +128,16 @@ abstract class DatabaseCredentials {
 
 
     /**
+     * Optionall add a command to be performed upon connection to the database
+     *
+     * @param string $command
+     */
+    public function addConnectionCommand(string $command) {
+        $this->connectionCommands[] = $command;
+    }
+
+
+    /**
      * @return string
      */
     public function getDSN(): string {
@@ -146,5 +158,13 @@ abstract class DatabaseCredentials {
      */
     public function getPassword(): string {
         return $this->password;
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getConnectionCommands(): array {
+        return $this->connectionCommands;
     }
 }
