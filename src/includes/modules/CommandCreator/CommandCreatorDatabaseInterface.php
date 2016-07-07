@@ -8,6 +8,7 @@
 
 namespace Utsubot\CommandCreator;
 
+
 use Utsubot\DatabaseInterface;
 use Utsubot\DatabaseInterfaceException;
 use Utsubot\SQLiteDatbaseCredentials;
@@ -45,6 +46,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
      */
     public function createTables() {
         try {
+            //  Custom command types refer to what type of message the bot will use upon triggering (e.g., say, action)
             $this->query(
                 'CREATE TABLE "custom_command_types"
                 (
@@ -64,7 +66,8 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
                 $statement->execute([ $id, $name ]);
 
             //  Clean up resources
-            $this->disconnect($statements = [ $statement ]);
+            $statements = [ $statement ];
+            $this->disconnect($statements);
 
             echo "Created and populated 'custom_command_types' table.\n";
         }
@@ -74,6 +77,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
         }
 
         try {
+            //  Custom command table containers the main entries for a custom command
             $this->query(
                 'CREATE TABLE "custom_commands"
                 (
@@ -93,6 +97,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
         }
 
         try {
+            //  Triggers table contains one or more rows that hold trigger words for a custom command
             $this->query(
                 'CREATE TABLE "custom_command_triggers"
                 (
@@ -111,6 +116,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
         }
 
         try {
+            //  The parameters table holds list items for a given list slot for a custom command
             $this->query(
                 'CREATE TABLE "custom_command_parameters"
                 (
@@ -134,19 +140,21 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
 
     /**
      * Get the full list of triggers and the commands they are associated with
-     * 
+     *
      * @return array
      */
     public function getTriggers(): array {
         return $this->query(
             'SELECT *
-            FROM "custom_commands_triggers"',
+            FROM "custom_command_triggers"',
             [ ]
         );
     }
 
 
     /**
+     * Look up the main command entry by ID
+     * 
      * @param int $ID
      * @return array
      * @throws CommandCreatorDatabaseInterfaceException
@@ -165,7 +173,10 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
         return $commandInfo[ 0 ];
     }
 
+
     /**
+     * Get a command's ID given its name
+     * 
      * @param string $command
      * @return int
      * @throws CommandCreatorDatabaseInterfaceException
@@ -186,6 +197,8 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
 
 
     /**
+     * Get the collection of list item parameters given a command ID
+     * 
      * @param int $commandID
      * @return array
      */
@@ -198,10 +211,73 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
         );
     }
 
+
     /**
      * @param string $command
+     * @return string
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function getCommandFormat(string $command): string {
+        $id = $this->getCommandID($command);
+
+        $results = $this->query(
+            'SELECT "format"
+            FROM "custom_commands"
+            WHERE "id"=?',
+            [ $id ]
+        );
+
+        return $results[ 'format' ];
+    }
+
+
+    /**
+     * @param string $command
+     * @return CommandType
+     * @throws CommandCreatorException
+     */
+    public function getCommandType(string $command): CommandType {
+        $id = $this->getCommandByID($command);
+
+        $results = $this->query(
+            'SELECT "type"
+            FROM "custom_commands"
+            WHERE "id"=?',
+            [ $id ]
+        );
+
+        return new CommandType((int)$results[ 'type' ]);
+    }
+
+
+    /**
+     * @param string $command
+     * @param int    $slot
+     * @return array
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function getListItems(string $command, int $slot = 1): array {
+        $id = $this->getCommandID($command);
+
+        $results = $this->query(
+            'SELECT "value"
+            FROM "custom_command_parameters"
+            WHERE "custom_command_id"=?
+            AND "slot"=?',
+            [ $id, $slot ]
+        );
+
+        if (!$results)
+            throw new CommandCreatorDatabaseInterfaceException("No list items found for command '$command' in slot $slot.");
+
+        return $results;
+    }
+
+
+    /**
+     * @param string      $command
      * @param CommandType $type
-     * @param string $format
+     * @param string      $format
      * @throws CommandCreatorDatabaseInterfaceException
      */
     public function createCommand(string $command, CommandType $type, string $format) {
@@ -212,9 +288,183 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
                 [ $command, $type->getName(), $format ]
             );
         }
-        
+
         catch (\PDOException $e) {
             throw new CommandCreatorDatabaseInterfaceException("Command '$command' already exists.");
         }
+    }
+
+
+    /**
+     * @param string $command
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function destroyCommand(string $command) {
+        $rowCount = $this->query(
+            'DELETE FROM "custom_commands"
+            WHERE "name"=?',
+            [ $command ]
+        );
+
+        if (!$rowCount)
+            throw new CommandCreatorDatabaseInterfaceException("Command '$command' was not found.");
+    }
+
+
+    /**
+     * @param string $command
+     * @param string $format
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function setCommandFormat(string $command, string $format) {
+        $id = $this->getCommandID($command);
+
+        $rowCount = $this->query(
+            'UPDATE "custom_commands"
+            SET "format"=?
+            WHERE "id"=?',
+            [ $format, $id ]
+        );
+
+        if (!$rowCount)
+            throw new CommandCreatorDatabaseInterfaceException("Format '$format' of command '$command' unchanged.");
+    }
+
+
+    /**
+     * @param string      $command
+     * @param CommandType $type
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function setCommandType(string $command, CommandType $type) {
+        $id = $this->getCommandID($command);
+
+        $rowCount = $this->query(
+            'UPDATE "custom_commands"
+            SET "type"=?
+            WHERE "id"=?',
+            [ $type->getValue(), $id ]
+        );
+
+        if (!$rowCount)
+            throw new CommandCreatorDatabaseInterfaceException("Type '{$type->getName()}' for command '$command' unchanged.");
+    }
+
+
+    /**
+     * @param string $command
+     * @param string $trigger
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function addCommandTrigger(string $command, string $trigger) {
+        $id = $this->getCommandID($command);
+
+        try {
+            $this->query(
+                'INSERT INTO "custom_command_triggers" ("custom_command_id", "value")
+                VALUES (?, ?)',
+                [ $id, $trigger ]
+            );
+        }
+        catch (\PDOException $e) {
+            throw new CommandCreatorDatabaseInterfaceException("Trigger '$trigger' already exists.");
+        }
+    }
+
+
+    /**
+     * @param string $command
+     * @param string $trigger
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function removeCommandTrigger(string $command, string $trigger) {
+        $id = $this->getCommandID($command);
+
+        $rowCount = $this->query(
+            'DELETE FROM "custom_command_triggers"
+            WHERE "custom_command_id"=?
+            AND "value"=?',
+            [ $id, $trigger ]
+        );
+
+        if (!$rowCount)
+            throw new CommandCreatorDatabaseInterfaceException("Trigger '$trigger' for command '$command' was not found.");
+    }
+
+
+    /**
+     * @param string $command
+     * @return int
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function clearCommandTriggers(string $command): int {
+        $id = $this->getCommandID($command);
+
+        $rowCount = $this->query(
+            'DELETE FROM "custom_command_triggers"
+            WHERE "custom_command_id"=?',
+            [ $id ]
+        );
+
+        return (int)$rowCount;
+    }
+
+
+    /**
+     * @param string $command
+     * @param string $item
+     * @param int    $slot
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function addListItem(string $command, string $item, int $slot = 1) {
+        $id = $this->getCommandID($command);
+
+        $this->query(
+            'INSERT INTO "custom_command_parameters" ("custom_command_id", "slot", "value")
+            VALUES (?, ?, ?)',
+            [ $id, $slot, $item ]
+        );
+    }
+
+
+    /**
+     * @param string $command
+     * @param string $item
+     * @param int    $slot
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function removeListItem(string $command, string $item, int $slot = 1) {
+        $id = $this->getCommandID($command);
+
+        $rowCount = $this->query(
+            'DELETE FROM "custom_command_parameters"
+            WHERE "custom_command_id"=?
+            AND "slot"=?
+            AND "value"=?',
+            [ $id, $slot, $item ]
+        );
+
+        if (!$rowCount)
+            throw new CommandCreatorDatabaseInterfaceException("Item '$item' for command '$command' in slot $slot was not found.");
+    }
+
+
+    /**
+     * @param string $command
+     * @param int    $slot
+     * @return int
+     * @throws CommandCreatorDatabaseInterfaceException
+     */
+    public function clearListItems(string $command, int $slot = 1): int {
+        $id = $this->getCommandID($command);
+
+        $rowCount = $this->query(
+            'DELETE FROM "custom_command_parameters"
+            WHERE "custom_command_id"=?
+            AND "slot"=?',
+            [ $id, $slot ]
+        );
+
+        return $rowCount;
     }
 }

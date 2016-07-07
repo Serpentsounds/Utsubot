@@ -7,6 +7,7 @@
 
 namespace Utsubot\CommandCreator;
 
+
 use Utsubot\Permission\ModuleWithPermission;
 use Utsubot\Help\{
     HelpEntry,
@@ -16,10 +17,8 @@ use Utsubot\Help\{
 use Utsubot\{
     IRCBot,
     IRCMessage,
-    SQLiteDatbaseCredentials,
     Trigger,
-    ModuleException,
-    DatabaseInterface
+    ModuleException
 };
 
 
@@ -118,6 +117,8 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
 
     /**
+     * Override to check for custom command triggers
+     *
      * @param IRCMessage $msg
      */
     public function privmsg(IRCMessage $msg) {
@@ -126,10 +127,13 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
         if ($msg->isCommand()) {
 
             foreach ($this->customTriggers as $commandID => $triggers) {
+
+                //  Trigger found
                 if (array_search($msg->getCommand(), $triggers) !== false) {
                     try {
                         $this->triggerCommand($commandID, $msg);
                     }
+
                     catch (\Exception $e) {
                         $response = $this->parseException($e, $msg);
                         $this->respond($msg, $response);
@@ -143,6 +147,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
 
     /**
+     * Register a new custom command entry
+     * Usage: !addcommand <name> <type> <format>
+     *
      * @param IRCMessage $msg
      * @throws CommandCreatorException
      * @throws \Utsubot\Accounts\ModuleWithAccountsException
@@ -167,6 +174,9 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
 
     /**
+     * Delete an existing custom command entry
+     * Usage: !removecommand <name>
+     *
      * @param IRCMessage $msg
      * @throws CommandCreatorException
      * @throws \Utsubot\Accounts\ModuleWithAccountsException
@@ -176,12 +186,18 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
         $command = $msg->getCommandParameters()[ 0 ];
 
-        $this->destroyCommand($command);
+        $this->interface->destroyCommand($command);
+        $this->updateCustomTriggerCache();
+
         $this->respond($msg, "Command '$command' has been destroyed. All associated lists and triggers have been deleted.");
     }
 
 
     /**
+     * View existing attributes of a command without editing anything
+     * Usage: !viewcommand <name> type|format|triggers|
+     *        !viewcommand <name> list <slot>
+     *
      * @param IRCMessage $msg
      * @throws CommandCreatorException
      * @throws \Utsubot\Accounts\ModuleWithAccountsException
@@ -195,35 +211,47 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
         switch ($property) {
             case "type":
-                $type = $this->getType($command);
-                $this->respond($msg, "Type of command '$command' is '$type'.");
+                $type = $this->interface->getCommandType($command);
+                $this->respond($msg, "Type of command '$command' is '{$type->getName()}'.");
                 break;
+
             case "format":
-                $format = $this->getFormat($command);
+                $format = $this->interface->getCommandFormat($command);
                 $this->respond($msg, "Format of command '$command' is '$format'.");
                 break;
+
             case "trigger":
             case "triggers":
                 $triggers = $this->getCustomTriggers($command);
                 $this->respond($msg, "Trigger(s) for '$command': ".implode(", ", $triggers));
                 break;
+
             case "list":
                 $slot = array_shift($parameters);
                 if (!preg_match("/^[1-9]+[0-9]*$/", $slot))
                     throw new CommandCreatorException("Invalid slot number '$slot'.");
 
                 $slot  = intval($slot);
-                $items = $this->getListItems($command, $slot);
+                $items = $this->interface->getListItems($command, $slot);
                 $this->respond($msg, "Items in list slot $slot for command '$command': ".implode(", ", array_column($items, "value")));
                 break;
+
             default:
                 throw new CommandCreatorException("Invalid property '$property'.");
                 break;
+
         }
     }
 
 
     /**
+     * Edit an existing command entry to change the type, manage triggers, or manage list items
+     * Usage: !editcommand <name> type|format set <newvalue>
+     *        !editcommand <name> trigger add|remove <trigger>
+     *        !editcommand <name> trigger clear
+     *        !editcommand <name> list <slot> add|remove <item>
+     *        !editcommand <name> list <slot> clear
+     *
      * @param IRCMessage $msg
      * @throws CommandCreatorException
      * @throws \Utsubot\Accounts\ModuleWithAccountsException
@@ -242,12 +270,14 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
                 switch ($mode) {
                     case "set":
                         $type = CommandType::fromName(array_shift($parameters));
-                        $this->setType($command, $type);
+                        $this->interface->setCommandType($command, $type);
                         $this->respond($msg, "Type of command '$command' has been changed to '{$type->getName()}'.");
                         break;
+
                     default:
                         throw new CommandCreatorException("Invalid mode '$mode' for property '$property'.");
                         break;
+
                 }
                 break;
 
@@ -256,12 +286,14 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
                 switch ($mode) {
                     case "set":
-                        $this->setFormat($command, $format);
+                        $this->interface->setCommandFormat($command, $format);
                         $this->respond($msg, "Format of command '$command' has been changed to '$format'.");
                         break;
+
                     default:
                         throw new CommandCreatorException("Invalid mode '$mode' for property '$property'.");
                         break;
+
                 }
                 break;
 
@@ -269,20 +301,34 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
                 $trigger = array_shift($parameters);
                 switch ($mode) {
                     case "add":
-                        $this->addCustomTrigger($command, $trigger);
+                        if (isset($this->getTriggers()[ strtolower($trigger) ]))
+                            throw new CommandCreatorException("Trigger '$trigger' is reserved for a CommandCreator command.");
+
+                        $this->interface->addCommandTrigger($command, $trigger);
+                        $this->updateCustomTriggerCache();
+
                         $this->respond($msg, "Trigger '$trigger' has been added for command '$command'.");
                         break;
+
                     case "remove":
-                        $this->removeCustomTrigger($command, $trigger);
+                        $this->interface->removeCommandTrigger($command, $trigger);
+                        $this->updateCustomTriggerCache();
+
                         $this->respond($msg, "Trigger '$trigger' has been removed from command '$command'.");
                         break;
+
                     case "clear":
-                        $cleared = $this->clearCustomTriggers($command);
+                        $cleared = $this->interface->clearCommandTriggers($command);
+                        if ($cleared > 0)
+                            $this->updateCustomTriggerCache();
+
                         $this->respond($msg, "$cleared trigger(s) were removed from command '$command'.");
                         break;
+
                     default:
                         throw new CommandCreatorException("Invalid mode '$mode' for property '$property'.");
                         break;
+
                 }
                 break;
 
@@ -296,20 +342,24 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
                 switch ($mode) {
                     case "add":
-                        $this->addListItem($command, $item, $slot);
+                        $this->interface->addListItem($command, $item, $slot);
                         $this->respond($msg, "Item '$item' has been added to list slot $slot for command '$command'.");
                         break;
+
                     case "remove":
-                        $this->removeListItem($command, $item, $slot);
+                        $this->interface->removeListItem($command, $item, $slot);
                         $this->respond($msg, "Item '$item' has been removed from list slot $slot for command '$command'.");
                         break;
+
                     case "clear":
-                        $cleared = $this->clearListItems($command, $slot);
+                        $cleared = $this->interface->clearListItems($command, $slot);
                         $this->respond($msg, "$cleared item(s) were removed from list slot $slot on command '$command'.");
                         break;
+
                     default:
                         throw new CommandCreatorException("Invalid mode '$mode' for property '$property'.");
                         break;
+
                 }
                 break;
         }
@@ -317,23 +367,13 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
 
 
     /**
-     * Cache trigger information from the database
-     */
-    public function updateCustomTriggerCache() {
-        $triggers = $this->interface->getTriggers();
-
-        $this->customTriggers = [ ];
-        foreach ($triggers as $row)
-            $this->customTriggers[ $row[ 'custom_commands_id' ] ][] = $row[ 'value' ];
-    }
-
-
-    /**
+     * Activate a saved command from a trigger word, from the PRIVMSG routine
+     *
      * @param            $commandID
      * @param IRCMessage $msg
      * @throws CommandCreatorException
      */
-    private function triggerCommand(int $commandID, IRCMessage $msg) {
+    protected function triggerCommand(int $commandID, IRCMessage $msg) {
         $commandInfo = $this->interface->getCommandByID($commandID);
         $parameters  = $this->interface->getParametersByID($commandID);
 
@@ -356,17 +396,21 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
                 case "n":
                     return $msg->getNick();
                     break;
+
                 case "c":
                     return $msg->getResponseTarget();
                     break;
+
                 case "t":
                     return date("g:ia");
                     break;
+
             }
 
             return $match[ 1 ];
         };
 
+        //  Perform substitution with saved function
         $output = preg_replace_callback("/%(\d+|[nct])/", $subParameters, $commandInfo[ 'format' ]);
 
         //  Output depending on command type
@@ -374,291 +418,44 @@ class CommandCreator extends ModuleWithPermission implements IHelp {
             case CommandType::Message:
                 $this->respond($msg, $output);
                 break;
+
             case CommandType::Action:
                 $this->IRCBot->action($msg->getResponseTarget(), $output);
                 break;
+
         }
     }
 
 
     /**
+     * Cache trigger information from the database
+     */
+    public function updateCustomTriggerCache() {
+        $triggers = $this->interface->getTriggers();
+
+        $this->customTriggers = [ ];
+        foreach ($triggers as $row)
+            $this->customTriggers[ $row[ 'custom_commands_id' ] ][] = $row[ 'value' ];
+    }
+
+
+    /**
+     * Read trigger list for a command from local cache
+     *
      * @param string $command
+     * @return array
+     * @throws CommandCreatorDatabaseInterfaceException
      * @throws CommandCreatorException
      */
-    private function destroyCommand(string $command) {
-        $rowCount = $this->interface->query(
-            'DELETE FROM "custom_commands"
-            WHERE "name"=?',
-            [ $command ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("Command '$command' was not found.");
-
-        $this->updateCustomTriggerCache();
-    }
-
-    /**
-     * @param string $command
-     * @param string $format
-     * @throws CommandCreatorException
-     */
-    private function setFormat(string $command, string $format) {
-        $id       = $this->interface->getCommandID($command);
-        $rowCount = $this->interface->query(
-            'UPDATE "custom_commands"
-            SET "format"=?
-            WHERE "id"=?',
-            [ $format, $id ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("Format '$format' of command '$command' unchanged.");
-    }
-
-
-    /**
-     * @param string $command
-     * @return string
-     * @throws CommandCreatorException
-     */
-    private function getFormat(string $command): string {
-        $results = $this->interface->query(
-            'SELECT "format"
-            FROM "custom_commands"
-            WHERE "name"=?',
-            [ $command ]
-        );
-
-        if (!$results)
-            throw new CommandCreatorException("Command '$command' not found.");
-
-        return $results[ 'format' ];
-    }
-
-
-    /**
-     * @param string      $command
-     * @param CommandType $type
-     * @return bool
-     * @throws CommandCreatorException
-     */
-    private function setType(string $command, CommandType $type) {
-        $id       = $this->interface->getCommandID($command);
-        $typeName = $type->getName();
-
-        $rowCount = $this->interface->query(
-            'UPDATE "custom_commands"
-            SET "type"=?
-            WHERE "id"=?',
-            [ $typeName, $id ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("Type '$typeName' for command '$command' unchanged.");
-
-        return true;
-    }
-
-
-    /**
-     * @param string $command
-     * @return CommandType
-     * @throws CommandCreatorException
-     */
-    private function getType(string $command): CommandType {
-        $results = $this->interface->query(
-            'SELECT "type"
-            FROM "custom_commands"
-            WHERE "name"=?',
-            [ $command ]
-        );
-
-        if (!$results)
-            throw new CommandCreatorException("Command '$command' not found.");
-
-        return CommandType::fromName($results[ 'type' ]);
-    }
-
-
-    /**
-     * @param $command
-     * @param $trigger
-     * @return bool
-     * @throws CommandCreatorException
-     */
-    private function addCustomTrigger(string $command, string $trigger) {
-        if (isset($this->getTriggers()[ strtolower($trigger) ]))
-            throw new CommandCreatorException("Trigger '$trigger' is reserved for a CommandCreator command.");
-
-        $id = $this->interface->getCommandID($command);
-        try {
-            $this->interface->query(
-                'INSERT INTO "custom_commands_triggers" ("custom_commands_id", "value")
-                VALUES (?, ?)',
-                [ $id, $trigger ]
-            );
-
-            $this->updateCustomTriggerCache();
-        }
-        catch (\PDOException $e) {
-            throw new CommandCreatorException("Trigger '$trigger' for command '$command' already exists.");
-        }
-
-        return true;
-    }
-
-
-    /**
-     * @param $command
-     * @param $trigger
-     * @return bool
-     * @throws CommandCreatorException
-     */
-    private function removeCustomTrigger(string $command, string $trigger) {
-        $id       = $this->interface->getCommandID($command);
-        $rowCount = $this->interface->query(
-            'DELETE FROM "custom_commands_triggers"
-            WHERE "custom_commands_id"=?
-            AND "value"=?',
-            [ $id, $trigger ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("Trigger '$trigger' for command '$command' was not found.");
-
-        $this->updateCustomTriggerCache();
-
-        return true;
-    }
-
-
-    /**
-     * @param $command
-     * @return array|bool|int
-     * @throws CommandCreatorException
-     */
-    private function clearCustomTriggers(string $command) {
-        $id       = $this->interface->getCommandID($command);
-        $rowCount = $this->interface->query(
-            'DELETE FROM "custom_commands_triggers"
-            WHERE "custom_commands_id"=?',
-            [ $id ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("No triggers found for command '$command'.");
-
-        $this->updateCustomTriggerCache();
-
-        return $rowCount;
-    }
-
-
-    /**
-     * @param $command
-     * @return mixed
-     * @throws CommandCreatorException
-     */
-    public function getCustomTriggers(string $command) {
+    protected function getCustomTriggers(string $command): array {
         $commandID = $this->interface->getCommandID($command);
+
         if (isset($this->customTriggers[ $commandID ]))
             $return = $this->customTriggers[ $commandID ];
         else
             throw new CommandCreatorException("No triggers found for command '$command'.");
 
         return $return;
-    }
-
-
-    /**
-     * @param     $command
-     * @param     $item
-     * @param int $slot
-     * @return bool
-     * @throws CommandCreatorException
-     */
-    private function addListItem(string $command, string $item, int $slot = 1) {
-        $id       = $this->interface->getCommandID($command);
-        $rowCount = $this->interface->query(
-            'INSERT INTO "custom_commands_parameters" ("custom_commands_id", "slot", "value")
-            VALUES (?, ?, ?)',
-            [ $id, $slot, $item ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("An error occured trying to add '$item' to '$command' slot $slot.");
-
-        return true;
-    }
-
-
-    /**
-     * @param     $command
-     * @param     $item
-     * @param int $slot
-     * @return bool
-     * @throws CommandCreatorException
-     */
-    private function removeListItem(string $command, string $item, int $slot = 1) {
-        $id       = $this->interface->getCommandID($command);
-        $rowCount = $this->interface->query(
-            'DELETE FROM "custom_commands_parameters"
-            WHERE "custom_commands_id"=?
-            AND "slot"=?
-            AND "value"=?',
-            [ $id, $slot, $item ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("Item '$item' for command '$command' in slot $slot was not found.");
-
-        return true;
-    }
-
-
-    /**
-     * @param     $command
-     * @param int $slot
-     * @return array|bool|int
-     * @throws CommandCreatorException
-     */
-    private function clearListItems(string $command, int $slot = 1) {
-        $id       = $this->interface->getCommandID($command);
-        $rowCount = $this->interface->query(
-            'DELETE FROM "custom_commands_parameters"
-            WHERE "custom_commands_id"=?
-            AND "slot"=?',
-            [ $id, $slot ]
-        );
-
-        if (!$rowCount)
-            throw new CommandCreatorException("No list items found in slot $slot for command '$command'.");
-
-        return $rowCount;
-    }
-
-
-    /**
-     * @param     $command
-     * @param int $slot
-     * @return array|bool|int
-     * @throws CommandCreatorException
-     */
-    private function getListItems(string $command, int $slot = 1) {
-        $id      = $this->interface->getCommandID($command);
-        $results = $this->interface->query(
-            'SELECT "value"
-            FROM "custom_commands_parameters"
-            WHERE "custom_commands_id"=?
-            AND "slot"=?',
-            [ $id, $slot ]
-        );
-
-        if (!$results)
-            throw new CommandCreatorException("No items found for command '$command' in slot $slot.");
-
-        return $results;
     }
 
 }

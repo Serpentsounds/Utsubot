@@ -22,13 +22,23 @@ class FileList extends ItemList {
 
 
     /**
-     * Add a new file to the collection
+     * Create a new file to add to the collection
      *
      * @param string $file
      * @throws FileException Invalid file name
      */
     public function add(string $file) {
         $this->list[] = new File($file);
+    }
+
+
+    /**
+     * Add an existing File object to the collection
+     * 
+     * @param File $file
+     */
+    public function addFile(File $file) {
+        $this->list[] = $file;
     }
 
 

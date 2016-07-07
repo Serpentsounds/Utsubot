@@ -22,7 +22,7 @@ use Utsubot\{
     Trigger,
     ModuleException
 };
-
+use function Utsubot\bold;
 
 /**
  * Class IncludesException
@@ -58,7 +58,7 @@ class Includes extends Module implements IHelp {
 
         $help = new HelpEntry("IncludeInfo", $includes);
         $help->addParameterTextPair("", "Shows a summary of all includes categories.");
-        $help->addParameterTextPair("[class|interface|traits|file|lines]", "Show information about includes with a focus on the given category.");
+        $help->addParameterTextPair("[class|interface|traits|file|lines|namespace]", "Show information about includes with a focus on the given category.");
         $this->addHelp($help);
     }
 
@@ -108,6 +108,11 @@ class Includes extends Module implements IHelp {
                 $output = $this->getSourceAnalysis();
                 break;
 
+            //  Group by namespace
+            case "namespace":
+                $output = $this->getNamespaceAnalysis();
+                break;
+
             //  List totals for all categories
             case "":
                 $output = $this->getTotals();
@@ -145,6 +150,7 @@ class Includes extends Module implements IHelp {
         );
     }
 
+
     /**
      * Get an overview for each category
      *
@@ -168,14 +174,64 @@ class Includes extends Module implements IHelp {
 
 
     /**
+     * Categorize included files into namespaces, and get summed stats for each namespace
+     *
+     * @return string
+     */
+    protected function getNamespaceAnalysis(): string {
+        $fileList = new FileList(get_included_files());
+        /** @var FileList[] $namespaces */
+        $namespaces = [ ];
+
+        //  Get source for each file
+        foreach ($fileList as $file) {
+            $source = file($file->getPath());
+
+            //  Check lines until a namespace declaration is found
+            foreach ($source as $line) {
+
+                //  Save file and move on
+                if (preg_match("/^\s*namespace\s+([^;]+);/", $line, $match)) {
+
+                    //  Use first subsection of namespace
+                    $namespace = $match[ 1 ];
+                    if (strpos($namespace, "\\"))
+                        $namespace = explode("\\", $namespace)[1];
+
+                    //  Initialize if necessary
+                    if (!isset($namespaces[ $namespace ]))
+                        $namespaces[ $namespace ] = new FileList([ ]);
+
+                    $namespaces[ $namespace ]->addFile($file);
+                    break;
+                }
+            }
+        }
+
+        //  Sort namespaces by line count descending
+        uasort($namespaces, function (FileList $a, FileList $b) {
+            return $b->getTotalLines() - $a->getTotalLines();
+        });
+
+        //  Format output
+        $output = [ ];
+        foreach ($namespaces as $namespace => $fileList)
+            $output[] = sprintf("%s: %d lines over %d files", bold($namespace), $fileList->getTotalLines(), $fileList->getItemCount());
+
+        return implode(", ", $output);
+    }
+
+
+    /**
      * Break down source files into code, comments, and whitespace
+     *
      * @return string
      */
     protected function getSourceAnalysis(): string {
         $fileList = new FileList(get_included_files());
-        $code = $comments = $whitespace = 0;
+        $code     = $comments = $whitespace = 0;
 
-        //  All included files
+        //  Get source for each file
         foreach ($fileList as $file) {
             $source = file($file->getPath());
 
@@ -216,7 +272,7 @@ class Includes extends Module implements IHelp {
         }
 
         $output = $this->getFilesOverview($fileList);
-        
+
         $total = $comments + $code + $whitespace;
         $output .= sprintf(
             "\nThe files are distributed into roughly %d (%.2f%%) lines of code, %d (%.2f%%) lines of comments, and %d (%.2f%%) lines of whitespace.",
