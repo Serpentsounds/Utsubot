@@ -88,6 +88,8 @@ class Admin extends ModuleWithPermission {
 
 
     /**
+     * Request for the bot to join a channel
+     *
      * @param IRCMessage $msg
      * @throws ModuleException
      * @throws ModuleWithAccountsException
@@ -101,6 +103,8 @@ class Admin extends ModuleWithPermission {
 
 
     /**
+     * Request for the bot to leave a channel
+     *
      * @param IRCMessage $msg
      * @throws ModuleException
      * @throws ModuleWithAccountsException

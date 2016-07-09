@@ -11,6 +11,7 @@ class CalculatorException extends \Exception {
 
 }
 
+
 /**
  * Class Calculator
  * A utility to safely evaluate a user-input mathematical expression
@@ -19,7 +20,7 @@ class CalculatorException extends \Exception {
  */
 class Calculator {
 
-    const VALID_FUNCTIONS = [
+    const Valid_Functions = [
         "ceil", "floor",
         "min", "max",
         "rand",
@@ -42,24 +43,28 @@ class Calculator {
      *
      * @param $expression
      */
-    public function __construct($expression) {
+    public function __construct(string $expression) {
         $this->setExpression($expression);
     }
 
 
     /**
-     * @param string $expression Mathematical expression to save to this object
+     * Set this calculator's expression it is to evaluate
+     *
+     * @param string $expression
      */
-    public function setExpression($expression) {
+    public function setExpression(string $expression) {
 
-        //  Replace math constants and implicit multiplication
+        //  Parse expression into a slightly more usable form
         $this->expression = preg_replace_callback(
             "/\b(pi|euler|e)\b/",
 
+            //  Replace PHP math constants
             function ($match) {
                 return constant("M_".strtoupper($match[ 1 ]));
             },
 
+            //  Fill in operators for implicit multiplication
             preg_replace(
                 "/([0-9\. \)]+)(?=[a-z\(])|([a-z \)]+)(?=\()/",
                 '$1$2*',
@@ -94,40 +99,53 @@ class Calculator {
     public static function evaluate(string $expression): float {
 
         //  Check for instances of custom functions
-        foreach (self::VALID_FUNCTIONS as $function) {
+        foreach (self::Valid_Functions as $function) {
+
             //  Find position of function call
             $funcPos = strpos($expression, $function."(");
             if ($funcPos !== false) {
+
                 //  Start evaluating after opening parentheses
                 $startPos = $funcPos + strlen($function) + 1;
 
                 $characters = str_split(substr($expression, $startPos));
                 $depth      = 1;
                 $length     = -1;
+
                 //  Iterate characters to find end of expression
                 foreach ($characters as $character) {
                     $length++;
-                    if ($character == "(")
-                        $depth++;
-                    elseif ($character == ")")
-                        $depth--;
-                    else
-                        continue;
+
+                    switch ($character) {
+                        case "(":
+                            $depth++;
+                            break;
+                        case ")":
+                            $depth--;
+                            break;
+                        default:
+                            continue;
+                            break;
+                    }
+
                     if (!$depth)
                         break;
                 }
+
                 //  Parentheses didn't match up
                 if ($depth)
                     throw new CalculatorException("Bracket mismatch in math parser expression.");
 
                 //  Section of expression current function encompasses
                 $evaluate = substr($expression, $startPos, $length);
+
                 //  Invalid characters in expression, there may be nested functions, evaluate recursively
                 if (preg_match('/[^0-9 +\-\/*,^]/', $evaluate))
                     $evaluate = self::evaluate($evaluate);
 
                 //  Prevent rounding errors for trig functions
                 $evaluate = round(self::math($function, $evaluate), 8);
+                
                 //  Piece together the expression by replacing the newly evaluated portion
                 $expression = substr($expression, 0, $funcPos).$evaluate.substr($expression, $startPos + $length + 1);
             }
@@ -141,6 +159,7 @@ class Calculator {
         //  Parentheses with no numbers inside
         if (preg_match('/(\([^0-9]*\))/', $expression, $match))
             throw new CalculatorException("Invalid group in math parser expression: {$match[1]}");
+
         //  Closing parentheses with no opening
         if (preg_match('/((?:^|[^\(]+)\))/', $expression, $match))
             throw new CalculatorException("Invalid group in math parser expression: {$match[1]}");
@@ -152,6 +171,7 @@ class Calculator {
         //  Operations with invalid right operand
         if (preg_match('/([+\-\/\*\^](?:[^0-9\(]+|$))/', $expression, $match))
             throw new CalculatorException("Invalid symbol usage in math parser expression: {$match[1]}");
+
         //  Operations with invalid left operand
         if (preg_match('/((?:^|[^0-9\)]+)[+\-\/\*\^])/', $expression, $match))
             throw new CalculatorException("Invalid symbol usage in math parser expression: {$match[1]}");
@@ -159,6 +179,7 @@ class Calculator {
         //  Replace bitwise operator to intended exponent
         $expression = str_replace("^", "**", $expression);
 
+        //  We can safely evaluate now
         return (float)eval("return $expression;");
 
     }
@@ -171,7 +192,7 @@ class Calculator {
      * @param float|string $parameters
      * @return float|string
      */
-    public static function math($function, $parameters) {
+    public static function math(string $function, $parameters) {
         //  Call existing php functions directly
         if (function_exists($function))
             return call_user_func_array($function, (strlen($parameters)) ? explode(",", $parameters) : [ ]);
