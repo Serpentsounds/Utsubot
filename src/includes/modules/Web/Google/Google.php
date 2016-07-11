@@ -51,7 +51,7 @@ class Google extends WebModule {
         $google = new Trigger("google", [$this, "google"]);
         $google->addAlias("g");
         $this->addTrigger($google);
-        
+
         //  Help entries
         $help = new HelpEntry("Web", $google);
         $help->addParameterTextPair(
@@ -59,7 +59,7 @@ class Google extends WebModule {
             "Search Google for TOPIC. Optionally specify a result count as RESULTS (default ". self::DefaultResults. ", maximum ". self::MaxResults. ")."
         );
         $this->addHelp($help);
-        
+
     }
 
 
@@ -143,7 +143,9 @@ class Google extends WebModule {
      * @throws GoogleException If no results are found
      */
     public function googleSearch(string $search, int $results, bool $safeSearch) {
+        //  Base API for Google Custom Search service
         $APIKey = $this->getAPIKey("google");
+        //  Search engine ID
         $engine = ($safeSearch) ? $this->getAPIKey("googlecxsafe") : $this->getAPIKey("googlecx");
 
         $string = resourceBody(

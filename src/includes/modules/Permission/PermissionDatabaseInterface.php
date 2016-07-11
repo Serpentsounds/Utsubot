@@ -38,6 +38,35 @@ class PermissionDatabaseInterface extends DatabaseInterface {
      */
     public function __construct() {
         parent::__construct(SQLiteDatbaseCredentials::createFromConfig("utsulite"));
+
+        $this->createTables();
+    }
+
+
+    /**
+     * Create tables on first run
+     */
+    private function createTables() {
+        try {
+            $this->query(
+                'CREATE TABLE "command_permission"
+                (
+                  "trigger" TEXT NOT NULL,
+                  "type" TEXT NOT NULL,
+                  "channel" TEXT DEFAULT NULL,
+                  "user_id" INTEGER DEFAULT NULL
+                   REFERENCES "users" ("id") ON UPDATE CASCADE ON DELETE SET DEFAULT,
+                  "nickname" TEXT DEFAULT NULL,
+                  "address" TEXT DEFAULT NULL,
+                  "parameters" TEXT DEFAULT NULL
+                )'
+            );
+
+            echo "Successfully created the 'command_permission' table.\n";
+        }
+
+        //  Table exists, do nothing
+        catch (\PDOException $e) {}
     }
 
 

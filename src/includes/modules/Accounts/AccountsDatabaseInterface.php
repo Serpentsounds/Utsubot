@@ -209,7 +209,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         $results = $this->query(
             'SELECT "password"
             FROM "users"
-            WHERE "username"=?'
+            WHERE "username"=?',
             [ $username ]
         );
 
@@ -567,7 +567,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
      */
     public function getUsernameByID(int $accountID): string {
         $results = $this->query(
-            'SELECT "user"
+            'SELECT "username"
             FROM "users"
             WHERE "id"=?
             LIMIT 1',
@@ -592,7 +592,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         $results = $this->query(
             'SELECT "id"
             FROM "users"
-            WHERE "user"=?',
+            WHERE "username"=?',
             [ $username ]
         );
 
