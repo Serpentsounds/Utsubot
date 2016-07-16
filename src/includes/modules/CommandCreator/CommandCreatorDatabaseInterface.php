@@ -383,7 +383,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
         $rowCount = $this->query(
             'DELETE FROM "custom_command_triggers"
             WHERE "custom_command_id"=?
-            AND "value"=?',
+            AND "trigger"=?',
             [ $id, $trigger ]
         );
 
