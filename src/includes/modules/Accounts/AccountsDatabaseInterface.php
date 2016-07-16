@@ -577,7 +577,7 @@ class AccountsDatabaseInterface extends DatabaseInterface {
         if (!$results)
             throw new AccountsDatabaseInterfaceException("Unable to find account with ID '$accountID'.");
 
-        return $results[ 0 ][ 'user' ];
+        return $results[ 0 ][ 'username' ];
     }
 
 

@@ -154,7 +154,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
 
     /**
      * Look up the main command entry by ID
-     * 
+     *
      * @param int $ID
      * @return array
      * @throws CommandCreatorDatabaseInterfaceException
@@ -176,7 +176,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
 
     /**
      * Get a command's ID given its name
-     * 
+     *
      * @param string $command
      * @return int
      * @throws CommandCreatorDatabaseInterfaceException
@@ -198,7 +198,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
 
     /**
      * Get the collection of list item parameters given a command ID
-     * 
+     *
      * @param int $commandID
      * @return array
      */
@@ -285,7 +285,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
             $this->query(
                 'INSERT INTO "custom_commands" ("name", "type", "format")
                 VALUES (?, ?, ?)',
-                [ $command, $type->getName(), $format ]
+                [ $command, $type->getValue(), $format ]
             );
         }
 
@@ -361,7 +361,7 @@ class CommandCreatorDatabaseInterface extends DatabaseInterface {
 
         try {
             $this->query(
-                'INSERT INTO "custom_command_triggers" ("custom_command_id", "value")
+                'INSERT INTO "custom_command_triggers" ("custom_command_id", "trigger")
                 VALUES (?, ?)',
                 [ $id, $trigger ]
             );

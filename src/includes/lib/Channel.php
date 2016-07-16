@@ -220,6 +220,14 @@ class Channel implements Manageable {
 
 
     /**
+     * @return array
+     */
+    public function getUsers(): array {
+        return $this->users;
+    }
+
+
+    /**
      * @return string
      */
     public function getName() {
