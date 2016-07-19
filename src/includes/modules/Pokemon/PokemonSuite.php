@@ -232,7 +232,7 @@ class PokemonSuite extends ModuleWithPokemon {
         }
 
         /** @var PokemonBase[] $results */
-        $results = $manager->advancedSearch($criteria, new SearchMode(SearchMode::All), $return);
+        $results = $manager->advancedSearch($criteria, new SearchMode(SearchMode::All));
 
         if ($sortBy) {
             usort($results,
@@ -285,6 +285,10 @@ class PokemonSuite extends ModuleWithPokemon {
                 }
             );
         }
+
+        //  Cut result set if limit was given
+        if ($return > 0)
+            $results = array_slice($results, 0, $return);
 
         $output = [ ];
         //  Convert objects to strings in given language
