@@ -69,7 +69,7 @@ class PokemonModule extends ModuleWithPokemon {
         $triggers[ 'dexes' ]    = new Trigger("dexes", [ $this, "pokemon" ]);
         $triggers[ 'dex' ]      = new Trigger("dex", [ $this, "dex" ]);
         $triggers[ 'pcompare' ] = new Trigger("pcompare", [ $this, "compare" ]);
-        $triggers[ 'pcompare ']->addAlias("pcomp");
+        $triggers[ 'pcompare' ]->addAlias("pcomp");
 
         $triggers[ 'maxcp' ]    = new Trigger("maxcp", [ $this, "maxCP" ]);
 
