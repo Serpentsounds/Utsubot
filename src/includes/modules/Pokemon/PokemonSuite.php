@@ -150,7 +150,7 @@ class PokemonSuite extends ModuleWithPokemon {
             $parameters = $copy;
         }
         if (!$show)
-            $show = [ $manager->getMethodFor($language->getValue()) ];
+            $show = [ $manager->getMethodFor($language->getName()) ];
 
         //  Compose collection of valid operators for input parsing
         $operators = Operator::listConstants();

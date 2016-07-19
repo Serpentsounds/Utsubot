@@ -49,7 +49,7 @@ class PokemonManager extends PokemonManagerBase {
      */
     public function getMethodFor(string $field): MethodInfo {
 
-        switch ($field) {
+        switch (strtolower($field)) {
             case "id":
             case "pid":
                 $return = new MethodInfo("getId", [ ]);
