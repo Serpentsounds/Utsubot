@@ -62,12 +62,14 @@ class PokemonModule extends ModuleWithPokemon {
         $this->registerSetting(new Setting($this, "pinfo", "Pokemon Info Format", 1));
 
         //  Command triggers
+        /** @var Trigger[] $triggers */
         $triggers[ 'pinfo' ]    = new Trigger("pinfo", [ $this, "pokemon" ]);
         $triggers[ 'sinfo' ]    = new Trigger("sinfo", [ $this, "pokemon" ]);
         $triggers[ 'names' ]    = new Trigger("names", [ $this, "pokemon" ]);
         $triggers[ 'dexes' ]    = new Trigger("dexes", [ $this, "pokemon" ]);
         $triggers[ 'dex' ]      = new Trigger("dex", [ $this, "dex" ]);
         $triggers[ 'pcompare' ] = new Trigger("pcompare", [ $this, "compare" ]);
+        $triggers[ 'pcompare ']->addAlias("pcomp");
 
         $triggers[ 'maxcp' ]    = new Trigger("maxcp", [ $this, "maxCP" ]);
 
@@ -75,6 +77,7 @@ class PokemonModule extends ModuleWithPokemon {
             $this->addTrigger($trigger);
 
         //  Help entries
+        /** @var HelpEntry[] $help */
         $help[ 'pinfo' ] = new HelpEntry("Pokemon", $triggers[ 'pinfo' ]);
         $help[ 'pinfo' ]->addParameterTextPair("POKEMON", "Look up statistical information about POKEMON.");
 
@@ -304,7 +307,7 @@ class PokemonModule extends ModuleWithPokemon {
         $red  = new Color(Color::Red);
 
         foreach ($statNames as $key => $statName) {
-            $statValues = [ stripControlCodes($data[ 0 ][ $i ]), stripControlCodes($data[ 1 ][ $key ]) ];
+            $statValues = [ stripControlCodes($data[ 0 ][ $key ]), stripControlCodes($data[ 1 ][ $key ]) ];
             //  Default to blue for equal comparison
             $colors = [ $blue, $blue ];
 

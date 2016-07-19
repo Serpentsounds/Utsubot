@@ -68,7 +68,7 @@ EOF;
 {def}%n
 {spa}%n
 {spd}%n
-{spe}%n
+{speed}%n
 {ability1}{/ability2}%n
 {ability3}
 EOF;
