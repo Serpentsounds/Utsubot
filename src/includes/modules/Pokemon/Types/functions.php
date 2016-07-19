@@ -171,6 +171,7 @@ define("DEFENSIVE_ABILITY_EFFECTS", [
     "Heatproof"     => [ "fire" => 0.5 ],
     "Thick Fat"     => [ "fire" => 0.5, "ice" => 0.5 ],
     "Dry Skin"      => [ "water" => -1, "fire" => 1.25 ],
+    "Fluffy"        => [ "fire" => 2 ],
 
     "special" => [
         "Filter"       => [ "multiplier" => 0.75, "condition" => ">", "value" => 1 ],

@@ -37,6 +37,7 @@ class BasicAbilityDefense extends Enum {
     const Herbivore     = [ Type::Grass     =>  0.0 ];
     const Sap_Sipper    = [ Type::Grass     =>  0.0 ];
     const Heatproof     = [ Type::Fire      =>  0.5 ];
+    const Fluffy        = [ Type::Fire      =>  2.0 ];
     const Thick_Fat     = [
                             Type::Fire  => 0.5,
                             Type::Ice   => 0.5
