@@ -9,7 +9,7 @@ namespace Utsubot\Pokemon;
 
 use Utsubot\Help\HelpEntry;
 use Utsubot\{
-    EnumException, IRCBot, IRCMessage, Trigger, ModuleException, DatabaseInterface, MySQLDatabaseCredentials
+    EnumException, IRCBot, IRCMessage, Trigger, ModuleException, DatabaseInterface, MySQLDatabaseCredentials, Color
 };
 use Utsubot\Manager\{
     SearchCriteria, SearchCriterion, ManagerException, Operator, SearchMode
@@ -100,12 +100,20 @@ class PokemonSuite extends ModuleWithPokemon {
         $category   = strtolower(array_shift($parameters));
         if (!in_array($category, $categories))
             throw new PokemonSuiteException("Invalid search category '$category'. Valid categories are: ".implode(", ", $categories).".");
+        $manager = $this->getOutsideManager($category);
 
         //  Default to return all results
         $return = 0;
         //  Default English
         $language = new Language(Language::English);
-        $switches = implode("|", [ "return", "language" ]);
+        /** @var MethodInfo[] $show
+         *  Default to show no extra fields */
+        $show = [ ];
+        //  Default to sort ascending by ID (results are returned that way)
+        $sortMode = [ ];
+        $sortBy = [ ];
+
+        $switches = implode("|", [ "return", "language", "show", "sort" ]);
         $copy = $parameters;
         //  Check for parameter switch overrides at the beginning of command
         while (preg_match("/^($switches):(.*)/", array_shift($copy), $match)) {
@@ -122,10 +130,27 @@ class PokemonSuite extends ModuleWithPokemon {
                 case "language":
                     $language = Language::fromName($value);
                     break;
+
+                case "show":
+                    $show[ ] = $manager->getMethodFor($value);
+                    break;
+
+                case "sort":
+                    if (preg_match("/^([+-])/", $value, $match)) {
+                        $sortMode[ ] = $match[ 1 ];
+                        $value = substr($value, 1);
+                    }
+                    else
+                        $sortMode[ ] = "+";
+
+                    $sortBy[ ] = $manager->getMethodFor($value);
+                    break;
             }
 
             $parameters = $copy;
         }
+        if (!$show)
+            $show = [ $manager->getMethodFor($language->getValue()) ];
 
         //  Compose collection of valid operators for input parsing
         $operators = Operator::listConstants();
@@ -142,7 +167,6 @@ class PokemonSuite extends ModuleWithPokemon {
         /** @var MethodInfo $methodInfo */
         $field = $operator = $value = $methodInfo = null;
         $criteria = new SearchCriteria();
-        $manager = $this->getOutsideManager($category);
 
         foreach ($parameters as $parameter) {
 
@@ -210,14 +234,84 @@ class PokemonSuite extends ModuleWithPokemon {
         /** @var PokemonBase[] $results */
         $results = $manager->advancedSearch($criteria, new SearchMode(SearchMode::All), $return);
 
-        //  Convert objects to strings in given language
-        foreach ($results as $key => $result)
-            $results[ $key ] = $result->getName($language);
+        if ($sortBy) {
+            usort($results,
+                /**
+                 * @var PokemonBase  $a
+                 * @var PokemonBase  $b
+                 * @var MethodInfo[] $sortBy
+                 * @var string[]     $sortMode
+                 */
+                function (PokemonBase $a, PokemonBase $b) use ($sortBy, $sortMode) {
 
-        if (!$results)
+                    /** @var MethodInfo[] $sortBy */
+                    foreach ($sortBy as $key => $methodInfo) {
+                        //  Can't compare if method is missing
+                        if (!method_exists($a, $methodInfo->getMethod()) || !method_exists($b, $methodInfo->getMethod()))
+                            continue;
+
+                        //  Store values for each object
+                        $values = [
+                            call_user_func_array([ $a, $methodInfo->getMethod() ], $methodInfo->getParameters()),
+                            call_user_func_array([ $b, $methodInfo->getMethod() ], $methodInfo->getParameters())
+                        ];
+
+                        //  Sorting for this method is equal, move on to the next method
+                        if ($values[ 0 ] === $values[ 1 ])
+                            continue;
+
+                        //  Change return depending on ascending or descending sort
+                        switch ($sortMode[$key]) {
+
+                            //  Ascending sort, lower values first
+                            case "+":
+                                return ($values[ 0 ] > $values[ 1 ]) ? 1 : (($values[ 0 ] < $values[ 1 ]) ? -1 : 0);
+                                break;
+
+                            //  Descending sort, higher values first
+                            case "-":
+                                return ($values[ 0 ] > $values[ 1 ]) ? -1 : (($values[ 0 ] < $values[ 1 ]) ? 1 : 0);
+                                break;
+
+                            //  Unknown sort mode, how did we get here? Can't compare either way
+                            default:
+                                continue;
+                                break;
+                        }
+                    }
+
+                    //  All values were equal, order undefined
+                    return 0;
+                }
+            );
+        }
+
+        $output = [ ];
+        //  Convert objects to strings in given language
+        foreach ($results as $key => $result) {
+            $output[ $key ] = [ ];
+
+            //  Add additional fields if specified
+            foreach ($show as $methodInfo) {
+                if (method_exists($result, $methodInfo->getMethod()))
+                    $output[ $key ][ ] = call_user_func_array([ $result, $methodInfo->getMethod() ], $methodInfo->getParameters());
+            }
+
+            //  Format results into a group if multiple fields are displayed, otherwise just add the name
+            $output[ $key ] = (count($output[ $key ]) > 1) ?
+
+                colorText("[", new Color(Color::Teal)).
+                    italic((string)$output[ $key ][ 0 ]). ": ".
+                    implode(", ", array_slice($output[ $key ], 1)).
+                    colorText("]", new Color(Color::Teal)) :
+
+                $output[ $key ][ 0 ];
+        }
+
+        if (!$output)
             throw new PokemonSuiteException("No results found.");
 
-        $this->respond($msg, sprintf("%s results: %s", bold(count($results)), implode(", ", $results)));
+        $this->respond($msg, sprintf("%s results: %s", bold(count($output)), implode(", ", $output)));
     }
 
 

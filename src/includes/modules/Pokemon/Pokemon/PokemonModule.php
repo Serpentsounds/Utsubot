@@ -69,6 +69,8 @@ class PokemonModule extends ModuleWithPokemon {
         $triggers[ 'dex' ]      = new Trigger("dex", [ $this, "dex" ]);
         $triggers[ 'pcompare' ] = new Trigger("pcompare", [ $this, "compare" ]);
 
+        $triggers[ 'maxcp' ]    = new Trigger("maxcp", [ $this, "maxCP" ]);
+
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
 
@@ -99,6 +101,20 @@ class PokemonModule extends ModuleWithPokemon {
 
     }
 
+
+    /**
+     * @param IRCMessage $msg
+     * @throws ModuleWithPokemonException
+     * @throws \Utsubot\ModuleException
+     */
+    public function maxCP(IRCMessage $msg) {
+        $this->requireParameters($msg, 1, "No Pokemon given");
+        $result = $this->getObject($msg->getCommandParameterString());
+
+        /** @var Pokemon $pokemon */
+        $pokemon = $result->offsetGet(0);
+        $this->respond($msg, "Max CP for ". bold($pokemon->getName(new Language(Language::English))). ": ". $pokemon->getMaxCP());
+    }
 
     /**
      * Output various information about a pokemon

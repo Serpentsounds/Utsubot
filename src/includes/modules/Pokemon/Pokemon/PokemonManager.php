@@ -75,6 +75,11 @@ class PokemonManager extends PokemonManagerBase {
                 $return = new MethodInfo("getBaseStatTotal", [ ]);
                 break;
 
+            case "maxcp":
+            case "cp":
+                $return = new MethodInfo("getMaxCP", [ ]);
+                break;
+
             case "name":
                 $return = new MethodInfo("getName", [ new Language(Language::English) ]);
                 break;

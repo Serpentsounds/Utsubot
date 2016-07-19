@@ -145,7 +145,7 @@ class Calculator {
 
                 //  Prevent rounding errors for trig functions
                 $evaluate = round(self::math($function, $evaluate), 8);
-                
+
                 //  Piece together the expression by replacing the newly evaluated portion
                 $expression = substr($expression, 0, $funcPos).$evaluate.substr($expression, $startPos + $length + 1);
             }
@@ -161,7 +161,7 @@ class Calculator {
             throw new CalculatorException("Invalid group in math parser expression: {$match[1]}");
 
         //  Closing parentheses with no opening
-        if (preg_match('/((?:^|[^\(]+)\))/', $expression, $match))
+        if (preg_match('/((?:^|(?<!\()[^ \(]+)\))/', $expression, $match))
             throw new CalculatorException("Invalid group in math parser expression: {$match[1]}");
 
         //  Decimals with no numbers after them
