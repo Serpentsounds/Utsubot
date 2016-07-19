@@ -278,14 +278,14 @@ class Pokemon extends PokemonBase {
      */
     public function getMaxCP(): int {
         $baseStamina = 2 * $this->baseStats[0];
-        $baseAttack = 2.6 * pow($this->baseStats[1], 0.46) * pow($this->baseStats[3], 0.46) * pow($this->baseStats[5], 0.04) + 3;
-        $baseDefense = 2.6 * pow($this->baseStats[2], 0.46) * pow($this->baseStats[4], 0.46) * pow($this->baseStats[5], 0.04) + 3;
+        $baseAttack = 2 * round(pow($this->baseStats[1], 0.5) * pow($this->baseStats[3], 0.5) + pow($this->baseStats[5], 0.5));
+        $baseDefense = 2 * round(pow($this->baseStats[2], 0.5) * pow($this->baseStats[4], 0.5) + pow($this->baseStats[5], 0.5));
 
-        $stamina = $baseStamina + 15;
-        $attack = $baseAttack + 15;
-        $defense = $baseDefense + 15;
+        $stamina = .7903 * ($baseStamina + 15);
+        $attack = .7903 * ($baseAttack + 15);
+        $defense = .7903 * ($baseDefense + 15);
 
-        return (int)max(10, floor(pow($stamina, 0.5) * $attack * pow($defense, 0.5) * pow(0.790300, 2) / 10));
+        return (int)max(10, floor(pow($stamina, 0.5) * $attack * pow($defense, 0.5) / 10));
     }
 
 
