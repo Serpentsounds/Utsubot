@@ -30,10 +30,9 @@ class AbilityManagerException extends PokemonManagerBaseException {
  */
 class AbilityManager extends PokemonManagerBase {
 
-    protected static $manages     = "Utsubot\\Pokemon\\Ability\\Ability";
-    protected static $validFields = [ "effect" ];
-
-    protected static $populatorMethod = "getAbilities";
+    const Manages          = "Utsubot\\Pokemon\\Ability\\Ability";
+    const Populator_Method = "getAbilities";
+    const TypedArray_Class = "Utsubot\\Pokemon\\Abilities";
 
 
     /**

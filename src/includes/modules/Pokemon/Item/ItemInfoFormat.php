@@ -7,6 +7,7 @@
 
 namespace Utsubot\Pokemon\Item;
 
+
 use Utsubot\Pokemon\{
     InfoFormat,
     PokemonBaseException,
@@ -19,20 +20,19 @@ use function Utsubot\bold;
 /**
  * Class ItemInfoFormat
  *
+ * @property Item $object
+ *
  * @package Utsubot\Pokemon\Item
  */
 class ItemInfoFormat extends InfoFormat {
 
-    /** @var $object Item */
-    protected $object;
-
-    protected static $defaultFormat =
+    const Default_Format =
         "[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {shortEffect}]";
 
-    protected static $verboseFormat =
+    const Verbose_Format =
         "[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {effect}]";
 
-    protected static $validFields = [
+    const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
         "xy", "bw", "bw2", "dp", "p", "hgss", "rs", "e", "frlg",
         "effect", "shortEffect",
@@ -45,12 +45,14 @@ class ItemInfoFormat extends InfoFormat {
 
 
     /**
-     * @return string
+     * Force an Item to construct
+     *
+     * @param Item $object
      */
-    public static function getVerboseFormat(): string {
-        return self::$verboseFormat;
+    public function __construct(Item $object) {
+        parent::__construct($object);
     }
-
+    
 
     /**
      * @param string $field

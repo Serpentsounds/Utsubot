@@ -12,6 +12,7 @@ use Utsubot\Manager\{
     Manager,
     ManagerException
 };
+use Utsubot\TypedArray;
 
 
 /**
@@ -31,11 +32,11 @@ class PokemonManagerBaseException extends \Exception {
  */
 abstract class PokemonManagerBase extends Manager {
 
+    const Populator_Method = "";
+    const TypedArray_Class = "";
+
     /** @var PokemonObjectPopulator[] $populators */
     protected $populators;
-    protected $populatorCollections = [ ];
-
-    protected static $populatorMethod;
 
 
     /**
@@ -44,8 +45,11 @@ abstract class PokemonManagerBase extends Manager {
      * @throws PokemonManagerBaseException
      */
     public function __construct() {
-        if (!strlen(static::$populatorMethod))
+        if (!strlen(static::Populator_Method))
             throw new PokemonManagerBaseException("Populator method not configured for class '".get_class($this)."'.");
+
+        if (!is_subclass_of(static::TypedArray_Class, "Utsubot\\TypedArray"))
+            throw new PokemonManagerBaseException("Invalid TypedArray configuration for class '".get_class($this)."'.");
 
         parent::__construct();
     }
@@ -59,10 +63,10 @@ abstract class PokemonManagerBase extends Manager {
      * @throws PokemonManagerBaseException
      */
     public function addPopulator(PokemonObjectPopulator $populator): int {
-        if (!method_exists($populator, static::$populatorMethod))
+        if (!method_exists($populator, static::Populator_Method))
             throw new PokemonManagerBaseException(
                 "The populator supplied to '".get_class($this).
-                "' does not support the populator method '".static::$populatorMethod."'.");
+                "' does not support the populator method '".static::Populator_Method."'.");
 
         $this->populators[] = $populator;
 
@@ -91,13 +95,6 @@ abstract class PokemonManagerBase extends Manager {
                 $this->doPopulate($i);
         }
 
-        //  Update main manager collection with composite array
-        $collection = [ ];
-        foreach ($this->populatorCollections as $populatorCollection)
-            //  Array addition to preserve indexes
-            $collection = $collection + $populatorCollection;
-
-        $this->collection = $collection;
     }
 
 
@@ -108,17 +105,20 @@ abstract class PokemonManagerBase extends Manager {
      * @throws PokemonManagerBaseException
      */
     protected function doPopulate(int $index) {
-        $collection = call_user_func([ $this->populators[ $index ], static::$populatorMethod ]);
+        $typedArrayClass = static::TypedArray_Class;
+        $typedArray = new $typedArrayClass($this->collection);
+
+        $newCollection = call_user_func([ $this->populators[ $index ], static::Populator_Method ], $typedArray);
 
         //  Convert ArrayObjects to just data
-        if ($collection instanceof \ArrayObject)
-            $collection = $collection->getArrayCopy();
+        if ($newCollection instanceof \ArrayObject)
+            $newCollection = $newCollection->getArrayCopy();
 
         //  Collection must be an array
-        if (!is_array($collection))
-            throw new PokemonManagerBaseException("Populator method '".static::$populatorMethod."' did not return an array.");
+        if (!is_array($newCollection))
+            throw new PokemonManagerBaseException("Populator method '".static::Populator_Method."' did not return an array.");
 
-        $this->populatorCollections[ $index ] = $collection;
+        $this->collection = $newCollection;
     }
 
 
@@ -147,7 +147,7 @@ abstract class PokemonManagerBase extends Manager {
     /**
      * Translate the name of a search field for an end user to a method name with parameters to grab the relevant data
      * from the Manager's objects
-     * 
+     *
      * @param string $field
      * @return MethodInfo
      */

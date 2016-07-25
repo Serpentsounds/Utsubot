@@ -30,10 +30,9 @@ class NatureManagerException extends PokemonManagerBaseException {
  */
 class NatureManager extends PokemonManagerBase {
 
-    protected static $manages     = "Utsubot\\Pokemon\\Nature\\Nature";
-    protected static $validFields = [ "increases", "decreases", "likes", "dislikes", "likesFlavor", "dislikesFlavor" ];
-
-    protected static $populatorMethod = "getNatures";
+    const Manages     = "Utsubot\\Pokemon\\Nature\\Nature";
+    const Populator_Method = "getNatures";
+    const TypedArray_Class = "Utsubot\\Pokemon\\Natures";
 
 
     /**

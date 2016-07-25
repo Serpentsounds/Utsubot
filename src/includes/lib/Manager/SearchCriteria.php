@@ -19,6 +19,6 @@ use Utsubot\TypedArray;
  */
 class SearchCriteria extends TypedArray {
 
-    protected static $contains = "\\Utsubot\\Manager\\SearchCriterion";
+   const Contains = "\\Utsubot\\Manager\\SearchCriterion";
 
 }

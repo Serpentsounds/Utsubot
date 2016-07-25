@@ -34,13 +34,14 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
 
 
     /**
+     * @param Pokemons $pokemons
      * @return Pokemons
      * @throws PokemonBaseException
      * @throws \Utsubot\Pokemon\Pokemon\PokemonException
      */
-    public function getPokemon(): Pokemons {
-        /** @var Pokemon[] $pokemon */
-        $pokemon = new Pokemons();
+    public function getPokemon(Pokemons $pokemons): Pokemons {
+        /** @var Pokemon[] $gen7Pokemons */
+        $gen7Pokemons = new Pokemons();
         $offset  = 2000;
 
         //  Query names
@@ -56,14 +57,14 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
         //  Set names
         foreach ($names as $row) {
             $id = $row[ 'id' ] + $offset;
-            if (!isset($pokemon[ $id ])) {
-                $pokemon[ $id ] = new Pokemon();
-                $pokemon[ $id ]->setId($id);
+            if (!isset($gen7Pokemons[ $id ])) {
+                $gen7Pokemons[ $id ] = new Pokemon();
+                $gen7Pokemons[ $id ]->setId($id);
 
-                $pokemon[ $id ]->setGeneration(7);
+                $gen7Pokemons[ $id ]->setGeneration(7);
             }
 
-            $pokemon[ $id ]->setName($row[ 'name' ], Language::fromName($row[ 'lang' ]));
+            $gen7Pokemons[ $id ]->setName($row[ 'name' ], Language::fromName($row[ 'lang' ]));
         }
 
         //  Query types
@@ -78,7 +79,7 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
 
         //  Set types
         foreach ($types as $row)
-            $pokemon[ $row[ 'id' ] + $offset ]->setType($row[ 'slot' ] - 1, $row[ 'name' ]);
+            $gen7Pokemons[ $row[ 'id' ] + $offset ]->setType($row[ 'slot' ] - 1, $row[ 'name' ]);
 
         //  Query abilities
         $abilities = $this->query(
@@ -90,7 +91,7 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
 
         //  Set abilities
         foreach ($abilities as $row)
-            $pokemon[ $row[ 'id' ] + $offset ]->setAbility($row[ 'slot' ] - 1, $row[ 'ability' ]);
+            $gen7Pokemons[ $row[ 'id' ] + $offset ]->setAbility($row[ 'slot' ] - 1, $row[ 'ability' ]);
 
         //  Query evolutions
         $evolutions = $this->query(
@@ -105,19 +106,19 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
             $fromId = $row[ 'from_id' ] + $offset;
             $toId   = $row[ 'to_id' ] + $offset;
 
-            $fromName = $pokemon[ $fromId ]->getName(new Language(Language::English));
-            $toName   = $pokemon[ $toId ]->getName(new Language(Language::English));
+            $fromName = $gen7Pokemons[ $fromId ]->getName(new Language(Language::English));
+            $toName   = $gen7Pokemons[ $toId ]->getName(new Language(Language::English));
 
             if (!$fromName)
-                $fromName = $pokemon[ $fromId ]->getName(new Language(Language::Roumaji));
+                $fromName = $gen7Pokemons[ $fromId ]->getName(new Language(Language::Roumaji));
             if (!$toName)
-                $toName = $pokemon[ $toId ]->getName(new Language(Language::Roumaji));
+                $toName = $gen7Pokemons[ $toId ]->getName(new Language(Language::Roumaji));
 
             $evolution->setFrom($fromName);
             $evolution->setTo($toName);
 
-            $pokemon[ $fromId ]->addEvolution(clone $evolution);
-            $pokemon[ $toId ]->addPreEvolution(clone $evolution);
+            $gen7Pokemons[ $fromId ]->addEvolution(clone $evolution);
+            $gen7Pokemons[ $toId ]->addPreEvolution(clone $evolution);
         }
 
         //  Query semantics
@@ -129,21 +130,23 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
         //  Set semantics
         foreach ($data as $row) {
             $id = $row[ 'pokemon_id' ] + $offset;
-            $pokemon[ $id ]->setHeight((float)$row[ 'height' ]);
-            $pokemon[ $id ]->setWeight((float)$row[ 'weight' ]);
+            $gen7Pokemons[ $id ]->setHeight((float)$row[ 'height' ]);
+            $gen7Pokemons[ $id ]->setWeight((float)$row[ 'weight' ]);
         }
 
-        return $pokemon;
+        /** @var Pokemons $gen7Pokemons */
+        return new Pokemons($pokemons->getArrayCopy() + $gen7Pokemons->getArrayCopy());
     }
 
 
     /**
+     * @param Abilities $abilities
      * @return Abilities
      */
-    public function getAbilities(): Abilities {
-        /** @var Ability[] $abilities */
-        $abilities = new Abilities();
-        $offset    = 2000;
+    public function getAbilities(Abilities $abilities): Abilities {
+        /** @var Ability[] $gen7Abilities */
+        $gen7Abilities = new Abilities();
+        $offset        = 2000;
 
         //  Query names
         $names = $this->query(
@@ -158,43 +161,47 @@ class Gen7DatabaseInterface extends DatabaseInterface implements PokemonObjectPo
         //  Set names
         foreach ($names as $row) {
             $id = $row[ 'id' ] + $offset;
-            if (!isset($abilities[ $id ])) {
-                $abilities[ $id ] = new Ability();
-                $abilities[ $id ]->setId($id);
+            if (!isset($gen7Abilities[ $id ])) {
+                $gen7Abilities[ $id ] = new Ability();
+                $gen7Abilities[ $id ]->setId($id);
 
-                $abilities[ $id ]->setEffect($row[ 'effect' ]);
-                $abilities[ $id ]->setShortEffect($row[ 'effect' ]);
+                $gen7Abilities[ $id ]->setEffect($row[ 'effect' ]);
+                $gen7Abilities[ $id ]->setShortEffect($row[ 'effect' ]);
 
-                $abilities[ $id ]->setGeneration(7);
+                $gen7Abilities[ $id ]->setGeneration(7);
             }
 
-            $abilities[ $id ]->setName($row[ 'name' ], Language::fromName($row[ 'lang' ]));
+            $gen7Abilities[ $id ]->setName($row[ 'name' ], Language::fromName($row[ 'lang' ]));
         }
 
-        return $abilities;
+        /** @var Abilities $gen7Abilities */
+        return new Abilities($abilities->getArrayCopy() + $gen7Abilities->getArrayCopy());
     }
 
 
     /**
+     * @param Items $items
      * @return Items
      */
-    public function getItems(): Items {
-        return new Items();
+    public function getItems(Items $items): Items {
+        return $items;
     }
 
 
     /**
+     * @param Moves $moves
      * @return Moves
      */
-    public function getMoves(): Moves {
-        return new Moves();
+    public function getMoves(Moves $moves): Moves {
+        return $moves;
     }
 
 
     /**
+     * @param Natures $natures
      * @return Natures
      */
-    public function getNatures(): Natures {
-        return new Natures();
+    public function getNatures(Natures $natures): Natures {
+        return $natures;
     }
 }

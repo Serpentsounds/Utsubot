@@ -5,7 +5,10 @@
  * Date: 04/12/2014
  */
 
+declare(strict_types = 1);
+
 namespace Utsubot\Pokemon\Pokemon;
+
 
 use Utsubot\Converter\Converter;
 use Utsubot\Pokemon\{
@@ -26,41 +29,43 @@ use function Utsubot\{
 /**
  * Class PokemonInfoFormat
  *
+ * @property Pokemon $object
+ *
  * @package Utsubot\Pokemon\Pokemon
  */
 class PokemonInfoFormat extends InfoFormat {
 
-    const UNITS_IMPERIAL = 1;
-    const UNITS_METRIC   = 2;
-    const UNITS_BOTH     = 3;
+    const Units_Imperial = 1;
+    const Units_Metric   = 2;
+    const Units_Both     = 3;
 
-    /** @var $object Pokemon */
-    protected $object;
-
-    private $units = "imperial";
-
-    protected static $defaultFormat = <<<EOF
-[^Name^: {english}/{japanese}] {[^Dex^: #national]} [^Type^: {type1}{/type2}] [^Abilities^: {ability1}{/ability2}{/ability3}]
+    const Default_Format = <<<EOF
+[^Name^: {english}{/japanese}] {[^Dex^: #national]} [^Type^: {type1}{/type2}] [^Abilities^: {ability1}{/ability2}{/ability3}]
 {[^Evolves from^: preevolution]} {[^Evolution^: evolution]}
 {[^Stats^: hpHP, atkAtk, defDef, spaSpA, spdSpD, speedSpe, totalTotal]}
 EOF;
 
-    protected static $semanticFormat = <<<EOF
-[^Name^: {english}/{japanese}] {[^Species^: species]} {[^Color^: color]} {[^Habitat^: habitat]} [^Gender^: {male} Male/{female} Female]
+    const Semantic_Format = <<<EOF
+[^Name^: {english}{/japanese}] {[^Species^: species]} {[^Color^: color]} {[^Habitat^: habitat]} [^Gender^: {male} Male/{female} Female]
 {[^Height^: height]} {[^Weight^: weight]} {[^EVs^: evs]} {[^Catch Rate^: catchRate]} {[^Base Exp^: baseExp]} {[^Base Happiness^: baseHappiness]} {[^Egg Group^: eggGroup]} {[^Egg Steps^: eggSteps]}
 EOF;
 
-    protected static $namesFormat = <<<EOF
+    const Names_Format = <<<EOF
 [^English^: {english}] [^Japanese^: {japanese} ({roumaji}{/officialroumaji})] {[^Spanish^: spanish]} {[^Italian^: italian]} {[^Korean^: korean]} {[^Chinese^: chinese]}
 {[^German^: german]} {[^French^: french]}
 EOF;
 
-    protected static $dexesFormat = <<<EOF
-[^Name^: {english}/{japanese}] {[^National^: national]} {[^Kanto^: kanto]} {[^Johto^: johto]} {[^Hoenn^: hoenn]} {[^Sinnoh^: sinnoh]} {[^Ext. Sinnoh^: extsinnoh]} {[^New Johto^: newjohto]}
+    const Dexes_Format = <<<EOF
+[^Name^: {english}{/japanese}] {[^National^: national]} {[^Kanto^: kanto]} {[^Johto^: johto]} {[^Hoenn^: hoenn]} {[^Sinnoh^: sinnoh]} {[^Ext. Sinnoh^: extsinnoh]} {[^New Johto^: newjohto]}
 {[^Unova^: unova]} {[^New Unova^: newunova]} {[^Central Kalos^: centralkalos]} {[^Coastal Kalos^: coastalkalos]} {[^Mountain Kalos^: mountainkalos]} {[^New Hoenn^: newhoenn]}
 EOF;
 
-    protected static $compareFormat = <<<EOF
+    const GO_Format = <<<EOF
+[^Name^: {english}{/japanese}] [^Type^: {type1}{/type2}] {[^Stamina^: gosta]} {[^Attack^: goatk]} {[^Defense^: godef]} {[^Max CP^: maxCP]} {[^Level-up Candy^: candyToEvolve]}
+{[^Catch Rate^: goCatchRate]} {[^Flee Rate^: goFleeRate]}
+EOF;
+
+    const Compare_Format = <<<EOF
 {english}%n
 {type1}{/type2}%n
 {hp}%n
@@ -73,7 +78,7 @@ EOF;
 {ability3}
 EOF;
 
-    protected static $validFields = [
+    const Valid_Fields = [
         "english", "japanese", "roumaji", "officialroumaji",
         "german", "french", "spanish", "korean", "chinese", "italian", "czech",
         "generation",
@@ -88,39 +93,20 @@ EOF;
         "catchRate", "baseExp", "baseHappiness",
         "eggGroup", "eggSteps",
         "national", "kanto", "johto", "hoenn", "sinnoh", "extsinnoh", "newjohto",
-        "unova", "newunova", "centralkalos", "coastalkalos", "mountainkalos", "newhoenn"
+        "unova", "newunova", "centralkalos", "coastalkalos", "mountainkalos", "newhoenn",
+        "gosta", "goatk", "godef", "maxCP", "candyToEvolve", "goCatchRate", "goFleeRate"
     ];
 
-
-    /**
-     * @return string
-     */
-    public static function getSemanticFormat(): string {
-        return self::$semanticFormat;
-    }
+    private $units = "imperial";
 
 
     /**
-     * @return string
+     * Force a Pokemon to construct
+     *
+     * @param Pokemon $object
      */
-    public static function getNamesFormat(): string {
-        return self::$namesFormat;
-    }
-
-
-    /**
-     * @return string
-     */
-    public static function getDexesFormat(): string {
-        return self::$dexesFormat;
-    }
-
-
-    /**
-     * @return string
-     */
-    public static function getCompareFormat(): string {
-        return self::$compareFormat;
+    public function __construct(Pokemon $object) {
+        parent::__construct($object);
     }
 
 
@@ -129,7 +115,7 @@ EOF;
      * @throws InfoFormatException
      */
     public function setUnits(int $units) {
-        if ($units != self::UNITS_METRIC && $units != self::UNITS_BOTH && $units != self::UNITS_IMPERIAL)
+        if ($units != self::Units_Metric && $units != self::Units_Both && $units != self::Units_Imperial)
             throw new InfoFormatException("Invalid units identifier '$units'.");
 
         $this->units = $units;
@@ -170,6 +156,8 @@ EOF;
         if ($return = parent::getField($field))
             return $return;
 
+        $return = "";
+
         switch ($field) {
             case "national":
             case "kanto":
@@ -206,21 +194,21 @@ EOF;
 
                 $dex = $this->object->getDexNumber(new Dex(Dex::findValue($field)));
 
-                return ($dex > -1) ? $dex : "";
+                $return = ($dex > -1) ? $dex : "";
                 break;
 
             case "type":
-                return $this->object->getFormattedType();
+                $return = $this->object->getFormattedType();
                 break;
             case "type1":
             case "type2":
-                return $this->object->getType(substr($field, -1) - 1);
+                $return = $this->object->getType(substr($field, -1) - 1);
                 break;
 
             case "ability1":
             case "ability2":
             case "ability3":
-                return $this->object->getAbility(substr($field, -1) - 1);
+                $return = $this->object->getAbility(substr($field, -1) - 1);
                 break;
 
             case "hp":
@@ -229,11 +217,21 @@ EOF;
             case "spa":
             case "spd":
             case "speed":
-                return $this->object->getBaseStat(Stat::fromName($field));
+                $return = $this->object->getBaseStat(Stat::fromName($field));
                 break;
 
             case "total":
-                return $this->object->getBaseStatTotal();
+                $return = $this->object->getBaseStatTotal();
+                break;
+
+            case "goatk":
+                $return = $this->object->getBaseGoAttack();
+                break;
+            case "godef":
+                $return = $this->object->getBaseGoDefense();
+                break;
+            case "gosta":
+                $return = $this->object->getBaseGoStamina();
                 break;
 
             case "generation":
@@ -243,13 +241,25 @@ EOF;
             case "baseExp":
             case "eggSteps":
             case "baseHappiness":
+            case "maxCP":
                 $method = "get".ucfirst($field);
 
-                return $this->object->{$method}();
+                $return = $this->object->{$method}();
+                break;
+
+            case "candyToEvolve":
+                $return = $this->object->getCandyToEvolve() ?: "";
+                break;
+
+            case "goCatchRate":
+            case "goFleeRate":
+                $method = "get".ucfirst($field);
+
+                $return = ($this->object->{$method}() * 100)."%";
                 break;
 
             case "species":
-                return $this->object->getSpecies(new Language(Language::English));
+                $return = $this->object->getSpecies(new Language(Language::English));
                 break;
 
             case "height":
@@ -276,7 +286,7 @@ EOF;
                         break;
                 }
 
-                return $value;
+                $return = $value;
                 break;
 
             case "weight":
@@ -302,7 +312,7 @@ EOF;
                         break;
                 }
 
-                return $value;
+                $return = $value;
                 break;
 
             case "male":
@@ -313,48 +323,48 @@ EOF;
                 if ($field == "female")
                     $ratio = 100 - $ratio;
 
-                return "$ratio%";
+                $return = "$ratio%";
                 break;
 
             case "evs":
                 $evYield = array_filter($this->object->getEVYield());
-                $return  = [ ];
+                $EVs  = [ ];
 
                 foreach ($evYield as $index => $EV)
-                    $return[] = bold("$EV ".Stat::findName($index));
+                    $EVs[] = bold("$EV ".Stat::findName($index));
 
-                return implode(", ", $return);
+                $return = implode(", ", $EVs);
                 break;
 
             case "eggGroup":
-                return implode("/", array_map("Utsubot\\bold", $this->object->getEggGroups()));
+                $return = implode("/", array_map("Utsubot\\bold", $this->object->getEggGroups()));
                 break;
 
             case "preevolution":
                 /** @var Evolution[] $evolutions */
                 $evolutions = $this->object->getPreEvolutions();
 
-                $return = [ ];
+                $evos = [ ];
                 foreach ($evolutions as $evolution)
-                    $return[] = $evolution->format();
+                    $evos[] = $evolution->format();
 
-                return implode("; ", $return);
+                $return = implode("; ", $evos);
                 break;
 
             case "evolution":
                 /** @var Evolution[] $evolutions */
                 $evolutions = $this->object->getEvolutions();
 
-                $return = [ ];
+                $evos = [ ];
                 foreach ($evolutions as $evolution)
-                    $return[] = $evolution->format();
+                    $evos[] = $evolution->format();
 
-                return implode("; ", $return);
+                $return = implode("; ", $evos);
                 break;
 
         }
 
-        return "";
+        return (string)$return;
     }
 
 }

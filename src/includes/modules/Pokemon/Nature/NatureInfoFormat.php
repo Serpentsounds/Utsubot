@@ -18,20 +18,31 @@ use function Utsubot\bold;
 /**
  * Class NatureInfoFormat
  *
+ * @property Nature $object
+ *
  * @package Utsubot\Pokemon\Nature
  */
 class NatureInfoFormat extends InfoFormat {
 
-    protected static $class = "Nature";
+    const Default_Format =
+        "[^Nature^: {english}/{japanese}] [^Increases^: {increases}] [^Decreases^: {decreases}] [^Likes^: {likesFlavor}{ (likesAttr)}] [^Dislikes^: {dislikesFlavor}{ (dislikesAttr)}]";
 
-    protected static $defaultFormat = "[^Nature^: {english}/{japanese}] [^Increases^: {increases}] [^Decreases^: {decreases}] [^Likes^: {likesFlavor}{ (likesAttr)}] [^Dislikes^: {dislikesFlavor}{ (dislikesAttr)}]";
-
-    protected static $validFields = [
+    const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
         "likesAttr", "dislikesAttr",
         "likesFlavor", "dislikesFlavor",
         "increases", "decreases"
     ];
+
+
+    /**
+     * Force a Nature to construct
+     *
+     * @param Nature $object
+     */
+    public function __construct(Nature $object) {
+        parent::__construct($object);
+    }
 
 
     /**

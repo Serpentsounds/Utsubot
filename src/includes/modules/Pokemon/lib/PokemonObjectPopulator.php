@@ -16,32 +16,37 @@ namespace Utsubot\Pokemon;
 interface PokemonObjectPopulator {
 
     /**
+     * @param Pokemons $pokemons
      * @return Pokemons
      */
-    public function getPokemon(): Pokemons;
+    public function getPokemon(Pokemons $pokemons): Pokemons;
 
 
     /**
+     * @param Abilities $abilities
      * @return Abilities
      */
-    public function getAbilities(): Abilities;
+    public function getAbilities(Abilities $abilities): Abilities;
 
 
     /**
+     * @param Items $items
      * @return Items
      */
-    public function getItems(): Items;
+    public function getItems(Items $items): Items;
 
 
     /**
+     * @param Moves $moves
      * @return Moves
      */
-    public function getMoves(): Moves;
+    public function getMoves(Moves $moves): Moves;
 
 
     /**
+     * @param Natures $natures
      * @return Natures
      */
-    public function getNatures(): Natures;
+    public function getNatures(Natures $natures): Natures;
 
 }

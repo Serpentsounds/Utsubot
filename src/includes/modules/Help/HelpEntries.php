@@ -19,6 +19,6 @@ use Utsubot\TypedArray;
  */
 class HelpEntries extends TypedArray {
 
-    protected static $contains = "Utsubot\\Help\\HelpEntry";
+    const Contains = "Utsubot\\Help\\HelpEntry";
 
 }

@@ -19,17 +19,16 @@ use function Utsubot\bold;
 /**
  * Class AbilityInfoFormat
  *
+ * @property Ability $object
+ *
  * @package Utsubot\Pokemon\Ability
  */
 class AbilityInfoFormat extends InfoFormat {
 
-    /** @var $object Ability */
-    protected $object;
+    const Default_Format = "[^Ability^: {english}/{japanese}] [^Generation^: {generation}] [^Effect^: {shortEffect}]";
+    const Verbose_Format = "[^Ability^: {english}/{japanese}] [^Generation^: {generation}] [^Effect^: {effect}]";
 
-    protected static $defaultFormat = "[^Ability^: {english}/{japanese}] [^Generation^: {generation}] [^Effect^: {shortEffect}]";
-    protected static $verboseFormat = "[^Ability^: {english}/{japanese}] [^Generation^: {generation}] [^Effect^: {effect}]";
-
-    protected static $validFields = [
+    const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
         "xy", "bw", "bw2", "dp", "p", "hgss", "rs", "e", "frlg",
         "effect", "shortEffect",
@@ -38,15 +37,7 @@ class AbilityInfoFormat extends InfoFormat {
 
 
     /**
-     * @return string
-     */
-    public static function getVerboseFormat(): string {
-        return self::$verboseFormat;
-    }
-
-
-    /**
-     * AbilityInfoFormat constructor.
+     * Force an Ability to construct
      *
      * @param Ability $object
      */

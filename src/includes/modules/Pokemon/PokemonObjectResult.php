@@ -18,7 +18,7 @@ use Utsubot\TypedArray;
  */
 class PokemonObjectResult extends TypedArray {
 
-    protected  static $contains = "Utsubot\\Pokemon\\PokemonBase";
+    const Contains = "\\Utsubot\\Pokemon\\PokemonBase";
 
     /**
      * @param array $items

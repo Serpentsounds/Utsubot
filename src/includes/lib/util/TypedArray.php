@@ -33,7 +33,7 @@ class TypedArrayException extends Exception {
  */
 abstract class TypedArray extends ArrayObject {
 
-    protected static $contains;
+    const Contains = "";
 
 
     /**
@@ -46,9 +46,10 @@ abstract class TypedArray extends ArrayObject {
      * @throws TypedArrayException
      */
     public function __construct(array $input = [ ], int $flags = 0, string $iterator_class = "ArrayIterator") {
+        $contains = static::Contains;
         foreach ($input as $entry) {
-            if (!($entry instanceof static::$contains))
-                throw new TypedArrayException("Element passed to '".get_called_class()."' must be an instance of '".static::$contains."'.");
+            if (!($entry instanceof $contains))
+                throw new TypedArrayException("Element passed to '".get_called_class()."' must be an instance of '$contains'.");
         }
 
         return parent::__construct($input, $flags, $iterator_class);
@@ -63,8 +64,9 @@ abstract class TypedArray extends ArrayObject {
      * @throws TypedArrayException
      */
     public function offsetSet($key, $value) {
-        if (!($value instanceof static::$contains))
-            throw new TypedArrayException("Element passed to '".get_called_class()."' must be an instance of '".static::$contains."'.");
+        $contains = static::Contains;
+        if (!($value instanceof $contains))
+            throw new TypedArrayException("Element passed to '".get_called_class()."' must be an instance of '$contains'.");
 
         parent::offsetSet($key, $value);
     }

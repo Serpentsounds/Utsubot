@@ -19,25 +19,24 @@ use function Utsubot\Pokemon\Types\colorType;
 /**
  * Class MoveInfoFormat
  *
+ * @property Move $object
+ *
  * @package Utsubot\Pokemon\Move
  */
 class MoveInfoFormat extends InfoFormat {
 
-    /** @var $object Move */
-    protected $object;
-
-    protected static $defaultFormat =
+    const Default_Format =
         "[^Move^: {english}/{japanese}] [^Type^: {type}] [^Power^: {power}] [^Damage Type^: {damageType}] [^Accuracy^: {accuracy}] [^PP^: {pp}] [^Target^: {target}] [^Priority^: {priority}] [^Effect^: {shortEffect}]";
 
-    protected static $verboseFormat =
+    const Verbose_Format =
         "[^Move^: {english}/{japanese}] [^Type^: {type}] [^Power^: {power}] [^Damage Type^: {damageType}] [^Accuracy^: {accuracy}] [^PP^: {pp}] [^Target^: {target}] [^Priority^: {priority}] [^Effect^: {effect}]";
 
-    protected static $contestFormat = <<<EOF
+    const Contest_Format = <<<EOF
 [^Move^: {english}/{japanese}] [^Type^: {contestType}] [^Appeal^: {contestAppeal}] [^Jam^: {contestJam}] [^Super Contest Appeal^: {superContestAppeal}] [^Effect^: {contestEffect}]
 [^Super Contest Effect^: {superContestFlavorText}]
 EOF;
 
-    protected static $validFields = [
+    const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
         "type", "power", "damageType", "accuracy", "target", "priority", "pp",
         "effect", "shortEffect",
@@ -47,18 +46,12 @@ EOF;
 
 
     /**
-     * @return string
+     * Force a Move to construct
+     *
+     * @param Move $object
      */
-    public static function getVerboseFormat() {
-        return self::$verboseFormat;
-    }
-
-
-    /**
-     * @return string
-     */
-    public static function getContestformat() {
-        return self::$contestFormat;
+    public function __construct(Move $object) {
+        parent::__construct($object);
     }
 
 

@@ -49,14 +49,15 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
+     * @param Pokemons $pokemons
      * @return Pokemons
      * @throws PokemonBaseException
      * @throws \Utsubot\Pokemon\Pokemon\PokemonException
      * @throws \Utsubot\EnumException
      */
-    public function getPokemon(): Pokemons  {
-        /** @var Pokemon[] $pokemon */
-        $pokemon = new Pokemons();
+    public function getPokemon(Pokemons $pokemons): Pokemons  {
+        /** @var Pokemon[] $pokemons */
+        $pokemons = new Pokemons();
 
         $nationalDex = new Dex(Dex::National);
 
@@ -88,24 +89,24 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                     (8 - $row[ 'gender_rate' ]) / 8
             );
 
-            $pokemon[ $row[ 'id' ] ] = $newPokemon;
+            $pokemons[ $row[ 'id' ] ] = $newPokemon;
         }
 
         //  Populate names in all languages, as well as dex species ("genus")
         $name = $this->getName();
         foreach ($name as $row) {
             $language = Language::fromName($row[ 'language' ]);
-            $pokemon[ $row[ 'pokemon_species_id' ] ]
+            $pokemons[ $row[ 'pokemon_species_id' ] ]
                 ->setName((string)$row[ 'name' ], $language);
 
-            $pokemon[ $row[ 'pokemon_species_id' ] ]
+            $pokemons[ $row[ 'pokemon_species_id' ] ]
                 ->setSpecies((string)$row[ 'genus' ], $language);
         }
 
         //  Populate egg breeding groups
         $eggGroup = $this->getEggGroup();
         foreach ($eggGroup as $row)
-            $pokemon[ $row[ 'species_id' ] ]
+            $pokemons[ $row[ 'species_id' ] ]
                 ->addEggGroup((string)$row[ 'name' ]);
 
         /*  Add entries for forms with stat/type changes
@@ -113,24 +114,24 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
         $pokemonRow = $this->getPokemonRow();
         foreach ($pokemonRow as $row) {
             //  Copy base info from main species for alts
-            if (!isset($pokemon[ $row[ 'id' ] ]))
-                $pokemon[ $row[ 'id' ] ] = clone $pokemon[ $row[ 'species_id' ] ];
+            if (!isset($pokemons[ $row[ 'id' ] ]))
+                $pokemons[ $row[ 'id' ] ] = clone $pokemons[ $row[ 'species_id' ] ];
 
             //  Alt pokemon, update main name to reflect that
             if ($row[ 'id' ] > 10000) {
                 #$pokemon[$row['id']]
                 #    ->setName(ucwords($row['identifier']), new Language(Language::English));
-                $pokemon[ $row[ 'id' ] ]
+                $pokemons[ $row[ 'id' ] ]
                     ->setId($row[ 'id' ]);
             }
 
-            $pokemon[ $row[ 'id' ] ]
+            $pokemons[ $row[ 'id' ] ]
                 ->setHeight($row[ 'height' ] / 10);
-            $pokemon[ $row[ 'id' ] ]
+            $pokemons[ $row[ 'id' ] ]
                 ->setWeight($row[ 'weight' ] / 10);
-            $pokemon[ $row[ 'id' ] ]
+            $pokemons[ $row[ 'id' ] ]
                 ->setBaseExp((int)$row[ 'base_experience' ]);
-            $pokemon[ $row[ 'id' ] ]
+            $pokemons[ $row[ 'id' ] ]
                 ->setDexNumber((int)$row[ 'species_id' ], $nationalDex);
         }
 
@@ -147,12 +148,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
                 //  References a form with its own 'pokemon' entry, meaning changed stats/type/etc, but we want a reference entry under the original pokemon
                 if ($row[ 'pokemon_id' ] > 10000)
-                    $pokemon[ $pokemon[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
+                    $pokemons[ $pokemons[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
                         ->addToAlternateForm($row[ 'form_order' ] - 1, $info);
 
                 //  Semantic form change, the pokemon_id will be the same as the original pokemon
                 else
-                    $pokemon[ $row[ 'pokemon_id' ] ]
+                    $pokemons[ $row[ 'pokemon_id' ] ]
                         ->addToAlternateForm($row[ 'form_order' ] - 1, $info);
             }
         }
@@ -165,13 +166,13 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
             //  Compound form name with original pokemon name
             if ($row[ 'pokemon_id' ] > 10000) {
                 $name = $row[ 'pokemon_name' ] ?? $row[ 'form_name' ];
-                $pokemon[ $row[ 'pokemon_id' ] ]
+                $pokemons[ $row[ 'pokemon_id' ] ]
                     ->setName($name, $language);
             }
 
             //  Save form name in original pokemon
             else
-                $pokemon[ $pokemon[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
+                $pokemons[ $pokemons[ $row[ 'pokemon_id' ] ]->getDexNumber($nationalDex) ]
                     ->addToAlternateForm(
                         $row[ 'form_order' ] - 1,
                         [ 'names' => [ $language->getValue() => $row[ 'form_name' ] ] ]
@@ -181,7 +182,7 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
         //  Populate all dex numbers
         $dexnum = $this->getDexnum();
         foreach ($dexnum as $row)
-            $pokemon[ $row[ 'species_id' ] ]
+            $pokemons[ $row[ 'species_id' ] ]
                 ->setDexNumber((int)$row[ 'pokedex_number' ], new Dex(Dex::findValue($row[ 'name' ])));
 
         //  Populate evolution data
@@ -312,15 +313,15 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                 }
             }
 
-            $pokemon[ $row[ 'preevo' ] ]->addEvolution(clone $evolution);
-            if (isset($pokemon[ $row[ 'evo' ] ]))
-                $pokemon[ $row[ 'evo' ] ]->addPreEvolution(clone $evolution);
+            $pokemons[ $row[ 'preevo' ] ]->addEvolution(clone $evolution);
+            if (isset($pokemons[ $row[ 'evo' ] ]))
+                $pokemons[ $row[ 'evo' ] ]->addPreEvolution(clone $evolution);
         }
 
         //  Populate type(s)
         $type = $this->getPokemonType();
         foreach ($type as $row)
-            $pokemon[ $row[ 'pokemon_id' ] ]
+            $pokemons[ $row[ 'pokemon_id' ] ]
                 ->setType($row[ 'slot' ] - 1, $row[ 'identifier' ]);
 
         //  Populate base stats and effort values rewarded
@@ -328,28 +329,28 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
         foreach ($stats as $row) {
             $stat = new Stat(Stat::findValue($row[ 'identifier' ]));
 
-            $pokemon[ $row[ 'pokemon_id' ] ]
+            $pokemons[ $row[ 'pokemon_id' ] ]
                 ->setBaseStat($stat, $row[ 'base_stat' ]);
-            $pokemon[ $row[ 'pokemon_id' ] ]
+            $pokemons[ $row[ 'pokemon_id' ] ]
                 ->setEVYield($stat, $row[ 'effort' ]);
         }
 
         //  Populate abilities
         $ability = $this->getPokemonAbility();
         foreach ($ability as $row)
-            $pokemon[ $row[ 'pokemon_id' ] ]
+            $pokemons[ $row[ 'pokemon_id' ] ]
                 ->setAbility($row[ 'slot' ] - 1, $row[ 'name' ]);
 
         $dexEntries = $this->getPokemonDexEntries();
         foreach ($dexEntries as $row)
-            $pokemon[ $row[ 'species_id' ] ]
+            $pokemons[ $row[ 'species_id' ] ]
                 ->setDexEntry(
                     preg_replace("/\s+/", " ", $row[ 'flavor_text' ]),
                     Version::fromName($row[ 'version' ]),
                     Language::fromName($row[ 'language' ])
                 );
 
-        return $pokemon;
+        return $pokemons;
     }
 
 
@@ -534,10 +535,11 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
+     * @param Abilities $abilities
      * @return Abilities
      * @throws PokemonBaseException
      */
-    public function getAbilities(): Abilities {
+    public function getAbilities(Abilities $abilities): Abilities {
         /** @var Ability[] $abilities */
         $abilities = new Abilities();
 
@@ -642,11 +644,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
+     * @param Items $items
      * @return Items
      * @throws \Utsubot\Pokemon\Item\ItemException
      * @throws PokemonBaseException
      */
-    public function getItems(): Items {
+    public function getItems(Items $items): Items {
         /** @var Item[] $items */
         $items = new Items();
 
@@ -783,10 +786,11 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
+     * @param Natures $natures
      * @return Natures
      * @throws PokemonBaseException
      */
-    public function getNatures(): Natures {
+    public function getNatures(Natures $natures): Natures {
         /** @var Nature[] $natures */
         $natures = new Natures();
 
@@ -861,11 +865,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
+     * @param Moves $moves
      * @return Moves
      * @throws \Utsubot\Pokemon\Move\MoveException
      * @throws PokemonBaseException
      */
-    public function getMoves(): Moves {
+    public function getMoves(Moves $moves): Moves {
         /** @var Move[] $moves */
         $moves = new Moves();
 

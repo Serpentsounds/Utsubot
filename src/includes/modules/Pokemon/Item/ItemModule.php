@@ -50,7 +50,7 @@ class ItemModule extends ModuleWithPokemon {
         $itemManager = new ItemManager();
         $itemManager->addPopulator(new VeekunDatabaseInterface());
         $itemManager->populate();
-        
+
         $this->registerManager("Item", $itemManager);
 
         //  Command triggers
@@ -93,7 +93,7 @@ class ItemModule extends ModuleWithPokemon {
             //  Verbose mode, change format to be more descriptive
             case "v":
             case "verbose":
-                $return = $itemInfo->parseFormat(ItemInfoFormat::getVerboseFormat());
+                $return = $itemInfo->parseFormat(ItemInfoFormat::Verbose_Format);
                 break;
         }
 

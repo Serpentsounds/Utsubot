@@ -11,7 +11,7 @@ namespace Utsubot\Pokemon\Pokemon;
 use Utsubot\Accounts\Setting;
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
-    Gen7DatabaseInterface, ModuleWithPokemon, ModuleWithPokemonException, VeekunDatabaseInterface, Version, Language
+    Gen7DatabaseInterface, ModuleWithPokemon, ModuleWithPokemonException, PokemonGoDatabaseInterface, VeekunDatabaseInterface, Version, Language
 };
 use Utsubot\{
     IRCBot,
@@ -54,6 +54,7 @@ class PokemonModule extends ModuleWithPokemon {
         $pokemonManager = new PokemonManager();
         $pokemonManager->addPopulator(new VeekunDatabaseInterface());
         $pokemonManager->addPopulator(new Gen7DatabaseInterface());
+        $pokemonManager->addPopulator(new PokemonGoDatabaseInterface());
         $pokemonManager->populate();
 
         $this->registerManager("Pokemon", $pokemonManager);
@@ -67,11 +68,11 @@ class PokemonModule extends ModuleWithPokemon {
         $triggers[ 'sinfo' ]    = new Trigger("sinfo", [ $this, "pokemon" ]);
         $triggers[ 'names' ]    = new Trigger("names", [ $this, "pokemon" ]);
         $triggers[ 'dexes' ]    = new Trigger("dexes", [ $this, "pokemon" ]);
+        $triggers[ 'goinfo' ]   = new Trigger("goinfo", [ $this, "pokemon" ]);
+
         $triggers[ 'dex' ]      = new Trigger("dex", [ $this, "dex" ]);
         $triggers[ 'pcompare' ] = new Trigger("pcompare", [ $this, "compare" ]);
         $triggers[ 'pcompare' ]->addAlias("pcomp");
-
-        $triggers[ 'maxcp' ]    = new Trigger("maxcp", [ $this, "maxCP" ]);
 
         foreach ($triggers as $trigger)
             $this->addTrigger($trigger);
@@ -90,6 +91,9 @@ class PokemonModule extends ModuleWithPokemon {
         $help[ 'dexes' ] = new HelpEntry("Pokemon", $triggers[ 'dexes' ]);
         $help[ 'dexes' ]->addParameterTextPair("POKEMON", "Look up all in game dex numbers of POKEMON.");
 
+        $help[ 'goinfo' ] = new HelpEntry("Pokemon", $triggers[ 'goinfo' ]);
+        $help[ 'goinfo' ]->addParameterTextPair("POKEMON", "Look up Pokémon GO statistics about POKEMON.");
+
         $help[ 'dex' ] = new HelpEntry("Pokemon", $triggers[ 'dex' ]);
         $help[ 'dex' ]->addParameterTextPair(
             "[-language:LANGUAGE] [-version:VERSION] POKEMON",
@@ -104,20 +108,6 @@ class PokemonModule extends ModuleWithPokemon {
 
     }
 
-
-    /**
-     * @param IRCMessage $msg
-     * @throws ModuleWithPokemonException
-     * @throws \Utsubot\ModuleException
-     */
-    public function maxCP(IRCMessage $msg) {
-        $this->requireParameters($msg, 1, "No Pokemon given");
-        $result = $this->getObject($msg->getCommandParameterString());
-
-        /** @var Pokemon $pokemon */
-        $pokemon = $result->offsetGet(0);
-        $this->respond($msg, "Max CP for ". bold($pokemon->getName(new Language(Language::English))). ": ". $pokemon->getMaxCP());
-    }
 
     /**
      * Output various information about a pokemon
@@ -142,20 +132,24 @@ class PokemonModule extends ModuleWithPokemon {
                     $format = $this->getSetting($msg->getNick(), $this->getSettingObject("pinfo"));
                 }
                 catch (\Exception $e) {
-                    $format = PokemonInfoFormat::getDefaultFormat();
+                    $format = PokemonInfoFormat::Default_Format;
                 }
                 break;
 
             case "sinfo":
-                $format = PokemonInfoFormat::getSemanticFormat();
+                $format = PokemonInfoFormat::Semantic_Format;
                 break;
 
             case "names":
-                $format = PokemonInfoFormat::getNamesFormat();
+                $format = PokemonInfoFormat::Names_Format;
                 break;
 
             case "dexes":
-                $format = PokemonInfoFormat::getDexesFormat();
+                $format = PokemonInfoFormat::Dexes_Format;
+                break;
+
+            case "goinfo":
+                $format = PokemonInfoFormat::GO_Format;
                 break;
 
             default:
@@ -171,15 +165,15 @@ class PokemonModule extends ModuleWithPokemon {
             switch ($units) {
 
                 case "imperial":
-                    $info->setUnits(PokemonInfoFormat::UNITS_IMPERIAL);
+                    $info->setUnits(PokemonInfoFormat::Units_Imperial);
                     break;
 
                 case "metric":
-                    $info->setUnits(PokemonInfoFormat::UNITS_METRIC);
+                    $info->setUnits(PokemonInfoFormat::Units_Metric);
                     break;
 
                 case "both":
-                    $info->setUnits(PokemonInfoFormat::UNITS_BOTH);
+                    $info->setUnits(PokemonInfoFormat::Units_Both);
                     break;
 
             }
@@ -187,7 +181,7 @@ class PokemonModule extends ModuleWithPokemon {
         }
             //  Default to imperial
         catch (\Exception $e) {
-            $info->setUnits(PokemonInfoFormat::UNITS_IMPERIAL);
+            $info->setUnits(PokemonInfoFormat::Units_Imperial);
         }
 
         //  Pass format into info function for results
@@ -296,7 +290,7 @@ class PokemonModule extends ModuleWithPokemon {
         $data = [ ];
         for ($i = 0; $i <= 1; $i++) {
             $info       = new PokemonInfoFormat($pokemonList[ $i ]);
-            $data[ $i ] = array_map("trim", explode("%n", $info->parseFormat(PokemonInfoFormat::getCompareFormat())));
+            $data[ $i ] = array_map("trim", explode("%n", $info->parseFormat(PokemonInfoFormat::Compare_Format)));
         }
 
         //  Corresponding indexes in data array

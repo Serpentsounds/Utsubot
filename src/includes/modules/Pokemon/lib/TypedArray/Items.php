@@ -18,6 +18,6 @@ use Utsubot\TypedArray;
  */
 class Items extends TypedArray {
 
-    protected static $contains = "Utsubot\\Pokemon\\Item\\Item";
+   const Contains = "\\Utsubot\\Pokemon\\Item\\Item";
 
 }

@@ -28,21 +28,13 @@ class InfoFormatException extends \Exception {}
  */
 abstract class InfoFormat {
 
+    const Default_Format = "";
+    const Valid_Fields = [ ];
+    const Header_Color = Color::Teal;
+    const Header_Background_Color = Color::Clear;
+
     /** @var PokemonBase $object */
     protected $object;
-
-    protected static $defaultFormat = "";
-    protected static $validFields = [ ];
-
-    protected static $headerColor = Color::Teal;
-    protected static $headerBackgroundColor = Color::Clear;
-
-    /**
-     * @return string
-     */
-    public static function getDefaultFormat(): string {
-        return static::$defaultFormat;
-    }
 
     /**
      * InfoFormat constructor.
@@ -62,10 +54,10 @@ abstract class InfoFormat {
     public function parseFormat(string $format = ""): string {
         //  Standard format
         if (!$format)
-            $format = static::$defaultFormat;
+            $format = static::Default_Format;
 
         //  Replace ^text^ as teal colored headers
-        $headerColors = [new Color(static::$headerColor), new Color(static::$headerBackgroundColor)];
+        $headerColors = [new Color(static::Header_Color), new Color(static::Header_Background_Color)];
         $format = preg_replace_callback('/\^([^\^]*)\^/',
             function ($match) use ($headerColors) {
                 return ($headerColors[0] === false) ? $match[1] : colorText($match[1], $headerColors[0], $headerColors[1]);
@@ -80,7 +72,7 @@ abstract class InfoFormat {
                 $hasField = false;
 
                 //  Check string for every valid field
-                foreach (static::$validFields as $field) {
+                foreach (static::Valid_Fields as $field) {
 
                     //  Require word boundary to avoid overlapping of parameters
                     if (preg_match("/\\b$field/", $userField)) {

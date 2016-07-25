@@ -18,7 +18,7 @@ use Utsubot\TypedArray;
  */
 class TypeGroup extends TypedArray {
 
-    protected static $contains = "Utsubot\\Pokemon\\Types\\Type";
+    const Contains = "\\Utsubot\\Pokemon\\Types\\Type";
 
     /**
      * @param array $typeNames

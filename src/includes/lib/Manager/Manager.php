@@ -7,7 +7,6 @@
 
 namespace Utsubot\Manager;
 
-
 /**
  * Class ManagerException
  *
@@ -25,19 +24,20 @@ class ManagerException extends \Exception {
  */
 abstract class Manager {
 
+    const Manages = "";
+
     //  Holds the manager's collection of objects
     protected $collection = [ ];
 
-    protected static $manages = "";
 
     /**
      * Manager constructor.
      */
     public function __construct() {
-        if (!class_exists(static::$manages))
-            throw new ManagerException("Unable to create ".get_class($this)." because the managed class '".static::$manages."' does not exist.");
-        if (!is_subclass_of(static::$manages, "Utsubot\\Manager\\Manageable"))
-            throw new ManagerException("Unable to create ".get_class($this)." because the managed class '".static::$manages."' is not Manageable.");
+        if (!class_exists(static::Manages))
+            throw new ManagerException("Unable to create ".get_class($this)." because the managed class '".static::Manages."' does not exist.");
+        if (!is_subclass_of(static::Manages, "Utsubot\\Manager\\Manageable"))
+            throw new ManagerException("Unable to create ".get_class($this)." because the managed class '".static::Manages."' is not Manageable.");
     }
 
 
@@ -85,8 +85,9 @@ abstract class Manager {
      * @throws ManagerException If item can not be managed by this manager type
      */
     public function setIndex(Manageable $item, int $index, $unique = false): int {
-        if (!($item instanceof static::$manages))
-            throw new ManagerException("Unable to add item to ".get_class($this)." because it is not an instance of ".static::$manages.".");
+        $manages = static::Manages;
+        if (!($item instanceof $manages))
+            throw new ManagerException("Unable to add item to ".get_class($this)." because it is not an instance of ".static::Manages.".");
 
         if (!$unique || !in_array($item, $this->collection, true)) {
             $this->collection[ $index ] = $item;
@@ -190,14 +191,6 @@ abstract class Manager {
             throw new ManagerException("No results found for the given criteria in ".get_class($this).".");
 
         return $results;
-    }
-
-
-    /**
-     * @return string
-     */
-    public static function getManages() {
-        return static::$manages;
     }
 
 }

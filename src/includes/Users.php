@@ -19,15 +19,14 @@ use Utsubot\Manager\{
  * Class Users
  *
  * @package Utsubot
+ * @property User[] $collection
  * @method User findFirst($terms)
  */
 class Users extends Manager {
 
-    protected static $manages = "Utsubot\\User";
-    private          $IRCBot;
+    const Manages = "Utsubot\\User";
 
-    /** @var $collection User[] */
-    protected $collection = [ ];
+    private          $IRCBot;
 
     protected static $customOperators = [ "on", "voice", "hop", "halfop", "op", "sop", "protect", "owner", "founder", "loggedIn" ];
 

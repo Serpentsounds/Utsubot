@@ -46,7 +46,7 @@ class MoveModule extends ModuleWithPokemon {
         $moveManager = new MoveManager();
         $moveManager->addPopulator(new VeekunDatabaseInterface());
         $moveManager->populate();
-        
+
         $this->registerManager("Move", $moveManager);
 
         //  Command triggers
@@ -92,10 +92,10 @@ class MoveModule extends ModuleWithPokemon {
         //  Change output based on switches
         switch ($switch) {
             case "verbose":
-                $return = $moveInfo->parseFormat(MoveInfoFormat::getVerboseFormat());
+                $return = $moveInfo->parseFormat(MoveInfoFormat::Verbose_Format);
                 break;
             case "contest":
-                $return = $moveInfo->parseFormat(MoveInfoFormat::getContestformat());
+                $return = $moveInfo->parseFormat(MoveInfoFormat::Contest_Format);
                 break;
         }
 

@@ -21,7 +21,7 @@ use Utsubot\Manager\{
  */
 class Channels extends Manager {
 
-    protected static $manages = "Utsubot\\Channel";
+    const Manages = "Utsubot\\Channel";
 
 
     /**

@@ -87,7 +87,7 @@ class ParameterParser {
     public function getValid(string $type, array $parameters, int $maxWords = 3) {
         $object  = null;
         $manager = $this->getManager($type);
-        $manages = $manager->getManages();
+        $manages = $manager::Manages;
 
         for ($words = 1; $words <= $maxWords; $words++) {
             //  Add 1 word at a time
@@ -100,7 +100,7 @@ class ParameterParser {
 
             //  No object and we've no words left to check
             elseif ($words == $maxWords)
-                throw new ParameterParserException("Unable to find a valid {$manager->getManages()}.");
+                throw new ParameterParserException("Unable to find a valid {$manages}.");
 
         }
 

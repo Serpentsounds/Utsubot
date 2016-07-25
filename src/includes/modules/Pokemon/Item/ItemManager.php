@@ -30,9 +30,9 @@ class ItemManagerException extends PokemonManagerBaseException {
  */
 class ItemManager extends PokemonManagerBase {
 
-    protected static $manages = "Utsubot\\Pokemon\\Item\\Item";
-
-    protected static $populatorMethod = "getItems";
+    const Manages = "Utsubot\\Pokemon\\Item\\Item";
+    const Populator_Method = "getItems";
+    const TypedArray_Class = "Utsubot\\Pokemon\\Items";
 
 
     /**

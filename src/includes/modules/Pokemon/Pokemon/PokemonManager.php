@@ -12,10 +12,7 @@ use Utsubot\Manager\{
     ManagerException
 };
 use Utsubot\Pokemon\{
-    PokemonManagerBase,
-    MethodInfo,
-    Stat,
-    Language
+    PokemonManagerBase, MethodInfo, Pokemons, Stat, Language
 };
 
 
@@ -36,10 +33,17 @@ class PokemonManagerException extends ManagerException {
  */
 class PokemonManager extends PokemonManagerBase {
 
-    protected static $manages         = "Utsubot\\Pokemon\\Pokemon\\Pokemon";
-    protected static $customOperators = [ "hasabl" ];
+    const Manages          = "Utsubot\\Pokemon\\Pokemon\\Pokemon";
+    const Populator_Method = "getPokemon";
+    const TypedArray_Class = "Utsubot\\Pokemon\\Pokemons";
 
-    protected static $populatorMethod = "getPokemon";
+
+    /**
+     * PokemonManager constructor.
+     */
+    public function __construct() {
+        parent::__construct();
+    }
 
 
     /**

@@ -103,7 +103,7 @@ class AbilityModule extends ModuleWithPokemon {
             //  Verbose mode, change format to be more descriptive
             case "v":
             case "verbose":
-                $return = $abilityInfo->parseFormat(AbilityInfoFormat::getVerboseFormat());
+                $return = $abilityInfo->parseFormat(AbilityInfoFormat::Verbose_Format);
                 break;
 
             //  Pokemon mode, replace return with list the pokemon that can obtain the ability

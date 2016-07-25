@@ -81,6 +81,11 @@ class Pokemon extends PokemonBase {
     private $baseHappiness = 0;
     private $isBaby        = false;
 
+    //  Pokemon Go Attributes
+    private $goCatchRate   = 0.0;
+    private $goFleeRate    = 0.0;
+    private $candyToEvolve = 0;
+
     //  Pokedex Fields
     private $dexNumbers = [ ];
     private $dexEntries = [ ];
@@ -274,18 +279,61 @@ class Pokemon extends PokemonBase {
 
 
     /**
+     * Get the base Stamina value in Pokemon Go
+     *
+     * @return int
+     */
+    public function getBaseGoStamina(): int {
+        return 2 * $this->getBaseStat(new Stat(Stat::HP));
+    }
+
+
+    /**
+     * Get the base Attack value in Pokemon Go
+     *
+     * @return int
+     */
+    public function getBaseGoAttack() {
+        return 2 * (int)round(
+            $this->getBaseStat(new Stat(Stat::Attack)) ** 0.5 *
+            $this->getBaseStat(new Stat(Stat::Special_Attack)) ** 0.5 +
+            $this->getBaseStat(new Stat(Stat::Speed)) ** 0.5
+        );
+    }
+
+
+    /**
+     * Get the base Defense value in Pokemon Go
+     *
+     * @return int
+     */
+    public function getBaseGoDefense() {
+        return 2 * (int)round(
+            $this->getBaseStat(new Stat(Stat::Defense)) ** 0.5 *
+            $this->getBaseStat(new Stat(Stat::Special_Defense)) ** 0.5 +
+            $this->getBaseStat(new Stat(Stat::Speed)) ** 0.5
+        );
+    }
+
+
+    /**
+     * Get the maximum possible CP for maxed trainer level and IVs
+     *
      * @return int
      */
     public function getMaxCP(): int {
-        $baseStamina = 2 * $this->baseStats[0];
-        $baseAttack = 2 * round(pow($this->baseStats[1], 0.5) * pow($this->baseStats[3], 0.5) + pow($this->baseStats[5], 0.5));
-        $baseDefense = 2 * round(pow($this->baseStats[2], 0.5) * pow($this->baseStats[4], 0.5) + pow($this->baseStats[5], 0.5));
+        $adjustedStamina = .7903 * ($this->getBaseGoStamina() + 15);
+        $adjustedAttack  = .7903 * ($this->getBaseGoAttack() + 15);
+        $adjustedDefense = .7903 * ($this->getBaseGoDefense() + 15);
 
-        $stamina = .7903 * ($baseStamina + 15);
-        $attack = .7903 * ($baseAttack + 15);
-        $defense = .7903 * ($baseDefense + 15);
-
-        return (int)max(10, floor(pow($stamina, 0.5) * $attack * pow($defense, 0.5) / 10));
+        return (int)max(
+            10, floor(
+                  $adjustedStamina ** 0.5 *
+                  $adjustedAttack *
+                  $adjustedDefense ** 0.5 /
+                  10
+              )
+        );
     }
 
 
@@ -426,6 +474,36 @@ class Pokemon extends PokemonBase {
      */
     public function getCatchRate(): int {
         return $this->catchRate;
+    }
+
+
+    /**
+     * Get the pokemon's base capture rate in Pokemon Go, which corresponds to a percentage
+     *
+     * @return float
+     */
+    public function getGoCatchRate(): float {
+        return $this->goCatchRate;
+    }
+
+
+    /**
+     * Get the pokemon's base flee rate in Pokemon Go, which corresponds to a percentage
+     *
+     * @return float
+     */
+    public function getGoFleeRate(): float {
+        return $this->goFleeRate;
+    }
+
+
+    /**
+     * Get the number of candy this pokemon requires to evolve in Pokemon Go
+     *
+     * @return int
+     */
+    public function getCandyToEvolve(): int {
+        return $this->candyToEvolve;
     }
 
 
@@ -751,6 +829,48 @@ class Pokemon extends PokemonBase {
             throw new PokemonException("Invalid catch rate '$catchRate'.");
 
         $this->catchRate = $catchRate;
+    }
+
+
+    /**
+     * Set the capture rate in Pokemon Go, which corresponds to a percentage
+     *
+     * @param float $goCatchRate
+     * @throws PokemonException
+     */
+    public function setGoCatchRate(float $goCatchRate) {
+        if ($goCatchRate < 0 || $goCatchRate > 1)
+            throw new PokemonException("Invalid Go catch rate '$goCatchRate'.");
+
+        $this->goCatchRate = $goCatchRate;
+    }
+
+
+    /**
+     * Set the flee rate in Pokemon Go, which corresponds to a percentage
+     *
+     * @param float $goFleeRate
+     * @throws PokemonException
+     */
+    public function setGoFleeRate(float $goFleeRate) {
+        if ($goFleeRate < 0 || $goFleeRate > 1)
+            throw new PokemonException("Invalid Go flee rate '$goFleeRate'.");
+
+        $this->goFleeRate = $goFleeRate;
+    }
+
+
+    /**
+     * Set the number of candy this pokemon requires to evolve in Pokemon Go
+     *
+     * @param int $candyToEvolve
+     * @throws PokemonException
+     */
+    public function setCandyToEvolve(int $candyToEvolve) {
+        if ($candyToEvolve < 0 || $candyToEvolve > 400)
+            throw new PokemonException("Invalid evolution candy requirement '$candyToEvolve'.");
+
+        $this->candyToEvolve = $candyToEvolve;
     }
 
 

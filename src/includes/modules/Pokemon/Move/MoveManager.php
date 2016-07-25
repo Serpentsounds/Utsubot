@@ -32,9 +32,9 @@ class MoveManagerException extends PokemonManagerBaseException {
  */
 class MoveManager extends PokemonManagerBase {
 
-    protected static $manages = "Utsubot\\Pokemon\\Move\\Move";
-
-    protected static $populatorMethod = "getMoves";
+    const Manages          = "Utsubot\\Pokemon\\Move\\Move";
+    const Populator_Method = "getMoves";
+    const TypedArray_Class = "Utsubot\\Pokemon\\Moves";
 
 
     /**
