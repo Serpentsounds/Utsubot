@@ -61,7 +61,7 @@ EOF;
 EOF;
 
     const GO_Format = <<<EOF
-[^Name^: {english}{/japanese}] [^Type^: {type1}{/type2}] {[^Stamina^: gosta]} {[^Attack^: goatk]} {[^Defense^: godef]} {[^Max CP^: maxCP]} {[^Level-up Candy^: candyToEvolve]}
+[^Name^: {english}{/japanese}] [^Type^: {type1}{/type2}] {[^Stamina^: gosta]} {[^Attack^: goatk]} {[^Defense^: godef]} {[^Max CP^: maxCP]} {[^Evolution Candy^: candyToEvolve]}
 {[^Catch Rate^: goCatchRate]} {[^Flee Rate^: goFleeRate]}
 EOF;
 
