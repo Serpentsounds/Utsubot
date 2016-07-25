@@ -255,7 +255,8 @@ EOF;
             case "goFleeRate":
                 $method = "get".ucfirst($field);
 
-                $return = ($this->object->{$method}() * 100)."%";
+                $value = $this->object->{$method}();
+                $return = ($value) ? ($value * 100)."%" : null;
                 break;
 
             case "species":
