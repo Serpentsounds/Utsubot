@@ -46,7 +46,7 @@ class PokemonSuiteException extends ModuleException {
  */
 class PokemonSuite extends ModuleWithPokemon {
 
-    const Modules = [ "Pokemon", "Ability", "Item", "Nature", "Move", "Types" ];
+    const Modules = [ "Pokemon", "Ability", "Item", "Nature", "Move", "Stats", "Types" ];
 
 
     /**

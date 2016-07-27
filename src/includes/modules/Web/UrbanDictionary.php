@@ -9,12 +9,14 @@ namespace Utsubot\Web;
 
 
 use Utsubot\Help\HelpEntry;
+use Utsubot\Util\UtilException;
 use Utsubot\{
     IRCBot,
     IRCMessage,
     Trigger
 };
 use function Utsubot\bold;
+use function Utsubot\Util\checkInt;
 
 
 /**
@@ -70,11 +72,13 @@ class UrbanDictionary extends WebModule {
         $number = 1;
         $copy   = $parameters;
         $last   = array_pop($copy);
+
         //  Match a trailing integer to ordinally cycle through definitions
-        if (!preg_match("/\\D+/", $last) && intval($last) > 0) {
-            $number     = intval($last);
+        try {
+            $number = checkInt($last);
             $parameters = $copy;
         }
+        catch (UtilException $e){}
 
         $this->respond($msg, $this->urbanDictionarySearch(implode(" ", $parameters), $number));
     }

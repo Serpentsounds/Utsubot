@@ -11,9 +11,7 @@ namespace Utsubot\Pokemon\Stats;
 
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
-    ModuleWithPokemon,
-    Stat,
-    Language
+    ModuleWithPokemon, ModuleWithPokemonException, Pokemon\Pokemon, Stat, Language
 };
 use Utsubot\{
     IRCBot,
@@ -24,7 +22,8 @@ use Utsubot\{
 use function Utsubot\{
     bold,
     colorText,
-    Pokemon\Types\colorType
+    Pokemon\Types\colorType,
+    Util\checkInt
 };
 
 
@@ -33,7 +32,7 @@ use function Utsubot\{
  *
  * @package Utsubot\Pokemon\Stats
  */
-class Stats extends ModuleWithPokemon {
+class StatsModule extends ModuleWithPokemon {
 
     /**
      * Stats constructor.
@@ -48,6 +47,8 @@ class Stats extends ModuleWithPokemon {
         $triggers[ 'phiddenpower' ]->addAlias("php");
 
         $triggers[ 'piv' ] = new Trigger("piv", [ $this, "calculateIVs" ]);
+
+        $triggers[ 'goiv' ] = new Trigger("goiv", [ $this, "goIV" ]);
 
         $triggers[ 'maxtobase' ] = new Trigger("maxtobase", [ $this, "baseMax" ]);
         $triggers[ 'maxtobase' ]->addAlias("mtob");
@@ -84,6 +85,13 @@ class Stats extends ModuleWithPokemon {
         );
         $help[ 'piv' ]->addNotes("If there are EVs in a stat, append them with :EVS. Example: Stat - 300, Stat with max EVs - 300:252.");
 
+        $help[ 'goiv' ] = new HelpEntry("Pokemon", $triggers[ 'goiv' ]);
+        $help[ 'goiv' ]->addParameterTextPair(
+            "POKEMON [powered] CP HP DUST_COST TRAINER_LEVEL",
+            "Perform a Pokemon GO IV calculation for the given parameters. Add the word 'powered' where shown if you have used stardust on the Pokemon, and fill in the rest of the values."
+        );
+        #$help[ 'goiv' ]->addNotes("Results are given in sets, formatted as [Level, Stamina, Attack, Defense].");
+
         $help[ 'maxtobase' ] = new HelpEntry("Pokemon", $triggers[ 'maxtobase' ]);
         $help[ 'maxtobase' ]->addParameterTextPair(
             "[-hp] [-level:LEVEL] VALUE",
@@ -116,8 +124,6 @@ class Stats extends ModuleWithPokemon {
      * @throws \Utsubot\ModuleException
      */
     public function baseMax(IRCMessage $msg) {
-        $this->_require("Utsubot\\Pokemon\\ParameterParser");
-
         $parser = new ParameterParser();
         $result = $parser->parseBaseMaxParameters($msg->getCommandParameters(), $msg->getCommand());
 
@@ -143,8 +149,6 @@ class Stats extends ModuleWithPokemon {
      * @throws \Utsubot\Pokemon\ModuleWithPokemonException
      */
     public function baseStat(IRCMessage $msg) {
-        $this->_require("Utsubot\\Pokemon\\ParameterParser");
-
         $parser = new ParameterParser();
         $parser->injectManager("Pokemon", $this->getOutsideManager("Pokemon"));
         $parser->injectManager("Nature", $this->getOutsideManager("Nature"));
@@ -193,8 +197,6 @@ class Stats extends ModuleWithPokemon {
      * @throws \Utsubot\Pokemon\ModuleWithPokemonException
      */
     public function calculateIVs(IRCMessage $msg) {
-        $this->_require("Utsubot\\Pokemon\\ParameterParser");
-
         $parser = new ParameterParser();
         $parser->injectManager("Pokemon", $this->getOutsideManager("Pokemon"));
         $parser->injectManager("Nature", $this->getOutsideManager("Nature"));
@@ -231,6 +233,65 @@ class Stats extends ModuleWithPokemon {
             bold($result->getPokemon()->getName(new Language(Language::English))),
             implode(" ", $output)
         ));
+    }
+
+
+    /**
+     * @param IRCMessage $msg
+     * @throws GOIVCalculatorException
+     * @throws ModuleWithPokemonException
+     * @throws ParameterParserException
+     * @throws \Utsubot\ModuleException
+     * @throws \Utsubot\Util\UtilException
+     */
+    public function goIV(IRCMessage $msg) {
+        $parameters     = $msg->getCommandParameters();
+        $pokemonManager = $this->getOutsideManager("pokemon");
+        $maxWords       = 3;
+        $object         = null;
+
+        for ($words = 1; $words <= $maxWords; $words++) {
+            try {
+                //  Add 1 word at a time
+                $name   = implode(" ", array_slice($parameters, 0, $words));
+                $object = $this->getObject($name, true, $pokemonManager)->offsetGet(0);
+
+                //  Object found
+                break;
+            }
+            catch (ModuleWithPokemonException $e) {
+                //  No object and we've no words left to check
+                if ($words == $maxWords)
+                    throw new ParameterParserException("Unable to find a valid Pokemon.");
+            }
+        }
+
+        //  Shave pokemon name off of front
+        $parameters = array_slice($parameters, $words);
+
+        //  Check for "powered" switch
+        $isPowered = false;
+        $copy      = $parameters;
+        $first     = array_shift($copy);
+        if ($first && strtolower($first) == "powered") {
+            $isPowered  = true;
+            $parameters = $copy;
+        }
+
+        //  Make sure all parameters are here
+        $this->requireParameters($msg, 4 + (int)$isPowered + $words);
+
+        //  Verify integrity of parameters
+        $CP           = checkInt($parameters[ 0 ]);
+        $HP           = checkInt($parameters[ 1 ]);
+        $dustCost     = checkInt($parameters[ 2 ]);
+        $trainerLevel = checkInt($parameters[ 3 ]);
+
+        /** @var Pokemon $object */
+        $calculator = new GOIVCalculator($object, $CP, $HP, $dustCost, $trainerLevel, $isPowered);
+        $calculator->calculate();
+
+        $this->respond($msg, $calculator->formatResults());
     }
 
 

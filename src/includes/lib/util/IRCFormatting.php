@@ -99,7 +99,7 @@ function colorText(string $text, Color $color, Color $background = null, bool $c
             "",
         $text,
         ($close) ?
-            "\x03" :
+            "\x0F" :
             ""
     );
 }

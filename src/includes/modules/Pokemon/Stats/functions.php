@@ -6,6 +6,8 @@
  */
 
 namespace Utsubot\Pokemon\Stats;
+use Utsubot\Pokemon\Pokemon\Pokemon;
+
 
 /**
  * Class StatCalculatorException
@@ -116,9 +118,9 @@ function getIVRange(int $baseStat, int $statValue, int $EV, int $level, float $n
     $IVRange = [ ];
 
     if ($statValue < calculateStat($baseStat, 0, $EV, $level, $natureModifier, $HP))
-        throw new StatCalculatorException("Stat value '$statValue' is too low for the given parameters.'", 0);
+        throw new StatCalculatorException("Stat value '$statValue' is too low for the given parameters.", 0);
     if ($statValue > calculateStat($baseStat, 31, $EV, $level, $natureModifier, $HP))
-        throw new StatCalculatorException("Stat value '$statValue' is too high for the given parameters.'", 1);
+        throw new StatCalculatorException("Stat value '$statValue' is too high for the given parameters.", 1);
 
     for ($IV = 0; $IV <= 31; $IV++) {
         //  Stat matches, this is an IV match

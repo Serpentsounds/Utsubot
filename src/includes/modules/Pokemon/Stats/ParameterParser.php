@@ -10,9 +10,13 @@ namespace Utsubot\Pokemon\Stats;
 
 
 use Utsubot\Manager\Manager;
+use Utsubot\Manager\ManagerException;
 use Utsubot\Pokemon\Language;
+use Utsubot\Pokemon\ModuleWithPokemonException;
 use Utsubot\Pokemon\Pokemon\Pokemon;
 use Utsubot\Pokemon\Nature\Nature;
+use Utsubot\Pokemon\PokemonManagerBase;
+use function Utsubot\Util\checkInt;
 
 
 /**
@@ -45,11 +49,11 @@ class ParameterParser {
      * @param Manager $manager
      * @throws ParameterParserException If the name and class don't match
      */
-    public function injectManager(string $name, Manager $manager) {
+    public function injectManager(string $name, PokemonManagerBase $manager) {
         //  Normalize name
         $name = ucfirst(strtolower($name));
 
-        $class = "Pokemon\\{$name}Manager";
+        $class = "\\Utsubot\\Pokemon\\$name\\{$name}Manager";
         if (!($manager instanceof $class))
             throw new ParameterParserException("Manager '$name' must be of class '$class'.");
 
@@ -64,7 +68,7 @@ class ParameterParser {
      * @return Manager
      * @throws ParameterParserException If specified manager hasn't been injected
      */
-    private function getManager(string $name): Manager {
+    private function getManager(string $name): PokemonManagerBase {
         //  Normalize name
         $name = ucfirst(strtolower($name));
 
@@ -90,18 +94,19 @@ class ParameterParser {
         $manages = $manager::Manages;
 
         for ($words = 1; $words <= $maxWords; $words++) {
-            //  Add 1 word at a time
-            $name   = implode(" ", array_slice($parameters, 0, $words));
-            $object = $manager->findFirst($name);
+            try {
+                //  Add 1 word at a time
+                $name   = implode(" ", array_slice($parameters, 0, $words));
+                $object = $manager->findFirst($name);
 
-            //  Object found
-            if ($object instanceof $manages)
+                //  Object found
                 break;
-
-            //  No object and we've no words left to check
-            elseif ($words == $maxWords)
-                throw new ParameterParserException("Unable to find a valid {$manages}.");
-
+            }
+            catch (ManagerException $e) {
+                //  No object and we've no words left to check
+                if ($words == $maxWords)
+                    throw new ParameterParserException("Unable to find a valid {$manages}.");
+            }
         }
 
         return $object;
@@ -126,10 +131,9 @@ class ParameterParser {
         if (count($parameters) < 8)
             throw new ParameterParserException("Not enough parameters.");
 
-        $level = array_shift($parameters);
-        if (!($level >= 1 && $level <= 100))
+        $level = checkInt(array_shift($parameters));
+        if ($level < 1 || $level > 100)
             throw new ParameterParserException("Invalid level.");
-        $level = intval($level);
 
         /** @var $nature Nature */
         $nature = $this->getValid("Nature", [ array_shift($parameters) ], 1);

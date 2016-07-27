@@ -16,8 +16,10 @@ use Utsubot\Help\{
     THelp
 };
 use Utsubot\Manager\ManagerException;
+use Utsubot\Util\UtilException;
 use Utsubot\ModuleException;
 use function Utsubot\bold;
+use function Utsubot\Util\checkInt;
 
 
 /**
@@ -102,12 +104,17 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
     /**
      * Pursue all search routes to get an item of this object's manager from user input
      *
-     * @param string $parameterString
-     * @param bool   $allowSpellcheck
+     * @param string             $parameterString
+     * @param bool               $allowSpellcheck
+     * @param PokemonManagerBase $manager Optionally inject an external manager to use, rather than the one saved by
+     *                                    the calling module
      * @return PokemonObjectResult
      * @throws ModuleWithPokemonException
      */
-    protected function getObject(string $parameterString, bool $allowSpellcheck = true): PokemonObjectResult {
+    protected function getObject(string $parameterString, bool $allowSpellcheck = true, PokemonManagerBase $manager = null): PokemonObjectResult {
+        if ($manager === null)
+            $manager = $this->getManager();
+
         $result    = new PokemonObjectResult();
         $firstWord = explode(" ", $parameterString)[ 0 ];
 
@@ -120,33 +127,35 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
                 switch ($mode) {
                     //  Attempt to grab item at an index
                     case 0:
-                        //  Make sure int was specified
-                        if (is_numeric($firstWord) && intval($firstWord) == $firstWord) {
+                        try {
+                            //  Make sure int was specified
+                            $search = checkInt($firstWord);
                             /** @var PokemonBase $item */
-                            $item = $this->getManager()->get(intval($firstWord));
+                            $item = $manager->get($search);
                             $result->append($item);
                         }
-                        //  Throw control to catch block to stay in loop
-                        else
+                            //  Throw control to catch block to stay in loop
+                        catch (UtilException $e) {
                             throw new ManagerException();
+                        }
                         break;
 
                     //  Attempt to match string to the name of a Pokemon
                     case 1:
                         /** @var PokemonBase $item */
-                        $item = $this->getManager()->findFirst($parameterString);
+                        $item = $manager->findFirst($parameterString);
                         $result->append($item);
                         break;
 
                     //  Attempt to spell check parameters vs. English names of Pokemon
                     case 2:
-                        $result->addItems($this->getManager()->jaroSearch($parameterString, new Language(Language::English)));
+                        $result->addItems($manager->jaroSearch($parameterString, new Language(Language::English)));
                         $result->jaroSort();
                         break;
 
                     //  Attempt to spell check parameters vs. names of Pokemon in all languages
                     case 3:
-                        $result->addItems($this->getManager()->jaroSearch($parameterString, new Language(Language::All)));
+                        $result->addItems($manager->jaroSearch($parameterString, new Language(Language::All)));
                         $result->jaroSort();
                         break;
 

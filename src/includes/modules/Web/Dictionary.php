@@ -8,10 +8,9 @@
 namespace Utsubot\Web;
 use Utsubot\Help\HelpEntry;
 use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger
+    IRCBot, IRCMessage, Trigger, Util\UtilException
 };
+use function Utsubot\Util\checkInt;
 use function Utsubot\{
     bold,
     italic
@@ -41,7 +40,7 @@ class Dictionary extends WebModule {
      */
     public function __construct(IRCBot $IRCBot) {
         parent::__construct($IRCBot);
-        
+
         //  Command triggers
         $dictionary = new Trigger("dictionary",     [$this, "dictionary"]);
         $dictionary->addAlias("dic");
@@ -49,12 +48,12 @@ class Dictionary extends WebModule {
         $dictionary->addAlias("def");
         $dictionary->addAlias("d");
         $this->addTrigger($dictionary);
-        
+
         //  Help entries
         $help = new HelpEntry("Web", $dictionary);
         $help->addParameterTextPair("WORD", "Look up the dictionary definition for WORD.");
         $this->addHelp($help);
-        
+
     }
 
     /**
@@ -72,11 +71,13 @@ class Dictionary extends WebModule {
         $number = 1;
         $copy = $parameters;
         $last = array_pop($copy);
+
         //  Match a trailing integer to ordinally cycle through definitions
-        if (!preg_match("/\\D+/", $last) && intval($last) > 0) {
-            $number = intval($last);
+        try {
+            $number = checkInt($last);
             $parameters = $copy;
         }
+        catch (UtilException $e){}
 
         $this->respond($msg, $this->dictionarySearch(implode(" ", $parameters), $number));
     }
