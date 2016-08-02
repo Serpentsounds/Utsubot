@@ -34,7 +34,7 @@ class ItemInfoFormat extends InfoFormat {
 
     const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
-        "xy", "bw", "bw2", "dp", "p", "hgss", "rs", "e", "frlg",
+        "xy", "bw", "bw2", "dp", "p", "hgss", "rs", "E", "frlg",
         "effect", "shortEffect",
         "cost",
         "flingPower", "flingEffect",
@@ -52,7 +52,7 @@ class ItemInfoFormat extends InfoFormat {
     public function __construct(Item $object) {
         parent::__construct($object);
     }
-    
+
 
     /**
      * @param string $field
@@ -110,7 +110,7 @@ class ItemInfoFormat extends InfoFormat {
             case "p":
             case "hgss":
             case "rs":
-            case "e":
+            case "E":
             case "frlg":
             case "c":
             case "gs":

@@ -12,7 +12,11 @@ use Utsubot\Manager\{
     ManagerException
 };
 use Utsubot\Pokemon\{
-    PokemonManagerBase, MethodInfo, Pokemons, Stat, Language
+    PokemonManagerBase,
+    MethodInfo,
+    MethodInfoWithParameters,
+    Stat,
+    Language
 };
 
 
@@ -48,10 +52,11 @@ class PokemonManager extends PokemonManagerBase {
 
     /**
      * @param string $field
+     * @param array $parameters
      * @return MethodInfo
      * @throws PokemonManagerException
      */
-    public function getMethodFor(string $field): MethodInfo {
+    public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
 
         switch (strtolower($field)) {
             case "id":
@@ -79,9 +84,33 @@ class PokemonManager extends PokemonManagerBase {
                 $return = new MethodInfo("getBaseStatTotal", [ ]);
                 break;
 
+            case "goattack":
+            case "goatk":
+                $return = new MethodInfo("getBaseGoAttack", [ ]);
+                break;
+
+            case "godefense":
+            case "godef":
+                $return = new MethodInfo("getBaseGoDefense", [ ]);
+                break;
+
+            case "gostamina":
+            case "gosta":
+                $return = new MethodInfo("getBaseGoStamina", [ ]);
+                break;
+
             case "maxcp":
             case "cp":
                 $return = new MethodInfo("getMaxCP", [ ]);
+                break;
+
+            case "hpev":
+            case "atkev":
+            case "defev":
+            case "spaev":
+            case "spdev":
+            case "speev":
+                $return = new MethodInfo("getEVYieldFor", [ Stat::fromName(substr($field, 0, -2)) ]);
                 break;
 
             case "name":
@@ -120,7 +149,7 @@ class PokemonManager extends PokemonManagerBase {
 
             case "hasabl":
             case "hasability":
-                $return = new MethodInfo("hasAbility", [ ]);
+                $return = new MethodInfoWithParameters("hasAbility", $parameters);
                 break;
 
             case "type1":
@@ -134,25 +163,110 @@ class PokemonManager extends PokemonManagerBase {
                 break;
 
             case "hastype":
-                $return = new MethodInfo("hasType", [ ]);
+                $return = new MethodInfoWithParameters("hasType", $parameters);
                 break;
 
             case "species":
-                $return = new MethodInfo("getSpecies", [ ]);
+                $return = new MethodInfo("getSpecies", [ new Language(Language::English) ]);
                 break;
 
             case "generation":
                 $return = new MethodInfo("getGeneration", [ ]);
                 break;
 
+            case "height":
+                $return = new MethodInfo("getHeight", [ ]);
+                break;
+
+            case "weight":
+                $return = new MethodInfo("getWeight", [ ]);
+                break;
+
+            case "color":
+                $return = new MethodInfo("getColor", [ ]);
+                break;
+
+            case "happiness":
+            case "basehappiness":
+                $return = new MethodInfo("getBaseHappiness", [ ]);
+                break;
+
+            case "hasegggroup":
+            case "egggroup":
+                $return = new MethodInfoWithParameters("hasEggGroup", $parameters);
+                break;
+
             case "baby":
                 $return = new MethodInfo("isBaby", [ ]);
                 break;
+
+            case "hasevo":
+                $return = new MethodInfo("hasEvo", [ ]);
+                break;
+
+            case "haspreevo":
+                $return = new MethodInfo("hasPreEvo", [ ]);
+                break;
+
+            case "exp":
+            case "baseexp":
+                $return = new MethodInfo("getBaseExp", [ ]);
+                break;
+
+            case "catchrate":
+            case "basecatchrate":
+            case "capturerate":
+            case "basecapturerate":
+                $return = new MethodInfo("getCatchRate", [ ]);
+                break;
+
+            case "gocatchrate":
+            case "gobasecatchrate":
+            case "gocapturerate":
+            case "gobasecapturerate":
+                $return = new MethodInfo("getGoCatchRate", [ ]);
+                break;
+
+            case "fleerate":
+            case "gofleerate":
+            case "flee":
+            case "goflee":
+                $return = new MethodInfo("getGoFleeRate", [ ]);
+                break;
+
+            case "candytoevolve":
+            case "gocandytoevolve":
+            case "candy":
+            case "gocandy":
+                $return = new MethodInfo("getCandyToEvolve", [ ]);
+                break;
+
+            case "genderratio":
+            case "ratiomale":
+                $return = new MethodInfo("getGenderRatio", [ ]);
+                break;
+
+            case "eggsteps":
+            case "stepstohatch":
+                $return = new MethodInfo("getEggSteps", [ ]);
+                break;
+
+            case "eggcycles":
+                $return = new MethodInfo("getEggCycles", [ ]);
+                break;
+
+            case "habitat":
+                $return = new MethodInfo("getHabitat", [ ]);
+                break;
+
+
 
             default:
                 throw new PokemonManagerException("Unsupported search field '$field'.");
                 break;
         }
+
+
 
         return $return;
     }

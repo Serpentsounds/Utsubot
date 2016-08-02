@@ -178,11 +178,15 @@ class PokemonSuite extends ModuleWithPokemon {
                     $value .= " ". substr($parameter, 0, $position);
 
                     //  Use the : operator to pass parameters to a function
-                    if ($operator == ":")
-                        $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), [ $value ], new Operator("=="), 1);
+                    if ($operator == ":") {
+                        $methodInfo = $manager->getMethodFor($field, [ $value ]);
+                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                    }
                     //  Default Criterion
-                    else
-                        $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                    else {
+                        $methodInfo = $manager->getMethodFor($field);
+                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                    }
 
                     $inParameter = false;
                 }
@@ -196,7 +200,6 @@ class PokemonSuite extends ModuleWithPokemon {
             else {
                 if (preg_match($regex, $parameter, $match)) {
                     $field = $match[1];
-                    $methodInfo = $manager->getMethodFor($field);
 
                     //  Comparison criterion
                     if (count($match) > 2) {
@@ -212,17 +215,23 @@ class PokemonSuite extends ModuleWithPokemon {
                         //  Single word parameter, create Criterion
                         else {
                             //  Use the : operator to pass parameters to a function
-                            if ($operator == ":")
-                                $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), [ $value ], new Operator("=="), 1);
+                            if ($operator == ":") {
+                                $methodInfo = $manager->getMethodFor($field, [ $value ]);
+                                $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                            }
                             //  Default Criterion
-                            else
-                                $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                            else {
+                                $methodInfo = $manager->getMethodFor($field);
+                                $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                            }
                         }
                     }
 
                     //  Boolean criterion, loose compare method result to 1 (true)
-                    else
-                        $criteria[ ] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                    else {
+                        $methodInfo = $manager->getMethodFor($field);
+                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                    }
                 }
 
                 //  Bad data

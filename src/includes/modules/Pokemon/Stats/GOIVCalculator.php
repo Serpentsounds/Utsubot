@@ -11,7 +11,10 @@ namespace Utsubot\Pokemon\Stats;
 
 use Utsubot\Color;
 use Utsubot\Pokemon\Pokemon\Pokemon;
-use function Utsubot\colorText;
+use function Utsubot\{
+    colorText,
+    terminate
+};
 
 
 /**
@@ -255,7 +258,7 @@ class GOIVCalculator {
         $results = [ ];
         $color   = new Color(Color::Teal);
         foreach ($this->results as $stats)
-            $results[] = colorText("[", $color).implode(", ", $stats).colorText("]", $color);
+            $results[] = terminate(colorText("[", $color, null, false)).implode(", ", $stats).colorText("]", $color);
 
         return "Possible results [Lvl, Sta, Atk, Def]: ".implode("; ", $results);
     }

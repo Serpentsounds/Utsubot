@@ -375,9 +375,9 @@ class IVStatParameterResult {
 
     /**
      * @param mixed $stat Stat name or index
-     * @return int Nature multiplier value, or -1 on failure
+     * @return float Nature multiplier value, or -1 on failure
      */
-    public function getNatureMultiplier($stat): int {
+    public function getNatureMultiplier($stat): float {
         $key = $this->getKey($stat);
 
         return $this->natureMultipliers[ $key ] ?? $key;

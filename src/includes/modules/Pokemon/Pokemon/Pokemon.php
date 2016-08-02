@@ -9,11 +9,7 @@ namespace Utsubot\Pokemon\Pokemon;
 
 
 use Utsubot\Pokemon\{
-    Language,
-    PokemonBase,
-    Stat,
-    Dex,
-    Version
+    Language, PokemonBase, Stat, Dex, Types\Type, Version
 };
 use function Utsubot\{
     bold,
@@ -423,6 +419,14 @@ class Pokemon extends PokemonBase {
 
 
     /**
+     * @return bool
+     */
+    public function hasEvo(): bool {
+        return (bool)count($this->evolutions);
+    }
+
+
+    /**
      * Get all evolutions as an array
      *
      * @return array
@@ -448,12 +452,20 @@ class Pokemon extends PokemonBase {
 
 
     /**
-     * Get all evolutions as an array
+     * Get all pre-evolutions as an array
      *
      * @return array
      */
     public function getPreEvolutions(): array {
         return $this->preEvolutions ?? [ ];
+    }
+
+    
+    /**
+     * @return bool
+     */
+    public function hasPreEvo(): bool {
+        return (bool)count($this->preEvolutions);
     }
 
 
@@ -629,6 +641,16 @@ class Pokemon extends PokemonBase {
     public function getEggGroups(): array {
         return $this->eggGroups;
     }
+
+
+    /**
+     * @param string $eggGroup
+     * @return bool
+     */
+    public function hasEggGroup(string $eggGroup): bool {
+        return (in_array(strtolower($eggGroup), array_map("strtolower", $this->eggGroups)));
+    }
+    
 
 
     /**

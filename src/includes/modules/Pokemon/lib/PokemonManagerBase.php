@@ -149,8 +149,9 @@ abstract class PokemonManagerBase extends Manager {
      * from the Manager's objects
      *
      * @param string $field
+     * @param array $parameters
      * @return MethodInfo
      */
-    abstract public function getMethodFor(string $field): MethodInfo;
+    abstract public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo;
 
 }

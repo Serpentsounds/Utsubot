@@ -30,7 +30,7 @@ class AbilityInfoFormat extends InfoFormat {
 
     const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
-        "xy", "bw", "bw2", "dp", "p", "hgss", "rs", "e", "frlg",
+        "xy", "bw", "bw2", "dp", "p", "hgss", "rs", "E", "frlg",
         "effect", "shortEffect",
         "generation"
     ];
@@ -84,7 +84,7 @@ class AbilityInfoFormat extends InfoFormat {
             case "p":
             case "hgss":
             case "rs":
-            case "e":
+            case "E":
             case "frlg":
                 try {
                     return $this->object->getText(Version::fromName($field), new Language(Language::English));

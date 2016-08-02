@@ -39,10 +39,11 @@ class MoveManager extends PokemonManagerBase {
 
     /**
      * @param string $field
+     * @param array $parameters
      * @return MethodInfo
      * @throws MoveManagerException
      */
-    public function getMethodFor(string $field): MethodInfo {
+    public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
         throw new MoveManagerException("Unsupported search field '$field'.");
         // TODO: Implement getMethodFor() method.
     }

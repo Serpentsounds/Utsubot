@@ -51,7 +51,7 @@ class MetaTier extends PokemonManagerBase {
         return $results;
     }
 
-    public function getMethodFor(string $field): MethodInfo {
+    public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
         throw new \Exception();
         // TODO: Implement getMethodFor() method.
     }

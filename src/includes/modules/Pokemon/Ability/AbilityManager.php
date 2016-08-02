@@ -37,10 +37,11 @@ class AbilityManager extends PokemonManagerBase {
 
     /**
      * @param string $field
+     * @param array $parameters
      * @return MethodInfo
      * @throws AbilityManagerException
      */
-    public function getMethodFor(string $field): MethodInfo {
+    public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
 
         switch ($field) {
 

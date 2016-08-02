@@ -37,10 +37,11 @@ class NatureManager extends PokemonManagerBase {
 
     /**
      * @param string $field
+     * @param array $parameters
      * @return MethodInfo
      * @throws NatureManagerException
      */
-    public function getMethodFor(string $field): MethodInfo {
+    public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
 
         switch ($field) {
             case "increases":
