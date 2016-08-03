@@ -15,8 +15,8 @@ namespace Utsubot\Pokemon;
 abstract class AbilityItemBase extends PokemonBase {
 
     private $text        = [ ];
-    private $effect      = [ ];
-    private $shortEffect = [ ];
+    private $effect      = "";
+    private $shortEffect = "";
 
 
     /**

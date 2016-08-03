@@ -87,12 +87,12 @@ class NatureModule extends ModuleWithPokemon {
             //  Validate both stats
             $increases = $decreases = null;
             foreach ($match as $set) {
-                $stat = new Stat(Stat::findValue($set[ 2 ]));
+                $stat = Stat::fromName($set[ 2 ]);
 
                 if ($set[ 1 ] == "+")
-                    $increases = Stat::findName($stat->getValue());
+                    $increases = $stat->getName();
                 elseif ($set[ 1 ] == "-")
-                    $decreases = Stat::findName($stat->getValue());
+                    $decreases = $stat->getName();
 
             }
 
@@ -100,12 +100,12 @@ class NatureModule extends ModuleWithPokemon {
                 throw new NatureModuleException("An increased and decreased stat must both be given.");
 
             $criteria = new SearchCriteria([
-                new SearchCriterion("getIncreases", [ ], new Operator("=="), $increases),
-                new SearchCriterion("getDecreases", [ ], new Operator("=="), $decreases),
+                new SearchCriterion("getIncreases", [ ], new Operator("=="), str_replace("_", " ", $increases)),
+                new SearchCriterion("getDecreases", [ ], new Operator("=="), str_replace("_", " ", $decreases))
             ]);
 
-            $nature = $this->getManager()->advancedSearch($criteria, new SearchMode(SearchMode::All), 1);
-            
+            $nature = $this->getManager()->advancedSearch($criteria, new SearchMode(SearchMode::All), 1)[0];
+
             if (!($nature instanceof Nature))
                 throw new NatureModuleException("Invalid nature.");
         }
