@@ -151,7 +151,45 @@ abstract class PokemonManagerBase extends Manager {
      * @param string $field
      * @param array $parameters
      * @return MethodInfo
+     * @throws PokemonManagerBaseException
      */
-    abstract public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo;
+     public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
+         switch (strtolower($field)) {
+             case "id":
+             case "pid":
+                 $return = new MethodInfo("getId", [ ]);
+                 break;
+
+             case "english":
+             case "romaji":
+             case "katakana":
+             case "french":
+             case "german":
+             case "korean":
+             case "italian":
+             case "chinese":
+             case "spanish":
+             case "czech":
+             case "official roomaji":
+             case "roumaji":
+             case "japanese":
+                 $return = new MethodInfo("getName", [ Language::fromName($field) ]);
+                 break;
+
+             case "name":
+                 $return = new MethodInfo("getName", [ new Language(Language::English) ]);
+                 break;
+
+             case "generation":
+                 $return = new MethodInfo("getGeneration", [ ]);
+                 break;
+
+             default:
+                 throw new PokemonManagerBaseException("Unsupported search field '$field'.");
+                 break;
+         }
+
+         return $return;
+     }
 
 }

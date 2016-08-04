@@ -49,12 +49,8 @@ class AbilityManager extends PokemonManagerBase {
                 $return = new MethodInfo("getEffect", [ ]);
                 break;
 
-            case "generation":
-                $return = new MethodInfo("getGeneration", [ ]);
-                break;
-
             default:
-                throw new AbilityManagerException("Unsupported search field '$field'.");
+                $return = parent::getMethodFor($field, $parameters);
                 break;
         }
 

@@ -62,31 +62,45 @@ class SearchCriterion {
 
         switch ($this->comparisonOperator->getValue()) {
 
-            //  Equality comparison
+            //  Equality comparisons
             case "=":
             case "==":
                 $return = $objectValue == $this->comparisonValue;
+
+                //  Case insensitive for strings
+                if (is_string($objectValue) && is_string($this->comparisonValue))
+                    $return = strtolower($objectValue) == strtolower($this->comparisonValue);
                 break;
+
             case "===":
                 $return = $objectValue === $this->comparisonValue;
                 break;
+
             case "!=":
                 $return = $objectValue != $this->comparisonValue;
+
+                //  Case insensitive for strings
+                if (is_string($objectValue) && is_string($this->comparisonValue))
+                    $return = strtolower($objectValue) != strtolower($this->comparisonValue);
                 break;
+
             case "!==":
                 $return = $objectValue !== $this->comparisonValue;
                 break;
 
-            //  Magnitude comparison
+            //  Magnitude comparisons
             case ">":
                 $return = $objectValue > $this->comparisonValue;
                 break;
+
             case ">=":
                 $return = $objectValue >= $this->comparisonValue;
                 break;
+
             case "<":
                 $return = $objectValue < $this->comparisonValue;
                 break;
+
             case "<=":
                 $return = $objectValue <= $this->comparisonValue;
                 break;

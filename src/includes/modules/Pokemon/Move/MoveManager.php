@@ -44,7 +44,50 @@ class MoveManager extends PokemonManagerBase {
      * @throws MoveManagerException
      */
     public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
-        throw new MoveManagerException("Unsupported search field '$field'.");
-        // TODO: Implement getMethodFor() method.
+
+        switch (strtolower($field)) {
+
+            case "pp":
+                $return = new MethodInfo("getPP", [ ]);
+                break;
+
+            case "power":
+            case "basepower":
+            case "bp":
+                $return = new MethodInfo("getPower", [ ]);
+                break;
+
+            case "accuracy":
+            case "acc":
+                $return = new MethodInfo("getAccuracy", [ ]);
+                break;
+
+            case "damagetype":
+            case "damage":
+                $return = new MethodInfo("getDamageType", [ ]);
+                break;
+
+            case "type":
+                $return = new MethodInfo("getType", [ ]);
+                break;
+
+            case "target":
+                $return = new MethodInfo("getTarget", [ ]);
+                break;
+
+            case "priority":
+                $return = new MethodInfo("getPriority", [ ]);
+                break;
+
+            case "effect":
+                $return = new MethodInfo("getEffect", [ ]);
+                break;
+
+            default:
+                $return = parent::getMethodFor($field, $parameters);
+                break;
+        }
+
+        return $return;
     }
 }

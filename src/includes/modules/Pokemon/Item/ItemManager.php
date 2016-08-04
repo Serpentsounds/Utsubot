@@ -42,6 +42,6 @@ class ItemManager extends PokemonManagerBase {
      * @throws ItemManagerException
      */
     public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
-        throw new ItemManagerException("Invalid search field '$field'.");
+        return parent::getMethodFor($field, $parameters);
     }
 }

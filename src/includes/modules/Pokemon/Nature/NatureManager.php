@@ -69,7 +69,7 @@ class NatureManager extends PokemonManagerBase {
                 break;
 
             default:
-                throw new NatureManagerException("Unsupported search field '$field'.");
+                $return = parent::getMethodFor($field, $parameters);
                 break;
         }
 

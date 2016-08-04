@@ -59,11 +59,6 @@ class PokemonManager extends PokemonManagerBase {
     public function getMethodFor(string $field, array $parameters = [ ]): MethodInfo {
 
         switch (strtolower($field)) {
-            case "id":
-            case "pid":
-                $return = new MethodInfo("getId", [ ]);
-                break;
-
             case "hp":
             case "hit points":
             case "atk":
@@ -113,26 +108,6 @@ class PokemonManager extends PokemonManagerBase {
                 $return = new MethodInfo("getEVYieldFor", [ Stat::fromName(substr($field, 0, -2)) ]);
                 break;
 
-            case "name":
-                $return = new MethodInfo("getName", [ new Language(Language::English) ]);
-                break;
-
-            case "english":
-            case "romaji":
-            case "katakana":
-            case "french":
-            case "german":
-            case "korean":
-            case "italian":
-            case "chinese":
-            case "spanish":
-            case "czech":
-            case "official roomaji":
-            case "roumaji":
-            case "japanese":
-                $return = new MethodInfo("getName", [ Language::fromName($field) ]);
-                break;
-
             case "ability1":
             case "ability2":
             case "ability3":
@@ -168,10 +143,6 @@ class PokemonManager extends PokemonManagerBase {
 
             case "species":
                 $return = new MethodInfo("getSpecies", [ new Language(Language::English) ]);
-                break;
-
-            case "generation":
-                $return = new MethodInfo("getGeneration", [ ]);
                 break;
 
             case "height":
@@ -259,10 +230,8 @@ class PokemonManager extends PokemonManagerBase {
                 $return = new MethodInfo("getHabitat", [ ]);
                 break;
 
-
-
             default:
-                throw new PokemonManagerException("Unsupported search field '$field'.");
+                $return = parent::getMethodFor($field, $parameters);
                 break;
         }
 

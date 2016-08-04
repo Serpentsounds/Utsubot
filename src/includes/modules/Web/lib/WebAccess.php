@@ -161,7 +161,7 @@ function stripHTML(string $html): string {
     $html = preg_replace_callback("/&#([0-9]{2,3});/i", function ($match) {
         return chr((int)($match[ 1 ]));
     }, $html);
-    $html = html_entity_decode($html, ENT_NOQUOTES, "UTF-8");
+    $html = html_entity_decode($html, ENT_QUOTES, "UTF-8");
     //  Condense extra space
     $html = mb_ereg_replace("\s+", " ", $html);
     $html = mb_ereg_replace("^\s+|\s+$", "", $html);
