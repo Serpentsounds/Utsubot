@@ -162,10 +162,10 @@ class PokemonSuite extends ModuleWithPokemon {
 
         //  Regex to parse user input
         $operatorGroup = implode("|", preg_replace("/([*?^$-.])/", "\\\\$1", $operators));
-        $regex = "/^([^<>*=!:]+)(?:($operatorGroup|:)(.+))?/";
-        $inParameter = false;
+        $regex = "/^(!)?([^<>*=!:]+)(?:($operatorGroup|:)(.+))?/";
         /** @var MethodInfo $methodInfo */
         $field = $operator = $value = $methodInfo = null;
+        $inParameter = $inverse = false;
         $criteria = new SearchCriteria();
 
         foreach ($parameters as $parameter) {
@@ -180,12 +180,12 @@ class PokemonSuite extends ModuleWithPokemon {
                     //  Use the : operator to pass parameters to a function
                     if ($operator == ":") {
                         $methodInfo = $manager->getMethodFor($field, [ $value ]);
-                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1, $inverse);
                     }
                     //  Default Criterion
                     else {
                         $methodInfo = $manager->getMethodFor($field);
-                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value, $inverse);
                     }
 
                     $inParameter = false;
@@ -199,11 +199,13 @@ class PokemonSuite extends ModuleWithPokemon {
             //  Look for a new parameter
             else {
                 if (preg_match($regex, $parameter, $match)) {
-                    $field = $match[1];
+                    //  If an exclamation point was matched first, mark this as an inverse parameter
+                    $inverse = (bool)strlen($match[1]);
+                    $field = $match[2];
 
                     //  Comparison criterion
-                    if (count($match) > 2) {
-                        list(,, $operator, $value) = $match;
+                    if (count($match) > 3) {
+                        list(,,, $operator, $value) = $match;
 
                         //  Quoted parameter, wait to grab the rest before creating Criterion
                         if (substr($value, 0, 1) == '"') {
@@ -217,12 +219,12 @@ class PokemonSuite extends ModuleWithPokemon {
                             //  Use the : operator to pass parameters to a function
                             if ($operator == ":") {
                                 $methodInfo = $manager->getMethodFor($field, [ $value ]);
-                                $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                                $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1, $inverse);
                             }
                             //  Default Criterion
                             else {
                                 $methodInfo = $manager->getMethodFor($field);
-                                $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value);
+                                $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator($operator), $value, $inverse);
                             }
                         }
                     }
@@ -230,7 +232,7 @@ class PokemonSuite extends ModuleWithPokemon {
                     //  Boolean criterion, loose compare method result to 1 (true)
                     else {
                         $methodInfo = $manager->getMethodFor($field);
-                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1);
+                        $criteria[] = new SearchCriterion($methodInfo->getMethod(), $methodInfo->getParameters(), new Operator("=="), 1, $inverse);
                     }
                 }
 

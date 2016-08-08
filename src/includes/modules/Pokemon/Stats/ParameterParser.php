@@ -192,14 +192,11 @@ class ParameterParser {
         if (!$parameters)
             throw new ParameterParserException("No base given.");
 
-        //  Stat must be a positive integer
-        if (!is_numeric($parameters[ 0 ]) || ($stat = intval($parameters[ 0 ])) != $parameters[ 0 ] || $stat < 0)
-            throw new ParameterParserException("Invalid stat value.");
-
         $HP     = false;
         $level  = 100;
         $match  = [ ];
         $switch = "";
+        $copy = $parameters;
         do {
             if ($switch) {
                 switch (strtolower($match[ 1 ])) {
@@ -214,10 +211,16 @@ class ParameterParser {
                         throw new ParameterParserException("Invalid switch '{$match[1]}'.");
                         break;
                 }
+
+                $parameters = $copy;
             }
 
-            $switch = array_shift($parameters);
+            $switch = array_shift($copy);
         } while (preg_match("/^-([^:]+)(?:\\:(.+))?/", $switch, $match));
+
+        //  Stat must be a positive integer
+        if (!is_numeric($parameters[ 0 ]) || ($stat = intval($parameters[ 0 ])) != $parameters[ 0 ] || $stat < 0)
+            throw new ParameterParserException("Invalid stat value.");
 
         switch ($command) {
             case "b2m":

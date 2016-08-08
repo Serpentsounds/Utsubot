@@ -28,6 +28,8 @@ class SearchCriterion {
     private $getMethod           = "";
     private $getMethodParameters = [ ];
 
+    private $inverse;
+
     /** @var Operator $comparisonOperator */
     private $comparisonOperator;
     private $comparisonValue;
@@ -40,13 +42,16 @@ class SearchCriterion {
      * @param array    $getMethodParameters
      * @param Operator $comparisonOperator
      * @param          $comparisonValue
+     * @param bool     $inverse
      */
-    public function __construct(string $getMethod, array $getMethodParameters, Operator $comparisonOperator, $comparisonValue) {
+    public function __construct(string $getMethod, array $getMethodParameters, Operator $comparisonOperator, $comparisonValue, bool $inverse = false) {
         $this->getMethod = $getMethod;
         $this->getMethodParameters = $getMethodParameters;
 
         $this->comparisonOperator = $comparisonOperator;
         $this->comparisonValue = $comparisonValue;
+
+        $this->inverse = $inverse;
     }
 
     /**
@@ -124,7 +129,12 @@ class SearchCriterion {
                 break;
         }
 
-        return (bool)$return;
+        //  Inverse criteria, check if it's NOT true
+        $return = (bool)$return;
+        if ($this->inverse)
+            $return = !$return;
+
+        return $return;
     }
 
 }

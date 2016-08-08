@@ -195,8 +195,8 @@ class Dictionary extends WebModule {
 
         return sprintf(
             "%s (%s): %s",
-            bold($term),
-            italic($partOfSpeech),
+            bold((string)$term),
+            italic((string)$partOfSpeech),
             implode("; ", array_filter($return))
         );
 

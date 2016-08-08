@@ -313,7 +313,7 @@ class StatsModule extends ModuleWithPokemon {
             $this->respond($msg, sprintf(
                 "Your hidden power is %s-type, with a base power of %s.",
                 bold(colorType($hiddenPower->getType())),
-                bold($hiddenPower->getPower())
+                bold((string)$hiddenPower->getPower())
             ));
         }
     }
