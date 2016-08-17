@@ -26,14 +26,14 @@ use function Utsubot\Pokemon\Types\colorType;
 class MoveInfoFormat extends InfoFormat {
 
     const Default_Format =
-        "[^Move^: {english}/{japanese}] [^Type^: {type}] [^Power^: {power}] [^Damage Type^: {damageType}] [^Accuracy^: {accuracy}] [^PP^: {pp}] [^Target^: {target}] [^Priority^: {priority}] [^Effect^: {shortEffect}]";
+        "[^Move^: {%english%}/{%japanese%}] [^Type^: {%type%}] [^Power^: {%power%}] [^Damage Type^: {%damageType%}] [^Accuracy^: {%accuracy%}] [^PP^: {%pp%}] [^Target^: {%target%}] [^Priority^: {%priority%}] [^Effect^: {%shortEffect%}]";
 
     const Verbose_Format =
-        "[^Move^: {english}/{japanese}] [^Type^: {type}] [^Power^: {power}] [^Damage Type^: {damageType}] [^Accuracy^: {accuracy}] [^PP^: {pp}] [^Target^: {target}] [^Priority^: {priority}] [^Effect^: {effect}]";
+        "[^Move^: {%english%}/{%japanese%}] [^Type^: {%type%}] [^Power^: {%power%}] [^Damage Type^: {%damageType%}] [^Accuracy^: {%accuracy%}] [^PP^: {%pp%}] [^Target^: {%target%}] [^Priority^: {%priority%}] [^Effect^: {%effect%}]";
 
     const Contest_Format = <<<EOF
-[^Move^: {english}/{japanese}] [^Type^: {contestType}] [^Appeal^: {contestAppeal}] [^Jam^: {contestJam}] [^Super Contest Appeal^: {superContestAppeal}] [^Effect^: {contestEffect}]
-[^Super Contest Effect^: {superContestFlavorText}]
+[^Move^: {%english%}/{%japanese%}] [^Type^: {%contestType%}] [^Appeal^: {%contestAppeal%}] [^Jam^: {%contestJam%}] [^Super Contest Appeal^: {%superContestAppeal%}] [^Effect^: {%contestEffect%}]
+[^Super Contest Effect^: {%superContestFlavorText%}]
 EOF;
 
     const Valid_Fields = [

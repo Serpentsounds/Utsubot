@@ -40,42 +40,42 @@ class PokemonInfoFormat extends InfoFormat {
     const Units_Both     = 3;
 
     const Default_Format = <<<EOF
-[^Name^: {english}{/japanese}] {[^Dex^: #national]} [^Type^: {type1}{/type2}] [^Abilities^: {ability1}{/ability2}{/ability3}]
-{[^Evolves from^: preevolution]} {[^Evolution^: evolution]}
-{[^Stats^: hpHP, atkAtk, defDef, spaSpA, spdSpD, speedSpe, totalTotal]}
+[^Name^: {%english%}{/%japanese%}] {[^Dex^: #%national%]} [^Type^: {%type1%}{/%type2%}] [^Abilities^: {%ability1%}{%/ability2}{%/ability3}]
+{[^Evolves from^: %preevolution%]} {[^Evolution^: %evolution%]}
+{[^Stats^: %hp%HP, %atk%Atk, %def%Def, %spa%SpA, %spd%SpD, %speed%Spe, %total%Total]}
 EOF;
 
     const Semantic_Format = <<<EOF
-[^Name^: {english}{/japanese}] {[^Species^: species]} {[^Color^: color]} {[^Habitat^: habitat]} [^Gender^: {male} Male/{female} Female]
-{[^Height^: height]} {[^Weight^: weight]} {[^EVs^: evs]} {[^Catch Rate^: catchRate]} {[^Base Exp^: baseExp]} {[^Base Happiness^: baseHappiness]} {[^Egg Group^: eggGroup]} {[^Egg Steps^: eggSteps]}
+[^Name^: {%english%}{/%japanese%}] {[^Species^: %species%]} {[^Color^: %color%]} {[^Habitat^: %habitat%]} [^Gender^: {%male%} Male/{%female%} Female]
+{[^Height^: %height%]} {[^Weight^: %weight%]} {[^EVs^: %evs%]} {[^Catch Rate^: %catchRate%]} {[^Base Exp^: %baseExp%]} {[^Base Happiness^: %baseHappiness%]} {[^Egg Group^: %eggGroup%]} {[^Egg Steps^: %eggSteps%]}
 EOF;
 
     const Names_Format = <<<EOF
-[^English^: {english}] [^Japanese^: {japanese} ({roumaji}{/officialroumaji})] {[^Spanish^: spanish]} {[^Italian^: italian]} {[^Korean^: korean]} {[^Chinese^: chinese]}
-{[^German^: german]} {[^French^: french]}
+[^English^: {%english%}] [^Japanese^: {%japanese%} ({%roumaji%}{/%officialroumaji%})] {[^Spanish^: %spanish%]} {[^Italian^: %italian%]} {[^Korean^: %korean%]} {[^Chinese^: %chinese%]}
+{[^German^: %german%]} {[^French^: %french%]}
 EOF;
 
     const Dexes_Format = <<<EOF
-[^Name^: {english}{/japanese}] {[^National^: national]} {[^Kanto^: kanto]} {[^Johto^: johto]} {[^Hoenn^: hoenn]} {[^Sinnoh^: sinnoh]} {[^Ext. Sinnoh^: extsinnoh]} {[^New Johto^: newjohto]}
-{[^Unova^: unova]} {[^New Unova^: newunova]} {[^Central Kalos^: centralkalos]} {[^Coastal Kalos^: coastalkalos]} {[^Mountain Kalos^: mountainkalos]} {[^New Hoenn^: newhoenn]}
+[^Name^: {%english%}{/%japanese%}] {[^National^: %national%]} {[^Kanto^: %kanto%]} {[^Johto^: %johto%]} {[^Hoenn^: %hoenn%]} {[^Sinnoh^: %sinnoh%]} {[^Ext. Sinnoh^: %extsinnoh%]} {[^New Johto^: %newjohto%]}
+{[^Unova^: %unova%]} {[^New Unova^: %newunova%]} {[^Central Kalos^: %centralkalos%]} {[^Coastal Kalos^: %coastalkalos%]} {[^Mountain Kalos^: %mountainkalos%]} {[^New Hoenn^: %newhoenn%]}
 EOF;
 
     const GO_Format = <<<EOF
-[^Name^: {english}{/japanese}] [^Type^: {type1}{/type2}] {[^Stamina^: gosta]} {[^Attack^: goatk]} {[^Defense^: godef]} {[^Max CP^: maxCP]} {[^Evolution Candy^: candyToEvolve]}
-{[^Catch Rate^: goCatchRate]} {[^Flee Rate^: goFleeRate]}
+[^Name^: {%english%}{/%japanese%}] [^Type^: {%type1%}{/%type2%}] {[^Stamina^: %gosta%]} {[^Attack^: %goatk%]} {[^Defense^: %godef%]} {[^Max CP^: %maxCP%]} {[^Evolution Candy^: %candyToEvolve%]}
+{[^Catch Rate^: %goCatchRate%]} {[^Flee Rate^: %goFleeRate%]}
 EOF;
 
     const Compare_Format = <<<EOF
-{english}%n
-{type1}{/type2}%n
-{hp}%n
-{atk}%n
-{def}%n
-{spa}%n
-{spd}%n
-{speed}%n
-{ability1}{/ability2}%n
-{ability3}
+{%english%}%n
+{%type1%}{/%type2%}%n
+{%hp%}%n
+{%atk%}%n
+{%def%}%n
+{%spa%}%n
+{%spd%}%n
+{%speed%}%n
+{%ability1%}{/%ability2%}%n
+{%ability3%}
 EOF;
 
     const Valid_Fields = [

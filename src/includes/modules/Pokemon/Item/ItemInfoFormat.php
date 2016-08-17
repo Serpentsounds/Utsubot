@@ -27,10 +27,10 @@ use function Utsubot\bold;
 class ItemInfoFormat extends InfoFormat {
 
     const Default_Format =
-        "[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {shortEffect}]";
+        "[^Item^: {%english%}/{%japanese%}] [^Cost^: {%cost%}] [^Category^: {%category%}{ (%pocket% Pocket)}] {[^Fling Power^: %flingPower%]} {[^Fling Effect^: %flingEffect%]} {[^Attributes^: %flags%]} {[^Effect^: %shortEffect%]}";
 
     const Verbose_Format =
-        "[^Item^: {english}/{japanese}] [^Cost^: {cost}] [^Category^: {category}{ (pocket Pocket)}] {[^Fling Power^: flingPower]} {[^Fling Effect^: flingEffect]} {[^Attributes^: flags]} [^Effect^: {effect}]";
+        "[^Item^: {%english%}/{%japanese%}] [^Cost^: {%cost%}] [^Category^: {%category%}{ (%pocket% Pocket)}] {[^Fling Power^: %flingPower%]} {[^Fling Effect^: %flingEffect%]} {[^Attributes^: %flags%]} {[^Effect^: %effect%]}";
 
     const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",

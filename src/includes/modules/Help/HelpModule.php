@@ -8,14 +8,8 @@
 namespace Utsubot\Help;
 
 use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    ModuleException,
-    Timers,
-    Timer
+    IRCBot, IRCMessage, Module, Trigger, ModuleException, Timers, Timer
 };
-use Utsubot\Permission\ModuleWithPermission;
 use function Utsubot\bold;
 
 
@@ -33,7 +27,7 @@ class HelpModuleException extends ModuleException {
  *
  * @package Utsubot\Help
  */
-class HelpModule extends ModuleWithPermission implements IHelp {
+class HelpModule extends Module implements IHelp {
 
     use THelp;
     use Timers;

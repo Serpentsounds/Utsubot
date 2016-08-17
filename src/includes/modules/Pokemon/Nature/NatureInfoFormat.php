@@ -25,7 +25,7 @@ use function Utsubot\bold;
 class NatureInfoFormat extends InfoFormat {
 
     const Default_Format =
-        "[^Nature^: {english}/{japanese}] [^Increases^: {increases}] [^Decreases^: {decreases}] [^Likes^: {likesFlavor}{ (likesAttr)}] [^Dislikes^: {dislikesFlavor}{ (dislikesAttr)}]";
+        "[^Nature^: {%english%}/{%japanese%}] [^Increases^: {%increases%}] [^Decreases^: {%decreases%}] [^Likes^: {%likesFlavor%}{ (%likesAttr%)}] [^Dislikes^: {%dislikesFlavor%}{ (%dislikesAttr%)}]";
 
     const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",

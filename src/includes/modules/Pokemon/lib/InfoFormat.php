@@ -75,7 +75,7 @@ abstract class InfoFormat {
                 foreach (static::Valid_Fields as $field) {
 
                     //  Require word boundary to avoid overlapping of parameters
-                    if (preg_match("/\\b$field/", $userField)) {
+                    if (preg_match("/%$field%/", $userField)) {
                         $fieldValue = $this->getField($field);
 
                         //  A value was successfully retrieved, so this {group} will be displayed
@@ -84,7 +84,7 @@ abstract class InfoFormat {
                             $fieldValue = $this->formatField($field, $fieldValue);
 
                             //  Again use a word boundary to prevent overlapping
-                            $userField = preg_replace("/\\b$field/", $fieldValue, $userField);
+                            $userField = preg_replace("/%$field%/", $fieldValue, $userField);
                         }
                     }
 

@@ -25,8 +25,8 @@ use function Utsubot\bold;
  */
 class AbilityInfoFormat extends InfoFormat {
 
-    const Default_Format = "[^Ability^: {english}/{japanese}] [^Generation^: {generation}] [^Effect^: {shortEffect}]";
-    const Verbose_Format = "[^Ability^: {english}/{japanese}] [^Generation^: {generation}] [^Effect^: {effect}]";
+    const Default_Format = "[^Ability^: {%english%}/{%japanese%}] [^Generation^: {%generation%}] [^Effect^: {%shortEffect%}]";
+    const Verbose_Format = "[^Ability^: {%english%}/{%japanese%}] [^Generation^: {%generation%}] [^Effect^: {%effect%}]";
 
     const Valid_Fields = [
         "english", "japanese", "roumaji", "german", "french", "spanish", "korean", "italian", "czech",
