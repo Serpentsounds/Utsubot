@@ -359,10 +359,17 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getSpecies() {
         return $this->query(
-            "SELECT ps.*, pc.identifier AS color, gr.identifier AS growth, phn.name AS habitat
-            FROM pokemon_species ps, pokemon_colors pc, growth_rates gr, pokemon_habitat_names phn
-            WHERE ((ps.habitat_id=phn.pokemon_habitat_id AND phn.local_language_id=9) OR ps.habitat_id IS NULL) AND ps.color_id=pc.id AND ps.growth_rate_id=gr.id
-            ORDER BY ps.id ASC"
+            'SELECT ps.*, pc.identifier AS color, gr.identifier AS growth, phn.name AS habitat
+            FROM pokemon_species AS ps
+            INNER JOIN pokemon_colors AS pc
+            ON ps.color_id=pc.id
+            INNER JOIN growth_rates AS gr
+            ON ps.growth_rate_id=gr.id
+            LEFT JOIN pokemon_habitat_names AS phn
+            ON ps.habitat_id=phn.pokemon_habitat_id            
+            WHERE phn.local_language_id=9
+            OR ps.habitat_id IS NULL
+            ORDER BY ps.id ASC'
         );
     }
 
@@ -372,10 +379,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getName() {
         return $this->query(
-            "SELECT ln.name AS `language`, psn.*
-            FROM language_names ln, pokemon_species_names psn
-            WHERE ln.local_language_id=9 AND ln.language_id=psn.local_language_id
-            ORDER BY psn.pokemon_species_id ASC"
+            'SELECT ln.name AS "language", psn.*
+            FROM language_names AS ln
+            INNER JOIN pokemon_species_names AS psn
+            ON ln.language_id=psn.local_language_id
+            WHERE ln.local_language_id=9
+            ORDER BY psn.pokemon_species_id ASC'
         );
     }
 
@@ -385,10 +394,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getEggGroup() {
         return $this->query(
-            "SELECT `egp`.`name`, `peg`.`species_id`
-            FROM `egg_group_prose` `egp`, `pokemon_egg_groups` `peg`
-            WHERE `peg`.`egg_group_id`=`egp`.`egg_group_id` AND `egp`.`local_language_id`=9
-            ORDER BY `peg`.`species_id` ASC"
+            'SELECT egp.name, peg.species_id
+            FROM egg_group_prose AS egp
+            INNER JOIN pokemon_egg_groups AS peg
+            ON peg.egg_group_id=egp.egg_group_id
+            WHERE egp.local_language_id=9
+            ORDER BY peg.species_id ASC'
         );
     }
 
@@ -398,9 +409,9 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getPokemonRow() {
         return $this->query(
-            "SELECT *
+            'SELECT *
             FROM pokemon
-            ORDER BY id ASC"
+            ORDER BY id ASC'
         );
     }
 
@@ -410,9 +421,9 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getAlt() {
         return $this->query(
-            "SELECT *
+            'SELECT *
             FROM pokemon_forms
-            ORDER BY pokemon_id ASC"
+            ORDER BY pokemon_id ASC'
         );
     }
 
@@ -422,10 +433,14 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getAltName() {
         return $this->query(
-            "SELECT ln.name AS `language`, pfn.form_name, pfn.pokemon_name, pf.pokemon_id, pf.form_order
-            FROM language_names ln, pokemon_form_names pfn, pokemon_forms pf
-            WHERE ln.local_language_id=9 AND ln.language_id=pfn.local_language_id AND pfn.pokemon_form_id=pf.id
-            ORDER BY pfn.pokemon_form_id ASC"
+            'SELECT ln.name AS "language", pfn.form_name, pfn.pokemon_name, pf.pokemon_id, pf.form_order
+            FROM language_names AS ln
+            INNER JOIN pokemon_form_names AS pfn
+            ON ln.language_id=pfn.local_language_id
+            INNER JOIN pokemon_forms AS pf
+            ON pfn.pokemon_form_id=pf.id            
+            WHERE ln.local_language_id=9 
+            ORDER BY pfn.pokemon_form_id ASC'
         );
     }
 
@@ -435,10 +450,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getDexnum() {
         return $this->query(
-            "SELECT pdn.species_id, pdn.pokedex_number, pp.name
-            FROM pokemon_dex_numbers pdn, pokedex_prose pp
-            WHERE pdn.pokedex_id=pp.pokedex_id AND pp.local_language_id=9
-            ORDER BY pdn.species_id ASC"
+            'SELECT pdn.species_id, pdn.pokedex_number, pp.name
+            FROM pokemon_dex_numbers AS pdn
+            INNER JOIN pokedex_prose AS pp
+            ON pdn.pokedex_id=pp.pokedex_id
+            WHERE pp.local_language_id=9
+            ORDER BY pdn.species_id ASC'
         );
     }
 
@@ -448,10 +465,14 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getEvolution() {
         return $this->query(
-            "SELECT ps.id AS evo, ps.evolves_from_species_id AS preevo, ps.evolution_chain_id, pe.*, pe.id AS entry, et.identifier AS method
-            FROM pokemon_species ps, pokemon_evolution pe, evolution_triggers et
-            WHERE ps.id=pe.evolved_species_id AND et.id=pe.evolution_trigger_id
-            ORDER BY evo ASC, pe.location_id ASC"
+            'SELECT ps.id AS evo, ps.evolves_from_species_id AS preevo, ps.evolution_chain_id,
+              pe.*, pe.id AS entry, et.identifier AS method
+            FROM pokemon_species AS ps
+            INNER JOIN pokemon_evolution AS pe
+            ON ps.id=pe.evolved_species_id
+            INNER JOIN evolution_triggers AS et
+            ON et.id=pe.evolution_trigger_id
+            ORDER BY evo ASC, pe.location_id ASC'
         );
     }
 
@@ -466,12 +487,16 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
             return false;
 
         if ($table == "location")
-            $query = "  SELECT ln.name AS `name`, l.region_id AS generation
-                        FROM location_names ln, locations l
-                        WHERE ln.location_id=l.id AND l.id=? AND ln.local_language_id=9
-                        LIMIT 1";
+            $query = '  SELECT ln.name AS name, l.region_id AS generation
+                        FROM location_names AS ln
+                        INNER JOIN locations AS l
+                        ON ln.location_id=l.id
+                        WHERE l.id=? AND ln.local_language_id=9';
         else
-            $query = "SELECT `name` FROM ${table}_names WHERE ${table}_id=? AND local_language_id=9 LIMIT 1";
+            $query = 'SELECT "name"
+                      FROM '.$table.'_names
+                      WHERE '.$table.'_id=?
+                      AND local_language_id=9';
 
         $res = $this->query($query, [ $id ]);
 
@@ -487,10 +512,11 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getPokemonType() {
         return $this->query(
-            "SELECT pt.*, t.identifier
-            FROM pokemon_types pt, types t
-            WHERE t.id=pt.type_id
-            ORDER BY pt.pokemon_id ASC"
+            'SELECT pt.*, t.identifier
+            FROM pokemon_types AS pt
+            INNER JOIN types AS t
+            ON t.id=pt.type_id
+            ORDER BY pt.pokemon_id ASC'
         );
     }
 
@@ -500,10 +526,11 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getPokemonStats() {
         return $this->query(
-            "SELECT ps.*, s.identifier
-            FROM pokemon_stats ps, stats s
-            WHERE s.id=ps.stat_id
-            ORDER BY ps.pokemon_id ASC"
+            'SELECT ps.*, s.identifier
+            FROM pokemon_stats AS ps
+            INNER JOIN stats AS s
+            ON s.id=ps.stat_id
+            ORDER BY ps.pokemon_id ASC'
         );
     }
 
@@ -513,10 +540,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getPokemonAbility() {
         return $this->query(
-            "SELECT pa.*, an.name
-            FROM pokemon_abilities pa, ability_names an
-            WHERE an.ability_id=pa.ability_id AND an.local_language_id=9
-            ORDER BY pa.pokemon_id ASC"
+            'SELECT pa.*, an.name
+            FROM pokemon_abilities AS pa
+            INNER JOIN ability_names AS an
+            ON an.ability_id=pa.ability_id 
+            WHERE an.local_language_id=9
+            ORDER BY pa.pokemon_id ASC'
         );
     }
 
@@ -526,10 +555,14 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getPokemonDexEntries() {
         return $this->query(
-            "SELECT ln.name AS `language`, vn.name AS version, psft.*
-            FROM language_names ln, pokemon_species_flavor_text psft, version_names vn
-            WHERE ln.language_id=psft.language_id AND ln.local_language_id=9 AND vn.version_id=psft.version_id AND vn.local_language_id=9
-            ORDER BY psft.species_id ASC"
+            'SELECT ln.name AS "language", vn.name AS version, psft.*
+            FROM pokemon_species_flavor_text AS psft
+            INNER JOIN language_names AS ln
+            ON ln.language_id=psft.language_id
+            INNER JOIN version_names AS vn
+            ON vn.version_id=psft.version_id
+            WHERE ln.local_language_id=9 AND vn.local_language_id=9
+            ORDER BY psft.species_id ASC'
         );
     }
 
@@ -586,10 +619,10 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getAbilityNames() {
         return $this->query(
-            "SELECT ln.name AS `language`, an.*, a.generation_id
+            'SELECT ln.name AS `language`, an.*, a.generation_id
             FROM language_names ln, ability_names an, abilities a
             WHERE an.ability_id=a.id AND a.is_main_series=1 AND ln.local_language_id=9 AND ln.language_id=an.local_language_id
-            ORDER BY an.ability_id ASC"
+            ORDER BY an.ability_id ASC'
         );
     }
 
@@ -599,10 +632,14 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getAbilityText() {
         return $this->query(
-            "SELECT ln.name AS `language`, aft.*, vg.identifier
-            FROM language_names ln, ability_flavor_text aft, version_groups vg
-            WHERE ln.local_language_id=9 AND ln.language_id=aft.language_id AND aft.version_group_id=vg.id
-            ORDER BY aft.ability_id ASC"
+            'SELECT ln.name AS "language", aft.*, vg.identifier
+            FROM ability_flavor_text AS aft
+            INNER JOIN version_groups AS vg
+            ON aft.version_group_id=vg.id
+            INNER JOIN language_names AS ln
+            ON ln.language_id=aft.language_id
+            WHERE ln.local_language_id=9 
+            ORDER BY aft.ability_id ASC'
         );
     }
 
@@ -635,10 +672,10 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getAbilityEffect() {
         return $this->query(
-            "SELECT *
+            'SELECT *
             FROM ability_prose
             WHERE local_language_id=9
-            ORDER BY ability_id ASC"
+            ORDER BY ability_id ASC'
         );
     }
 
@@ -711,11 +748,17 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getItemRow() {
         return $this->query(
-            "SELECT i.*, icp.name as category, ipn.item_pocket_id as pocket
-            FROM items i, item_category_prose icp, item_categories ic, item_pocket_names ipn
-            WHERE i.category_id=icp.item_category_id AND icp.local_language_id=9
-            AND i.category_id=ic.id AND ic.pocket_id=ipn.item_pocket_id AND ipn.local_language_id=9
-            ORDER BY i.id ASC"
+            'SELECT i.*, icp.name AS category, ipn.item_pocket_id AS pocket
+            FROM items AS i
+            INNER JOIN item_category_prose AS icp
+            ON i.category_id=icp.item_category_id
+            INNER JOIN item_categories AS ic
+            ON i.category_id=ic.id
+            INNER JOIN item_pocket_names AS ipn
+            ON ic.pocket_id=ipn.item_pocket_id
+            WHERE icp.local_language_id=9
+            AND ipn.local_language_id=9
+            ORDER BY i.id ASC'
         );
     }
 
@@ -725,10 +768,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getItemFling() {
         return $this->query(
-            "SELECT i.*, ifep.item_fling_effect_id as fling_effect
-            FROM items i, item_fling_effect_prose ifep
-            WHERE i.fling_effect_id=ifep.item_fling_effect_id AND ifep.local_language_id=9
-            ORDER BY i.id ASC"
+            'SELECT i.*, ifep.item_fling_effect_id AS fling_effect
+            FROM items AS i
+            INNER JOIN item_fling_effect_prose AS ifep
+            ON i.fling_effect_id=ifep.item_fling_effect_id 
+            WHERE ifep.local_language_id=9
+            ORDER BY i.id ASC'
         );
     }
 
@@ -738,10 +783,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getItemNames() {
         return $this->query(
-            "SELECT ln.name AS `language`, `in`.*
-            FROM language_names ln, item_names `in`
-            WHERE ln.local_language_id=9 AND ln.language_id=`in`.local_language_id
-            ORDER BY `in`.item_id ASC"
+            'SELECT ln.name AS "language", "in".*
+            FROM item_names AS "in"
+            INNER JOIN language_names AS ln
+            ON ln.language_id="in".local_language_id
+            WHERE ln.local_language_id=9
+            ORDER BY "in".item_id ASC'
         );
     }
 
@@ -751,10 +798,14 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getItemText() {
         return $this->query(
-            "SELECT ln.name AS `language`, ift.*, vg.identifier
-            FROM language_names ln, item_flavor_text ift, version_groups vg
-            WHERE ln.local_language_id=9 AND ln.language_id=ift.language_id AND ift.version_group_id=vg.id
-            ORDER BY ift.item_id ASC"
+            'SELECT ln.name AS "language", ift.*, vg.identifier
+            FROM item_flavor_text AS ift
+            INNER JOIN version_groups AS vg
+            ON ift.version_group_id=vg.id
+            INNER JOIN language_names AS ln
+            ON ln.language_id=ift.language_id
+            WHERE ln.local_language_id=9
+            ORDER BY ift.item_id ASC'
         );
     }
 
@@ -764,10 +815,10 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getItemEffect() {
         return $this->query(
-            "SELECT *
+            'SELECT *
             FROM item_prose
             WHERE local_language_id=9
-            ORDER BY item_id ASC"
+            ORDER BY item_id ASC'
         );
     }
 
@@ -777,10 +828,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getItemFlags() {
         return $this->query(
-            "SELECT ifm.item_id, ifp.name, ifp.description, ifp.item_flag_id
-            FROM item_flag_map ifm, item_flag_prose ifp
-            WHERE ifm.item_flag_id=ifp.item_flag_id AND ifp.local_language_id=9
-            ORDER BY ifm.item_flag_id ASC"
+            'SELECT ifm.item_id, ifp.name, ifp.description, ifp.item_flag_id
+            FROM item_flag_map AS ifm
+            INNER JOIN item_flag_prose AS ifp
+            ON ifm.item_flag_id=ifp.item_flag_id
+            WHERE ifp.local_language_id=9
+            ORDER BY ifm.item_flag_id ASC'
         );
     }
 
@@ -827,16 +880,22 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getNatureAttributes() {
         return $this->query(
-            "SELECT   `sn1`.`name` AS `increases`, `sn2`.`name` AS `decreases`, `ctn1`.`name` AS `likes`, `ctn2`.`name` AS `dislikes`,
-                      `ctn1`.`flavor` AS `likesFlavor`, `ctn2`.`flavor` AS `dislikesFlavor`, `n`.`id`
-                      
-            FROM      `stat_names` `sn1`, `stat_names` `sn2`, `contest_type_names` `ctn1`, `contest_type_names` `ctn2`, `natures` `n`
-            
-            WHERE     `sn1`.`local_language_id`=9 AND `sn2`.`local_language_id`=9 AND `ctn1`.`local_language_id`=9 AND `ctn2`.`local_language_id`=9 AND
-                      `sn1`.`stat_id`=`n`.`increased_stat_id` AND `sn2`.`stat_id`=`n`.`decreased_stat_id` AND
-                      `ctn1`.`contest_type_id`=`n`.`likes_flavor_id` AND `ctn2`.`contest_type_id`=`n`.`hates_flavor_id`
-                      
-            ORDER BY  `n`.`id` ASC"
+            'SELECT sn1.name AS increases, sn2.name AS decreases, ctn1.name AS likes, ctn2.name AS dislikes,
+                    ctn1.flavor AS likesFlavor, ctn2.flavor AS dislikesFlavor, n.id                      
+            FROM natures AS n            
+            INNER JOIN stat_names AS sn1
+            ON sn1.stat_id=n.increased_stat_id
+            INNER JOIN stat_names AS sn2 
+            ON sn2.stat_id=n.decreased_stat_id
+            INNER JOIN contest_type_names AS ctn1
+            ON ctn1.contest_type_id=n.likes_flavor_id
+            INNER JOIN contest_type_names AS ctn2
+            ON ctn2.contest_type_id=n.hates_flavor_id
+            WHERE sn1.local_language_id=9
+            AND sn2.local_language_id=9
+            AND ctn1.local_language_id=9
+            AND ctn2.local_language_id=9          
+            ORDER BY n.id ASC'
         );
     }
 
@@ -846,13 +905,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getNatureNames() {
         return $this->query(
-            "SELECT   `ln`.`name` AS `language`, `nn`.*
-
-            FROM      `language_names` `ln`, `nature_names` `nn`
-            
-            WHERE     `ln`.`local_language_id`=9 AND `ln`.`language_id`=`nn`.`local_language_id`
-            
-            ORDER BY  `nn`.`nature_id` ASC"
+            'SELECT ln.name AS "language", nn.*
+            FROM nature_names AS nn
+            INNER JOIN language_names AS ln
+            ON ln.language_id=nn.local_language_id            
+            WHERE ln.local_language_id=9            
+            ORDER BY nn.nature_id ASC'
         );
     }
 
@@ -941,13 +999,18 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getMoveRow() {
         return $this->query(
-            "SELECT    `m`.*, `t`.`identifier` AS `type`, `mdc`.`identifier` AS `damage`, `mt`.`identifier` AS `target`, `mep`.`effect`, `mep`.`short_effect`
-
-            FROM      `moves` `m`, `types` `t`, `move_damage_classes` `mdc`, `move_targets` `mt`, `move_effect_prose` `mep`
-            
-            WHERE    `m`.`type_id`=`t`.`id` AND `m`.`damage_class_id`=`mdc`.`id` AND `m`.`target_id`=`mt`.`id` AND `m`.`effect_id`=`mep`.`move_effect_id` AND `mep`.`local_language_id`=9
-            
-            ORDER BY  `m`.`id` ASC"
+            'SELECT m.*, t.identifier AS "type", mdc.identifier AS damage, mt.identifier AS target, mep.effect, mep.short_effect
+            FROM moves AS m
+            INNER JOIN types AS t
+            ON m.type_id=t.id
+            INNER JOIN move_damage_classes AS mdc
+            ON m.damage_class_id=mdc.id
+            INNER JOIN move_targets AS mt
+            ON m.target_id=mt.id
+            INNER JOIN move_effect_prose AS mep
+            ON m.effect_id = mep.move_effect_id
+            WHERE mep.local_language_id=9            
+            ORDER BY m.id ASC'
         );
     }
 
@@ -957,15 +1020,22 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getMoveContest() {
         return $this->query(
-            "SELECT    `m`.*, `ct`.`identifier` AS `contestType`, `ce`.`appeal` AS `contestAppeal`, `ce`.`jam`, `cep`.`flavor_text` AS `contestFlavor`, `cep`.`effect` AS `contestEffect`,
-                      `sce`.`appeal` AS `superContestAppeal`, `scep`.`flavor_text` AS `superContestFlavor`
-                      
-            FROM    `moves` `m`, `contest_types` `ct`, `contest_effects` `ce`, `contest_effect_prose` `cep`, `super_contest_effects` `sce`, `super_contest_effect_prose` `scep`
-            
-            WHERE    `m`.`contest_type_id`=`ct`.`id` AND `m`.`contest_effect_id`=`ce`.`id` AND `ce`.`id`=`cep`.`contest_effect_id` AND `cep`.`local_language_id`=9 AND
-                      `m`.`super_contest_effect_id`=`sce`.`id` AND `sce`.`id`=`scep`.`super_contest_effect_id` AND `scep`.`local_language_id`=9
-                      
-            ORDER BY  `m`.`id` ASC"
+            'SELECT m.*, ct.identifier AS contestType, ce.appeal AS contestAppeal, ce.jam, cep.flavor_text AS contestFlavor,
+                    cep.effect AS contestEffect, sce.appeal AS superContestAppeal, scep.flavor_text AS superContestFlavor                      
+            FROM moves AS m
+            INNER JOIN contest_types AS ct
+            ON m.contest_type_id=ct.id
+            INNER JOIN contest_effects AS ce
+            ON m.contest_effect_id=ce.id
+            INNER JOIN contest_effect_prose AS cep
+            ON ce.id=cep.contest_effect_id
+            INNER JOIN super_contest_effects AS sce
+            ON m.super_contest_effect_id=sce.id
+            INNER JOIN super_contest_effect_prose scep
+            ON sce.id=scep.super_contest_effect_id
+            WHERE cep.local_language_id=9
+            AND scep.local_language_id=9                      
+            ORDER BY m.id ASC'
         );
     }
 
@@ -975,13 +1045,12 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
      */
     public function getMovesNames() {
         return $this->query(
-            "SELECT   `ln`.`name` AS `language`, `mn`.*
-
-            FROM      `language_names` `ln`, `move_names` `mn`
-            
-            WHERE     `ln`.`local_language_id`=9 AND `ln`.`language_id`=`mn`.`local_language_id`
-            
-            ORDER BY  `mn`.`move_id` ASC"
+            'SELECT ln.name AS "language", mn.*
+            FROM move_names AS mn
+            INNER JOIN language_names AS ln
+            ON ln.language_id=mn.local_language_id
+            WHERE ln.local_language_id=9            
+            ORDER BY mn.move_id ASC'
         );
     }
 }
