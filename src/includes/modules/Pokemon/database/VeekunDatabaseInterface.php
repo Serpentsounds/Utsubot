@@ -15,8 +15,8 @@ use Utsubot\{
 use Utsubot\Pokemon\Pokemon\{
     Pokemon,
     Evolution,
-    Method,
-    Requirement
+    EvolutionMethod,
+    EvolutionRequirement
 };
 use Utsubot\Pokemon\Ability\Ability;
 use Utsubot\Pokemon\Item\Item;
@@ -207,16 +207,16 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
             $trigger = -1;
             switch ($row[ 'method' ]) {
                 case "level-up":
-                    $trigger = new Method(Method::Level_Up);
+                    $trigger = new EvolutionMethod(EvolutionMethod::Level_Up);
                     break;
                 case "trade":
-                    $trigger = new Method(Method::Trade);
+                    $trigger = new EvolutionMethod(EvolutionMethod::Trade);
                     break;
                 case "use-item":
-                    $trigger = new Method(Method::Use);
+                    $trigger = new EvolutionMethod(EvolutionMethod::Use);
                     break;
                 case "shed":
-                    $trigger = new Method(Method::Shed);
+                    $trigger = new EvolutionMethod(EvolutionMethod::Shed);
                     break;
             }
             $evolution->setMethod($trigger);
@@ -225,89 +225,89 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
                 if ($val) {
                     switch ($key) {
                         case "minimum_level":
-                            $evolution->addRequirement(new Requirement(Requirement::Level), $val);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Level), $val);
                             break;
                         case "gender_id":
-                            $evolution->addRequirement(new Requirement(Requirement::Gender), $genderIds[ $val ]);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Gender), $genderIds[ $val ]);
                             break;
                         case "time_of_day":
-                            $evolution->addRequirement(new Requirement(Requirement::Time), $val);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Time), $val);
                             break;
                         case "minimum_happiness":
-                            $evolution->addRequirement(new Requirement(Requirement::Happiness), $val);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Happiness), $val);
                             break;
                         case "minimum_beauty":
-                            $evolution->addRequirement(new Requirement(Requirement::Beauty), $val);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Beauty), $val);
                             break;
                         case "minimum_affection":
-                            $evolution->addRequirement(new Requirement(Requirement::Affection), $val);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Affection), $val);
                             break;
                         case "needs_overworld_rain":
-                            $evolution->addRequirement(new Requirement(Requirement::Rain), true);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Rain), true);
                             break;
                         case "turn_upside_down":
-                            $evolution->addRequirement(new Requirement(Requirement::Upside_Down), true);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Upside_Down), true);
                             break;
                         case "relative_physical_stats":
-                            $evolution->addRequirement(new Requirement(Requirement::Relative_Stats), $relativeStats[ $val ]);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Relative_Stats), $relativeStats[ $val ]);
                             break;
 
                         case "trigger_item_id":
                             $useItem = $val;
                             if ($itemRow = $this->getNameFromId("item", intval($val)))
                                 $useItem = $itemRow[ 'name' ];
-                            $evolution->addRequirement(new Requirement(Requirement::Use_Item), $useItem);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Use_Item), $useItem);
                             break;
 
                         case "location_id":
                             $location = $val;
                             if ($locationRow = $this->getNameFromId("location", intval($val))) {
                                 $location = $locationRow[ 'name' ];
-                                $evolution->addRequirement(new Requirement(Requirement::Generation), $locationRow[ 'generation' ]);
+                                $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Generation), $locationRow[ 'generation' ]);
                             }
-                            $evolution->addRequirement(new Requirement(Requirement::Location), $location);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Location), $location);
                             break;
 
                         case "held_item_id":
                             $holdItem = $val;
                             if ($itemRow = $this->getNameFromId("item", intval($val)))
                                 $holdItem = $itemRow[ 'name' ];
-                            $evolution->addRequirement(new Requirement(Requirement::Hold_Item), $holdItem);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Hold_Item), $holdItem);
                             break;
 
                         case "known_move_id":
                             $knowsMove = $val;
                             if ($moveRow = $this->getNameFromId("move", intval($val)))
                                 $knowsMove = $moveRow[ 'name' ];
-                            $evolution->addRequirement(new Requirement(Requirement::Knows_Move), $knowsMove);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Knows_Move), $knowsMove);
                             break;
 
                         case "known_move_type_id":
                             $knowsMoveType = $val;
                             if ($typeRow = $this->getNameFromId("type", intval($val)))
                                 $knowsMoveType = $typeRow[ 'name' ];
-                            $evolution->addRequirement(new Requirement(Requirement::Knows_Move_Type), $knowsMoveType);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Knows_Move_Type), $knowsMoveType);
                             break;
 
                         case "party_species_id":
                             $partyPokemon = $val;
                             if ($pokeRow = $this->getNameFromId("pokemon_species", intval($val)))
                                 $partyPokemon = $pokeRow[ 'name' ];
-                            $evolution->addRequirement(new Requirement(Requirement::Party_Pokemon), $partyPokemon);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Party_Pokemon), $partyPokemon);
                             break;
 
                         case "party_type_id":
                             $partyType = $val;
                             if ($typeRow = $this->getNameFromId("type", intval($val)))
                                 $partyType = $typeRow[ 'name' ];
-                            $evolution->addRequirement(new Requirement(Requirement::Party_Type), $partyType);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Party_Type), $partyType);
                             break;
 
                         case "trade_species_id":
                             $tradeFor = $val;
                             if ($pokeRow = $this->getNameFromId("pokemon_species", intval($val)))
                                 $tradeFor = $pokeRow[ 'name' ];
-                            $evolution->addRequirement(new Requirement(Requirement::Trade_For), $tradeFor);
+                            $evolution->addRequirement(new EvolutionRequirement(EvolutionRequirement::Trade_For), $tradeFor);
                             break;
                     }
                 }
@@ -1051,6 +1051,42 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
             ON ln.language_id=mn.local_language_id
             WHERE ln.local_language_id=9            
             ORDER BY mn.move_id ASC'
+        );
+    }
+
+
+    /**
+     * @param array $LearnedMoves
+     * @return array
+     */
+    public function getLearnedMoves(array $LearnedMoves): array {
+        /** @var LearnedMove[] $LearnedMoves */
+        $LearnedMoves = [ ];
+
+        $learnedMoveRow = $this->getLearnedMoveRows();
+        foreach ($learnedMoveRow as $row) {
+            $versionGroup = Version::fromName($row['version']);
+            $method = MoveMethod::fromName($row['method']);
+
+            $LearnedMoves[ ] = new LearnedMove($row['pokemon_id'], $row['move_id'], $versionGroup, $method, $row['level']);
+        }
+
+        return $LearnedMoves;
+
+    }
+
+    /**
+     * @return array
+     */
+    public function getLearnedMoveRows() {
+        return $this->query(
+            'SELECT pm.*, vg.identifier AS version, pmm.identifier AS method
+            FROM pokemon_moves AS pm
+            INNER JOIN version_groups AS vg
+            ON vg.id=pm.version_group_id
+            INNER JOIN pokemon_move_methods AS pmm
+            ON pmm.id=pm.pokemon_move_method_id
+            ORDER BY pm.pokemon_id ASC, pm.version_group_id ASC, move_id ASC, pokemon_move_method_id ASC'
         );
     }
 }

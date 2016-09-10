@@ -68,7 +68,7 @@ class Version extends Enum {
     const Col = self::Colosseum;
     const B2  = self::Black_2;
     const W2  = self::White_2;
-    const OR  = self:: Omega_Ruby;
+    const OR  = self::Omega_Ruby;
     const AS  = self::Alpha_Sapphire;
 
     const Red_Blue                  = 100;

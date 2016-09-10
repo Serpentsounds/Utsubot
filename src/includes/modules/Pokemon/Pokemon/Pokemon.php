@@ -7,7 +7,6 @@
 
 namespace Utsubot\Pokemon\Pokemon;
 
-
 use Utsubot\Pokemon\{
     Language, PokemonBase, Stat, Dex, Types\Type, Version
 };
@@ -64,6 +63,8 @@ class Pokemon extends PokemonBase {
     private $evolutions     = [ ];
     private $preEvolutions  = [ ];
     private $alternateForms = [ ];
+    /** @var Learned */
+    private $LearnedMoves   = null;
 
     //  Attributes
     private $baseStats     = [ 0, 0, 0, 0, 0, 0 ];
@@ -460,7 +461,7 @@ class Pokemon extends PokemonBase {
         return $this->preEvolutions ?? [ ];
     }
 
-    
+
     /**
      * @return bool
      */
@@ -650,7 +651,6 @@ class Pokemon extends PokemonBase {
     public function hasEggGroup(string $eggGroup): bool {
         return (in_array(strtolower($eggGroup), array_map("strtolower", $this->eggGroups)));
     }
-    
 
 
     /**

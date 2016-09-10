@@ -7,7 +7,6 @@
 
 namespace Utsubot\Pokemon\Nature;
 
-
 use Utsubot\Pokemon\{
     PokemonManagerBase, PokemonManagerBaseException, MethodInfo
 };
@@ -30,14 +29,14 @@ class NatureManagerException extends PokemonManagerBaseException {
  */
 class NatureManager extends PokemonManagerBase {
 
-    const Manages     = "Utsubot\\Pokemon\\Nature\\Nature";
+    const Manages          = "Utsubot\\Pokemon\\Nature\\Nature";
     const Populator_Method = "getNatures";
     const TypedArray_Class = "Utsubot\\Pokemon\\Natures";
 
 
     /**
      * @param string $field
-     * @param array $parameters
+     * @param array  $parameters
      * @return MethodInfo
      * @throws NatureManagerException
      */

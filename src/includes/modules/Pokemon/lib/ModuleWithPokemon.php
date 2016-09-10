@@ -66,7 +66,7 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
      *
      * @return array
      */
-    public function listManagers(): array {
+    public static function listManagers(): array {
         return array_keys(self::$managers);
     }
 

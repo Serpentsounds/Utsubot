@@ -12,11 +12,11 @@ use Utsubot\Enum;
 
 
 /**
- * Class Requirement
+ * Class EvolutionRequirement
  *
  * @package Utsubot\Pokemon\Pokemon
  */
-class Requirement extends Enum {
+class EvolutionRequirement extends Enum {
 
     const Level           = 1;
     const Gender          = 1 << 1;

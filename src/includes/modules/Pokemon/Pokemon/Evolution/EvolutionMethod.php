@@ -13,11 +13,11 @@ use Utsubot\Enum;
 
 
 /**
- * Class Method
+ * Class EvolutionMethod
  *
  * @package Utsubot\Pokemon\Pokemon
  */
-class Method extends Enum {
+class EvolutionMethod extends Enum {
 
     const Level_Up = 0;
     const Trade    = 1;

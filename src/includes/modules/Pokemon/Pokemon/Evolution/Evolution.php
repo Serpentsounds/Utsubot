@@ -28,7 +28,7 @@ class Evolution {
 
     protected $from;
     protected $to;
-    /** @var Method $method */
+    /** @var EvolutionMethod $method */
     protected $method;
     protected $requirement;
     protected $details;
@@ -52,10 +52,10 @@ class Evolution {
 
 
     /**
-     * @param Method $method
+     * @param EvolutionMethod $method
      * @throws EvolutionException
      */
-    public function setMethod(Method $method) {
+    public function setMethod(EvolutionMethod $method) {
         $this->method = $method;
     }
 
@@ -71,11 +71,11 @@ class Evolution {
     /**
      * Add a method requirement to the level up process
      *
-     * @param Requirement $requirement
-     * @param string $details
+     * @param EvolutionRequirement $requirement
+     * @param string               $details
      * @throws EvolutionException If given method doesn't match up to one of the method constants
      */
-    public function addRequirement(Requirement $requirement, $details) {
+    public function addRequirement(EvolutionRequirement $requirement, $details) {
         $value = $requirement->getValue();
         $this->requirement     = $this->requirement | $value;
         $this->details[$value] = $details;
@@ -90,14 +90,14 @@ class Evolution {
     public function format(): string {
         $output = [ ];
 
-        if ($this->method instanceof Method)
-            $output[ ] = Method::findName($this->method->getValue());
+        if ($this->method instanceof EvolutionMethod)
+            $output[ ] = EvolutionMethod::findName($this->method->getValue());
 
         //  Check each available requirement to see if it's included
         for ($binary = decbin($this->requirement), $length = strlen($binary), $i = 0; $i < $length; $i++) {
             if (intval($binary[$i])) {
                 $value = 1 << ($length - 1 - $i);
-                $display = (string)(new Requirement($value));
+                $display = (string)(new EvolutionRequirement($value));
 
                 //  Parameters to be filled
                 if (strpos($display, "%") !== false)

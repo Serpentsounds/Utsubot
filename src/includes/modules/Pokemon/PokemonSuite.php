@@ -96,7 +96,7 @@ class PokemonSuite extends ModuleWithPokemon {
         $parameters = $msg->getCommandParameters();
 
         //  Parse user-selected search category
-        $categories = $this->listManagers();
+        $categories = self::listManagers();
         $category   = strtolower(array_shift($parameters));
         if (!in_array($category, $categories))
             throw new PokemonSuiteException("Invalid search category '$category'. Valid categories are: ".implode(", ", $categories).".");

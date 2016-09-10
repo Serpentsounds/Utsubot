@@ -17,7 +17,7 @@ use Utsubot\Enum;
  * @method static Language fromName(string $name)
  */
 class Language extends Enum {
-    
+
     const English           = 0;
     const Japanese          = 1;
     const Official_roomaji  = 2;
@@ -30,4 +30,5 @@ class Language extends Enum {
     const Italian           = 8;
     const Czech             = 9;
     const All               = 10;
+    
 }
