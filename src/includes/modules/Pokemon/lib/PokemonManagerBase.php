@@ -106,7 +106,7 @@ abstract class PokemonManagerBase extends Manager {
      */
     protected function doPopulate(int $index) {
         $typedArrayClass = static::TypedArray_Class;
-        $typedArray = new $typedArrayClass($this->collection);
+        $typedArray = new $typedArrayClass($this->getCollection());
 
         $newCollection = call_user_func([ $this->populators[ $index ], static::Populator_Method ], $typedArray);
 
@@ -118,7 +118,7 @@ abstract class PokemonManagerBase extends Manager {
         if (!is_array($newCollection))
             throw new PokemonManagerBaseException("Populator method '".static::Populator_Method."' did not return an array.");
 
-        $this->collection = $newCollection;
+        $this->setCollection($newCollection);
     }
 
 
@@ -131,7 +131,7 @@ abstract class PokemonManagerBase extends Manager {
      * @throws ManagerException
      */
     public function jaroSearch(string $search, Language $language): array {
-        $filter = new JaroFilter(new \ArrayIterator($this->collection), $search, $language);
+        $filter = new JaroFilter(new \ArrayIterator($this->getCollection()), $search, $language);
 
         $return = [ ];
         foreach ($filter as $item)

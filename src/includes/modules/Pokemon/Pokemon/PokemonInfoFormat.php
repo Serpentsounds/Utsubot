@@ -202,13 +202,13 @@ EOF;
                 break;
             case "type1":
             case "type2":
-                $return = $this->object->getType(substr($field, -1) - 1);
+                $return = $this->object->getType((int)substr($field, -1) - 1);
                 break;
 
             case "ability1":
             case "ability2":
             case "ability3":
-                $return = $this->object->getAbility(substr($field, -1) - 1);
+                $return = $this->object->getAbility((int)substr($field, -1) - 1);
                 break;
 
             case "hp":

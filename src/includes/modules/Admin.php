@@ -98,7 +98,7 @@ class Admin extends ModuleWithPermission {
         $this->requireLevel($msg, 75);
         $this->requireParameters($msg, 1);
 
-        $this->IRCBot->join($msg->getCommandParameters());
+        $this->IRCBot->join($msg->getCommandParameterString());
     }
 
 

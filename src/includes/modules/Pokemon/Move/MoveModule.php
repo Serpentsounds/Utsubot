@@ -45,7 +45,7 @@ class MoveModule extends ModuleWithPokemon {
         //  Create and register manager with base module
         $moveManager = new MoveManager();
         $moveManager->addPopulator(new VeekunDatabaseInterface());
-        $moveManager->populate();
+        $this->outputPopulate($moveManager);
 
         $this->registerManager("Move", $moveManager);
 

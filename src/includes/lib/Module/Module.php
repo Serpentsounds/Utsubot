@@ -7,11 +7,9 @@
 
 namespace Utsubot;
 
-/**
- * Class ModuleException
- *
- * @package Utsubot
- */
+use function Utsubot\Util\getClassOnly;
+
+
 /**
  * Class ModuleException
  *
@@ -44,6 +42,7 @@ abstract class Module {
      */
     public function __construct(IRCBot $IRCBot) {
         $this->IRCBot = $IRCBot;
+        $this->status("Loading Module ". getClassOnly($this). "...");
     }
 
 
@@ -53,7 +52,7 @@ abstract class Module {
      * @param string $msg
      */
     protected function status(string $msg) {
-        $this->IRCBot->console(get_class($this).": $msg\n");
+        $this->IRCBot->console(getClassOnly($this).": $msg");
     }
 
 

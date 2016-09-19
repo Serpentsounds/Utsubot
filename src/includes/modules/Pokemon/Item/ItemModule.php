@@ -49,7 +49,7 @@ class ItemModule extends ModuleWithPokemon {
         //  Create and register manager with base module
         $itemManager = new ItemManager();
         $itemManager->addPopulator(new VeekunDatabaseInterface());
-        $itemManager->populate();
+        $this->outputPopulate($itemManager);
 
         $this->registerManager("Item", $itemManager);
 

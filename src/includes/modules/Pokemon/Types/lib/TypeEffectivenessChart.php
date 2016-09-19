@@ -26,6 +26,7 @@ class TypeChartException extends EnumException {}
  * Class TypeChart
  *
  * @package Utsubot\Pokemon\Types
+ * @method static TypeEffectivenessChart fromName(string $name)
  */
 class TypeEffectivenessChart extends Enum {
 

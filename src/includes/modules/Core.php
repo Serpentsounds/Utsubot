@@ -121,7 +121,7 @@ class Core extends Module {
         //  Remove user from channels userlist
         $channels = $this->IRCBot->getChannels();
         /** @var $allChannels Channel[] */
-        $allChannels = $channels->collection();
+        $allChannels = $channels->getCollection();
         foreach ($allChannels as $channel)
             $channel->part($user);
 

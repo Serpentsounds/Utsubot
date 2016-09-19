@@ -441,7 +441,7 @@ class TypesModule extends ModuleWithPokemon {
             $parameters[ $key ] = strtolower($type);
         }
 
-        $pokemonList         = $this->getOutsideManager("Pokemon")->collection();
+        $pokemonList         = $this->getOutsideManager("Pokemon")->getCollection();
         $requiredResistances = count($parameters);
         $resistingPokemon    = [ ];
 

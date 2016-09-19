@@ -53,7 +53,7 @@ class AbilityModule extends ModuleWithPokemon {
         $abilityManager = new AbilityManager();
         $abilityManager->addPopulator(new VeekunDatabaseInterface());
         $abilityManager->addPopulator(new Gen7DatabaseInterface());
-        $abilityManager->populate();
+        $this->outputPopulate($abilityManager);
 
         $this->registerManager("Ability", $abilityManager);
 

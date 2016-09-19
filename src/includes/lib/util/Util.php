@@ -29,3 +29,18 @@ function checkInt($check): int {
 
     return $intVal;
 }
+
+/**
+ * Get the name of a class without the namespace prefixing it
+ *
+ * @param $class
+ * @return string
+ * @throws UtilException
+ */
+function getClassOnly($class): string {
+    if (($className = get_class($class)) === false)
+        throw new UtilException("Unable to get class for '$class'.");
+
+    $parts = explode("\\", $className);
+    return $parts[count($parts) - 1];
+}

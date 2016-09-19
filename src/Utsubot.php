@@ -107,6 +107,8 @@ if (isset($config['modules'])) {
 }
 //  First basic module event
 $ircBot->sendToModules("startup");
+//  Initial time-delayed commands
+$ircBot->sendToModules("time", microtime(true));
 
 $connected = false;
 $lastData = $lastReconnect = $lastPing = time();

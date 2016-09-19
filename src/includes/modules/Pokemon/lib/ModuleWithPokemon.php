@@ -18,8 +18,10 @@ use Utsubot\Help\{
 use Utsubot\Manager\ManagerException;
 use Utsubot\Util\UtilException;
 use Utsubot\ModuleException;
-use function Utsubot\bold;
-use function Utsubot\Util\checkInt;
+use function Utsubot\Util\{
+    checkInt,
+    getClassOnly
+};
 
 
 /**
@@ -175,6 +177,19 @@ abstract class ModuleWithPokemon extends ModuleWithPermission implements IHelp {
             throw new ModuleWithPokemonException("No items matching '$parameterString' were found.");
 
         return $result;
+    }
+
+
+    /**
+     * Perform normal population after populators have been added, with additional status messages to the console
+     *
+     * @param PokemonManagerBase $manager
+     */
+    protected function outputPopulate(PokemonManagerBase $manager) {
+        $this->status("Populating ". getClassOnly($manager). "...");
+        $time = microtime(true);
+        $manager->populate();
+        $this->status("Done. (". (microtime(true) - $time). "s)");
     }
 
 }

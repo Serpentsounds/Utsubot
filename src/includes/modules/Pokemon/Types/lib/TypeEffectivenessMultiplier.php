@@ -14,6 +14,7 @@ use Utsubot\Enum;
  * Class TypeEffectivenessMultiplier
  *
  * @package Utsubot\Pokemon\Types
+ * @method static TypeEffectivenessMultiplier fromName(string $name)
  */
 class TypeEffectivenessMultiplier extends Enum {
 

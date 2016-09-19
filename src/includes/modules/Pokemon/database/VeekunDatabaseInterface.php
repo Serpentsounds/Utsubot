@@ -23,7 +23,6 @@ use Utsubot\Pokemon\Item\Item;
 use Utsubot\Pokemon\Nature\Nature;
 use Utsubot\Pokemon\Move\Move;
 
-
 /**
  * Class VeekunDatabaseInterfaceException
  *
@@ -39,6 +38,8 @@ class VeekunDatabaseInterfaceException extends DatabaseInterfaceException {
  * @package Utsubot\Pokemon
  */
 class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObjectPopulator {
+
+    private $learnedMovesStatement = null;
 
     /**
      * VeekunDatabaseInterface constructor.
@@ -1056,19 +1057,19 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
 
 
     /**
-     * @param array $LearnedMoves
-     * @return array
+     * @param Pokemon $pokemon
+     * @return LearnedMoves
      */
-    public function getLearnedMoves(array $LearnedMoves): array {
+    public function getLearnedMovesFor(Pokemon $pokemon): LearnedMoves {
         /** @var LearnedMove[] $LearnedMoves */
-        $LearnedMoves = [ ];
+        $LearnedMoves = new LearnedMoves();
 
-        $learnedMoveRow = $this->getLearnedMoveRows();
+        $learnedMoveRow = $this->getLearnedMoveRows($pokemon->getId());
         foreach ($learnedMoveRow as $row) {
             $versionGroup = Version::fromName($row['version']);
             $method = MoveMethod::fromName($row['method']);
 
-            $LearnedMoves[ ] = new LearnedMove($row['pokemon_id'], $row['move_id'], $versionGroup, $method, $row['level']);
+            $LearnedMoves->addItem(new LearnedMove($row['move_id'], $versionGroup, $method, $row['level']));
         }
 
         return $LearnedMoves;
@@ -1076,17 +1077,23 @@ class VeekunDatabaseInterface extends DatabaseInterface implements PokemonObject
     }
 
     /**
+     * @param int $pokemonID
      * @return array
      */
-    public function getLearnedMoveRows() {
-        return $this->query(
-            'SELECT pm.*, vg.identifier AS version, pmm.identifier AS method
+    public function getLearnedMoveRows(int $pokemonID) {
+        if ($this->learnedMovesStatement === null)
+            $this->learnedMovesStatement = $this->prepare(
+            "SELECT pm.*, vg.identifier AS version, pmm.identifier AS method
             FROM pokemon_moves AS pm
             INNER JOIN version_groups AS vg
             ON vg.id=pm.version_group_id
             INNER JOIN pokemon_move_methods AS pmm
             ON pmm.id=pm.pokemon_move_method_id
-            ORDER BY pm.pokemon_id ASC, pm.version_group_id ASC, move_id ASC, pokemon_move_method_id ASC'
+            WHERE pm.pokemon_id = ?
+            ORDER BY pm.pokemon_id ASC, pm.version_group_id ASC, move_id ASC, pokemon_move_method_id ASC"
         );
+
+        $this->learnedMovesStatement->execute([ $pokemonID ]);
+        return $this->learnedMovesStatement->fetchAll();
     }
 }

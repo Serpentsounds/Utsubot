@@ -14,6 +14,7 @@ use Utsubot\Enum;
  * Class Types
  *
  * @package Utsubot\Pokemon\Types
+ * @method static Type fromName(string $name)
  */
 class Type extends Enum {
 
@@ -39,8 +40,8 @@ class Type extends Enum {
 
     /**
      * Get the equivalent TypeChart object for this Type
-     * 
-*@return TypeEffectivenessChart
+     *
+     *@return TypeEffectivenessChart
      */
     public function toChart(): TypeEffectivenessChart {
         return TypeEffectivenessChart::fromName($this->getName());

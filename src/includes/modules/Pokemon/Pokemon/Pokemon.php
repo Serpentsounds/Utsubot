@@ -8,17 +8,9 @@
 namespace Utsubot\Pokemon\Pokemon;
 
 use Utsubot\Pokemon\{
-    Language, PokemonBase, Stat, Dex, Types\Type, Version
-};
-use function Utsubot\{
-    bold,
-    italic
+    Language, PokemonBase, Stat, Dex, Version, LearnedMoves
 };
 use Utsubot\Pokemon\PokemonBaseException;
-use function Utsubot\Pokemon\Types\{
-    isType,
-    hasChart
-};
 
 
 /**
@@ -63,7 +55,7 @@ class Pokemon extends PokemonBase {
     private $evolutions     = [ ];
     private $preEvolutions  = [ ];
     private $alternateForms = [ ];
-    /** @var Learned */
+    /** @var LearnedMoves $LearnedMoves */
     private $LearnedMoves   = null;
 
     //  Attributes
@@ -94,6 +86,13 @@ class Pokemon extends PokemonBase {
 
 
     /**
+     * Pokemon constructor.
+     */
+    public function __construct() {
+        $this->LearnedMoves = new LearnedMoves();
+    }
+
+    /**
      * @return string
      */
     public function __toString(): string {
@@ -118,6 +117,16 @@ class Pokemon extends PokemonBase {
 
         //  No match
         return false;
+    }
+
+
+    /**
+     * Get the LearnedMoves Manager which details the possible Moves a Pokemon can learn
+     *
+     * @return LearnedMoves
+     */
+    public function getLearnedMoves(): LearnedMoves {
+        return $this->LearnedMoves;
     }
 
 
@@ -650,6 +659,16 @@ class Pokemon extends PokemonBase {
      */
     public function hasEggGroup(string $eggGroup): bool {
         return (in_array(strtolower($eggGroup), array_map("strtolower", $this->eggGroups)));
+    }
+
+
+    /**
+     * Save a new LearnedMoves Manager
+     *
+     * @param LearnedMoves $LearnedMoves
+     */
+    public function setLearnedMoves(LearnedMoves $LearnedMoves) {
+        $this->LearnedMoves = $LearnedMoves;
     }
 
 

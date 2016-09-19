@@ -147,7 +147,7 @@ class Logger extends ModuleWithAccounts {
      * @return array An array of matching instances, where each element is an array containing command, user, and
      *               channel
      */
-    public function getLogs(string $command, int $user, string $channel): array {
+    public function getLogs(string $command = null, int $user = null, string $channel = null): array {
         $constraints = $parameters = [ ];
         //  Search for a command
         if (strlen($command)) {
@@ -228,7 +228,7 @@ class Logger extends ModuleWithAccounts {
                 if (!is_array($logs))
                     throw new LoggerException("You have no logs on record for '$cmd'.");
 
-                $this->respond($msg, $msg->getNick()." has used '$cmd' ".bold(count($logs))." times.");
+                $this->respond($msg, $msg->getNick()." has used '$cmd' ".bold((string)count($logs))." times.");
             }
 
             //  Public usage stats
@@ -236,7 +236,7 @@ class Logger extends ModuleWithAccounts {
                 if (!($users instanceof Users))
                     throw new LoggerException("Users module not loaded, unable to list usages.");
 
-                $logs = $this->getLogs($cmd, "", "");
+                $logs = $this->getLogs($cmd, null, null);
                 if (!$logs)
                     throw new LoggerException("There are no logs on record for '$cmd'.");
 
@@ -259,7 +259,7 @@ class Logger extends ModuleWithAccounts {
                         break;
                 }
 
-                $this->respond($msg, bold($cmd)." has been used ".bold(count($logs))." times.");
+                $this->respond($msg, bold($cmd)." has been used ".bold((string)count($logs))." times.");
                 //  There were some nick matching results
                 if (count($return))
                     $this->respond($msg, "Top online users: ".implode(", ", $return));

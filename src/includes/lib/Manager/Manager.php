@@ -22,13 +22,16 @@ class ManagerException extends \Exception {
  *
  * @package Utsubot
  */
-abstract class Manager {
+abstract class Manager implements \Iterator {
 
     const Manages = "";
 
     //  Holds the manager's collection of objects
-    protected $collection = [ ];
+    private $collection = [ ];
 
+    //  Used for Iterator implementation
+    protected $keys;
+    protected $position;
 
     /**
      * Manager constructor.
@@ -68,6 +71,7 @@ abstract class Manager {
         if (($key = array_search($item, $this->collection, true)) !== false) {
             unset($this->collection[ $key ]);
 
+            $this->keys = array_keys($this->collection);
             return $key;
         }
 
@@ -92,6 +96,7 @@ abstract class Manager {
         if (!$unique || !in_array($item, $this->collection, true)) {
             $this->collection[ $index ] = $item;
 
+            $this->keys = array_keys($this->collection);
             return $index;
         }
 
@@ -104,14 +109,29 @@ abstract class Manager {
      */
     public function normalize() {
         $this->collection = array_values($this->collection);
+        $this->keys = array_keys($this->collection);
     }
 
 
     /**
      * @return array All objects saved in this manager
      */
-    public function collection() {
+    public function getCollection() {
         return $this->collection;
+    }
+
+
+    /**
+     * Overwrite the collection with a brand new one
+     *
+     * @param array $collection
+     */
+    protected function setCollection(array $collection) {
+        $this->collection = [];
+
+        //  Add each item one by one to validate type compliance
+        foreach ($collection as $key => $value)
+            $this->setIndex($value, $key);
     }
 
 
@@ -191,6 +211,40 @@ abstract class Manager {
             throw new ManagerException("No results found for the given criteria in ".get_class($this).".");
 
         return $results;
+    }
+
+
+    /**
+     * @return mixed
+     */
+    public function current() {
+        return $this->collection[$this->keys[$this->position]];
+    }
+
+
+    /**
+     * @return integer
+     */
+    public function key() {
+        return $this->keys[$this->position];
+    }
+
+
+    public function next() {
+        $this->position++;
+    }
+
+
+    public function rewind() {
+        $this->position = 0;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function valid(): bool {
+        return isset($this->keys[$this->position]);
     }
 
 }

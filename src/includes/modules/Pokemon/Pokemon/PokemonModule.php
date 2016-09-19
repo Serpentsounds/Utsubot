@@ -11,13 +11,10 @@ namespace Utsubot\Pokemon\Pokemon;
 use Utsubot\Accounts\Setting;
 use Utsubot\Help\HelpEntry;
 use Utsubot\Pokemon\{
-    Gen7DatabaseInterface, ModuleWithPokemon, ModuleWithPokemonException, PokemonGoDatabaseInterface, VeekunDatabaseInterface, Version, Language
+    Gen7DatabaseInterface, LearnedMove, ModuleWithPokemon, ModuleWithPokemonException, PokemonGoDatabaseInterface, VeekunDatabaseInterface, Version, Language
 };
 use Utsubot\{
-    IRCBot,
-    IRCMessage,
-    Trigger,
-    Color
+    IRCBot, IRCMessage, Timers, Timer, Trigger, Color
 };
 use function Utsubot\{
     bold,
@@ -42,6 +39,8 @@ class PokemonModuleException extends ModuleWithPokemonException {
  */
 class PokemonModule extends ModuleWithPokemon {
 
+    use Timers;
+
     /**
      * PokemonModule constructor.
      *
@@ -55,7 +54,7 @@ class PokemonModule extends ModuleWithPokemon {
         $pokemonManager->addPopulator(new VeekunDatabaseInterface());
         $pokemonManager->addPopulator(new Gen7DatabaseInterface());
         $pokemonManager->addPopulator(new PokemonGoDatabaseInterface());
-        $pokemonManager->populate();
+        $this->outputPopulate($pokemonManager);
 
         $this->registerManager("Pokemon", $pokemonManager);
 
@@ -105,6 +104,35 @@ class PokemonModule extends ModuleWithPokemon {
 
         foreach ($help as $entry)
             $this->addHelp($entry);
+
+        //  Wait until MoveManager is guaranteed available before loading LearnedMoves
+        $this->addTimer(
+            new Timer(
+                0,
+                function () {
+                    $this->status("Loading Pokemon's learned Moves...");
+                    $time = microtime(true);
+
+                    $manager = $this->getManager();
+                    $interface = new VeekunDatabaseInterface();
+                    $MoveManager = $this->getOutsideManager("move");
+
+                    /** @var Pokemon $pokemon */
+                    foreach ($manager as $pokemon) {
+                        $LearnedMoves = $interface->getLearnedMovesFor($pokemon);
+
+                        /** @var LearnedMove $LearnedMove */
+                        foreach ($LearnedMoves as $LearnedMove)
+                            $LearnedMove->injectMove($MoveManager);
+
+                        $pokemon->setLearnedMoves($LearnedMoves);
+                    }
+
+                    $this->status("Done. (". (microtime(true) - $time). "s)");
+                },
+                [ ]
+            )
+        );
 
     }
 

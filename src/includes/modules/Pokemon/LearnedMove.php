@@ -6,13 +6,10 @@
  * Time: 5:58 AM
  */
 
-namespace Utsubot\Pokemon\Pokemon;
+namespace Utsubot\Pokemon;
 
 use Utsubot\Manager\Manageable;
 use Utsubot\Manager\ManagerException;
-use Utsubot\Pokemon\Version;
-use Utsubot\Pokemon\MoveMethod;
-use Utsubot\Pokemon\Move\Move;
 use Utsubot\Pokemon\Move\MoveManager;
 
 
@@ -89,18 +86,15 @@ class LearnedMove implements Manageable {
 
 
     /**
-     * @param PokemonManager $PokemonManager
      * @param MoveManager    $MoveManager
      * @throws LearnedMoveException
      */
-    public function inject(PokemonManager $PokemonManager, MoveManager $MoveManager) {
+    public function injectMove(MoveManager $MoveManager) {
         try {
-            $this->pokemon = $PokemonManager->get($this->pokemonID);
-            $this->move    = $MoveManager->get($this->moveID);
+            $this->move = $MoveManager->get($this->moveID);
         }
         catch (ManagerException $e) {
-            throw new LearnedMoveException(
-                "Unable to inject objects into LearnedMove. [Pokemon: {$this->pokemonID}, Move: {$this->moveID}]");
+            throw new LearnedMoveException("Unable to inject Move with ID {$this->moveID} into LearnedMove.");
         }
     }
 

@@ -13,7 +13,8 @@ use Utsubot\Color;
 use Utsubot\Pokemon\Pokemon\Pokemon;
 use function Utsubot\{
     colorText,
-    terminate
+    terminate,
+    bold
 };
 
 
@@ -257,10 +258,16 @@ class GOIVCalculator {
 
         $results = [ ];
         $color   = new Color(Color::Teal);
-        foreach ($this->results as $stats)
-            $results[] = terminate(colorText("[", $color, null, false)).implode(", ", $stats).colorText("]", $color);
+        foreach ($this->results as $combination)
+            @$results[ $combination[ 0 ] ][ ] = terminate(colorText("[", $color, null, false)).
+                                                implode(", ", array_slice($combination, 1)).
+                                                colorText("]", $color);
 
-        return "Possible results [Lvl, Sta, Atk, Def]: ".implode("; ", $results);
+        $output = [ ];
+        foreach ($results as $level => $stats)
+            $output[ ] = bold("Level ".$level). ": ". implode("; ", $stats);
+
+        return "Possible results [Sta, Atk, Def]:\n".implode("\n", $output);
     }
 
 

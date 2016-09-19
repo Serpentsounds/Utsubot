@@ -53,7 +53,7 @@ class NatureModule extends ModuleWithPokemon {
         //  Create and register manager with base module
         $natureManager = new NatureManager();
         $natureManager->addPopulator(new VeekunDatabaseInterface());
-        $natureManager->populate();
+        $this->outputPopulate($natureManager);
 
         $this->registerManager("Nature", $natureManager);
 
